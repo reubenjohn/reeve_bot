@@ -40,3 +40,9 @@ env/
 # OS
 .DS_Store
 Thumbs.db
+
+# Reeve-specific
+*.db
+*.db-journal
+.reeve/
+logs/
