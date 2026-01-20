@@ -164,7 +164,7 @@ class PulseDaemon:
             # Execute via PulseExecutor
             result = await self.executor.execute(
                 prompt=full_prompt,
-                session_link=pulse.session_link,
+                session_id=pulse.session_id,
                 working_dir=self.config["desk_path"]
             )
 
@@ -304,7 +304,7 @@ class PulseExecutor:
     async def execute(
         self,
         prompt: str,
-        session_link: Optional[str] = None,
+        session_id: Optional[str] = None,
         working_dir: Optional[str] = None
     ) -> dict:
         """
@@ -312,7 +312,7 @@ class PulseExecutor:
 
         Args:
             prompt: The instruction/context for Reeve
-            session_link: Optional session ID to resume
+            session_id: Optional session ID to resume
             working_dir: Override working directory (defaults to desk_path)
 
         Returns:
@@ -327,8 +327,8 @@ class PulseExecutor:
         cmd = [self.hapi_command, "run"]
 
         # Add session resume flag if provided
-        if session_link:
-            cmd.extend(["--resume", session_link])
+        if session_id:
+            cmd.extend(["--resume", session_id])
 
         # Add prompt
         cmd.extend(["--text", prompt])

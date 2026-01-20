@@ -103,17 +103,19 @@ async def schedule_pulse(
             ),
         )
     ] = "normal",
-    session_link: Annotated[
-        Optional[str],
+    resume_in_current_session: Annotated[
+        bool,
         Field(
             description=(
-                "Optional Hapi session ID or URL to resume existing context. "
-                "If provided, the pulse will continue an existing conversation rather than starting fresh.\n\n"
-                "Example: 'hapi://session/abc123' or just 'abc123'\n\n"
-                "Leave empty to create a new session (most common)."
+                "Whether to resume the pulse in the current session (default: False).\n\n"
+                "- False (default): The pulse starts a brand new session. Recommended for most use cases.\n"
+                "- True: The pulse resumes in the current session, injecting the prompt as if it were a new user message at the scheduled time.\n\n"
+                "WARNING: Setting this to True means the prompt will be injected into the current session context. "
+                "This is useful when there's rich context to preserve, but be careful - if the user advances the conversation, "
+                "the pulse prompt might not be relevant anymore."
             ),
         )
-    ] = None,
+    ] = False,
     sticky_notes: Annotated[
         Optional[list[str]],
         Field(
@@ -186,12 +188,21 @@ async def schedule_pulse(
     # Parse scheduled_at (handle relative times, keywords, etc.)
     parsed_time = _parse_time_string(scheduled_at)
 
+    # Determine session ID based on resume_in_current_session
+    session_id = None
+    if resume_in_current_session:
+        try:
+            session_id = ctx.session_id
+        except (RuntimeError, AttributeError):
+            # Session ID not available - fall back to new session
+            pass
+
     # Create the pulse
     pulse_id = await queue.schedule_pulse(
         scheduled_at=parsed_time,
         prompt=prompt,
         priority=PulsePriority(priority),
-        session_link=session_link,
+        session_id=session_id,
         sticky_notes=sticky_notes,
         tags=tags,
         created_by="reeve",

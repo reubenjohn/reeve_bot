@@ -45,7 +45,7 @@ class PulseExecutor:
     async def execute(
         self,
         prompt: str,
-        session_link: Optional[str] = None,
+        session_id: Optional[str] = None,
         working_dir: Optional[str] = None,
         timeout_override: Optional[int] = None,
     ) -> Dict[str, any]:
@@ -54,7 +54,7 @@ class PulseExecutor:
 
         Args:
             prompt: The instruction/context for Reeve (may include sticky notes)
-            session_link: Optional session ID to resume
+            session_id: Optional session ID to resume
             working_dir: Override working directory (defaults to desk_path)
             timeout_override: Override timeout for this specific execution
 
@@ -79,8 +79,8 @@ class PulseExecutor:
         cmd = [self.hapi_command, "run"]
 
         # Add session resume flag if provided
-        if session_link:
-            cmd.extend(["--resume", session_link])
+        if session_id:
+            cmd.extend(["--resume", session_id])
 
         # Add prompt
         cmd.extend(["--text", prompt])

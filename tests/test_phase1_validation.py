@@ -57,14 +57,14 @@ def test_pulse_model_with_optional_fields():
         prompt="Test pulse with options",
         priority=PulsePriority.HIGH,
         status=PulseStatus.PENDING,
-        session_link="https://example.com/session/123",
+        session_id="https://example.com/session/123",
         sticky_notes=["Remember to check email", "Follow up on PR"],
         tags=["test", "validation"],
         created_by="test_script",
         max_retries=5,
     )
 
-    assert pulse.session_link == "https://example.com/session/123"
+    assert pulse.session_id == "https://example.com/session/123"
     assert pulse.sticky_notes == ["Remember to check email", "Follow up on PR"]
     assert pulse.tags == ["test", "validation"]
     assert pulse.max_retries == 5

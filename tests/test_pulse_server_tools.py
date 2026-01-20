@@ -4,7 +4,7 @@ Tests for Pulse Server MCP Tools
 Tests the MCP tools provided by the Pulse Queue MCP server.
 """
 
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -27,8 +27,13 @@ class TestPulseQueueMCPTools:
         original_queue = pulse_server_module.queue
         pulse_server_module.queue = mock_queue
 
+        # Mock context
+        mock_ctx = MagicMock()
+        mock_ctx.session_id = "test-session-123"
+
         try:
             result = await schedule_pulse(
+                ctx=mock_ctx,
                 scheduled_at="in 2 hours",
                 prompt="Test pulse",
                 priority="normal",
@@ -58,8 +63,13 @@ class TestPulseQueueMCPTools:
         original_queue = pulse_server_module.queue
         pulse_server_module.queue = mock_queue
 
+        # Mock context
+        mock_ctx = MagicMock()
+        mock_ctx.session_id = "test-session-123"
+
         try:
             result = await schedule_pulse(
+                ctx=mock_ctx,
                 scheduled_at="invalid_time",
                 prompt="Test pulse",
                 priority="normal",
@@ -91,9 +101,14 @@ class TestPulseQueueMCPIntegration:
         original_queue = pulse_server_module.queue
         pulse_server_module.queue = queue
 
+        # Mock context
+        mock_ctx = MagicMock()
+        mock_ctx.session_id = "test-session-123"
+
         try:
             # Schedule a pulse
             result = await schedule_pulse(
+                ctx=mock_ctx,
                 scheduled_at="in 1 hour",
                 prompt="Integration test pulse",
                 priority="normal",

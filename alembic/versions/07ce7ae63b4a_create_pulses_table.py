@@ -26,7 +26,7 @@ def upgrade() -> None:
     sa.Column('scheduled_at', sa.DateTime(timezone=True), nullable=False, comment='When this pulse should execute (UTC timestamp)'),
     sa.Column('prompt', sa.Text(), nullable=False, comment='The instruction/context for Reeve when this pulse fires. This becomes the initial message in the Hapi session.'),
     sa.Column('priority', sa.Enum('CRITICAL', 'HIGH', 'NORMAL', 'LOW', 'DEFERRED', name='pulsepriority'), nullable=False, comment='Execution priority (determines order when multiple pulses are due)'),
-    sa.Column('session_link', sa.String(length=500), nullable=True, comment='Optional Hapi session ID or URL to resume existing context. If None, a new session is created.'),
+    sa.Column('session_id', sa.String(length=500), nullable=True, comment='Optional Hapi session ID to resume existing context. If None, a new session is created.'),
     sa.Column('sticky_notes', sa.JSON(), nullable=True, comment="Optional list of reminder strings to inject into the prompt. Example: ['Check if user replied to ski trip', 'Follow up on PR review']"),
     sa.Column('status', sa.Enum('PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'CANCELLED', name='pulsestatus'), nullable=False, comment='Current execution status of this pulse'),
     sa.Column('executed_at', sa.DateTime(timezone=True), nullable=True, comment='When this pulse actually executed (may differ from scheduled_at)'),

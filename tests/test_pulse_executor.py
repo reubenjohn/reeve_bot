@@ -108,7 +108,7 @@ async def test_execute_basic_success(executor, mock_desk):
 
 
 @pytest.mark.asyncio
-async def test_execute_with_session_link(executor, mock_desk):
+async def test_execute_with_session_id(executor, mock_desk):
     """Test execution with session resume."""
     mock_process = AsyncMock()
     mock_process.communicate = AsyncMock(return_value=(b"Resumed session", b""))
@@ -117,7 +117,7 @@ async def test_execute_with_session_link(executor, mock_desk):
     with patch("asyncio.create_subprocess_exec", return_value=mock_process) as mock_exec:
         result = await executor.execute(
             prompt="Continue work",
-            session_link="session-123",
+            session_id="session-123",
             working_dir=str(mock_desk),
         )
 
@@ -315,7 +315,7 @@ async def test_full_execution_flow(executor, mock_desk):
     with patch("asyncio.create_subprocess_exec", return_value=mock_process) as mock_exec:
         result = await executor.execute(
             prompt=full_prompt,
-            session_link="session-abc",
+            session_id="session-abc",
             working_dir=str(mock_desk),
         )
 

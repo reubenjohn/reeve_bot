@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(gh repo create:*)"
+      "Bash(gh repo create:*)",
+      "Bash(uv run alembic:*)"
     ]
   }
 }

@@ -56,7 +56,7 @@ class PulseQueue:
         scheduled_at: datetime,
         prompt: str,
         priority: PulsePriority = PulsePriority.NORMAL,
-        session_link: Optional[str] = None,
+        session_id: Optional[str] = None,
         sticky_notes: Optional[List[str]] = None,
         tags: Optional[List[str]] = None,
         created_by: str = "system",
@@ -69,7 +69,7 @@ class PulseQueue:
             scheduled_at: When to execute (UTC timezone-aware datetime)
             prompt: The instruction/context for Reeve
             priority: Urgency level (default: NORMAL)
-            session_link: Optional Hapi session to resume
+            session_id: Optional Hapi session ID to resume
             sticky_notes: Optional reminder strings to inject
             tags: Optional categorization tags
             created_by: Who created this pulse (for auditing)
@@ -91,7 +91,7 @@ class PulseQueue:
                 scheduled_at=scheduled_at,
                 prompt=prompt,
                 priority=priority,
-                session_link=session_link,
+                session_id=session_id,
                 sticky_notes=sticky_notes,
                 tags=tags,
                 created_by=created_by,
@@ -268,7 +268,7 @@ class PulseQueue:
                     scheduled_at=retry_at,
                     prompt=pulse.prompt,
                     priority=pulse.priority,
-                    session_link=pulse.session_link,
+                    session_id=pulse.session_id,
                     sticky_notes=pulse.sticky_notes,
                     tags=pulse.tags,
                     created_by=f"retry_{pulse.created_by}",

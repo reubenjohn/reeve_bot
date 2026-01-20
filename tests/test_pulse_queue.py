@@ -57,7 +57,7 @@ async def test_schedule_pulse_with_all_fields(queue):
         scheduled_at=now,
         prompt="Comprehensive test",
         priority=PulsePriority.HIGH,
-        session_link="https://hapi.example.com/session/123",
+        session_id="https://hapi.example.com/session/123",
         sticky_notes=["Remember to check email", "Follow up on PR"],
         tags=["urgent", "email"],
         created_by="test_suite",
@@ -65,7 +65,7 @@ async def test_schedule_pulse_with_all_fields(queue):
     )
 
     pulse = await queue.get_pulse(pulse_id)
-    assert pulse.session_link == "https://hapi.example.com/session/123"
+    assert pulse.session_id == "https://hapi.example.com/session/123"
     assert pulse.sticky_notes == ["Remember to check email", "Follow up on PR"]
     assert pulse.tags == ["urgent", "email"]
     assert pulse.created_by == "test_suite"

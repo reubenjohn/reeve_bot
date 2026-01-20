@@ -92,10 +92,10 @@ class Pulse(Base):
     )
 
     # Session Continuity (Optional)
-    session_link = Column(
+    session_id = Column(
         String(500),
         nullable=True,
-        comment="Optional Hapi session ID or URL to resume existing context. "
+        comment="Optional Hapi session ID to resume existing context. "
         "If None, a new session is created.",
     )
 
