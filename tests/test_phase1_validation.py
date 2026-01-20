@@ -9,8 +9,8 @@ Tests to verify that the foundation is working correctly:
 
 from datetime import datetime, timezone
 
-from reeve.pulse.models import Pulse
 from reeve.pulse.enums import PulsePriority, PulseStatus
+from reeve.pulse.models import Pulse
 
 
 def test_enums():
@@ -39,7 +39,7 @@ def test_pulse_model_creation():
         prompt="Test pulse",
         priority=PulsePriority.NORMAL,
         status=PulseStatus.PENDING,
-        created_by="test_script"
+        created_by="test_script",
     )
 
     assert pulse.prompt == "Test pulse"
@@ -61,7 +61,7 @@ def test_pulse_model_with_optional_fields():
         sticky_notes=["Remember to check email", "Follow up on PR"],
         tags=["test", "validation"],
         created_by="test_script",
-        max_retries=5
+        max_retries=5,
     )
 
     assert pulse.session_link == "https://example.com/session/123"
