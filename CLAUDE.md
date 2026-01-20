@@ -93,19 +93,73 @@ A **Pulse** is a scheduled wake-up event for Reeve. When a pulse fires, it launc
 - 1 Phase 2 integration test
 - 29 Phase 2 unit tests
 
-### 🔄 Next: Phase 3 - MCP Integration
+### ✅ Phase 3: MCP Integration - COMPLETED (Commit: TBD)
 
-**Goal**: Expose queue functionality to Reeve via MCP tools.
+**What's been implemented:**
+
+1. **Pulse Queue MCP Server** (`src/reeve/mcp/pulse_server.py`)
+   - Built with FastMCP (mcp.server.fastmcp)
+   - Four MCP tools:
+     - `schedule_pulse()` - Schedule new pulses with flexible time parsing
+     - `list_upcoming_pulses()` - View scheduled pulses with visual formatting
+     - `cancel_pulse()` - Cancel pending pulses
+     - `reschedule_pulse()` - Change pulse timing
+   - Helper functions:
+     - `_parse_time_string()` - Parse ISO 8601, relative times ("in 2 hours"), keywords ("now")
+     - `_priority_emoji()` - Visual priority indicators (🚨🔔⏰📋🕐)
+     - `_status_emoji()` - Visual status indicators (⏳⚙️✅❌🚫)
+   - Comprehensive parameter validation with Pydantic
+   - User-friendly error messages
+   - Clean output formatting with emojis and relative times
+
+2. **Telegram Notifier MCP Server** (`src/reeve/mcp/notification_server.py`)
+   - Built with FastMCP
+   - Two MCP tools:
+     - `send_notification()` - Send push notifications via Telegram
+     - `send_message_with_link()` - Send notifications with inline keyboard buttons
+   - Supports MarkdownV2, HTML, and plain text formatting
+   - Priority levels: silent, normal, critical
+   - Error handling for Telegram API failures
+
+3. **MCP Configuration**
+   - Example config: `mcp_config.json.example`
+   - Setup guide: `docs/MCP_SETUP.md`
+   - Instructions for obtaining Telegram bot token and chat ID
+   - Troubleshooting guide for common issues
+
+4. **Time Parsing**
+   - ISO 8601 format: "2026-01-20T09:00:00Z"
+   - Relative time: "in 2 hours", "in 30 minutes", "in 5 days"
+   - Keywords: "now" (immediate)
+   - Case-insensitive parsing
+   - UTC timezone-aware datetime handling
+
+5. **Test Suite** (`tests/test_mcp_servers.py`)
+   - 16 comprehensive tests:
+     - 9 time parsing tests (ISO, relative, keywords, edge cases)
+     - 2 emoji helper tests
+     - 2 pulse queue MCP tool tests
+     - 2 Telegram notifier tests
+     - 1 full integration test (schedule → list → cancel)
+   - All tests use async patterns
+   - Mock-based testing for external dependencies
+
+**Test Results**: 49/49 tests PASSED
+- 33 Phase 1-2 tests (unchanged)
+- 16 Phase 3 MCP tests (new)
+
+### 🔄 Next: Phase 4 - Pulse Executor
+
+**Goal**: Execute pulses by launching Hapi sessions.
 
 **Files to create:**
-- `src/reeve/mcp/pulse_server.py` - Pulse Queue MCP server
-- `src/reeve/mcp/notification_server.py` - Telegram Notifier MCP server
+- `src/reeve/pulse/executor.py` - PulseExecutor class
 
 **Key requirements:**
-- MCP tool definitions for scheduling, listing, canceling, and rescheduling pulses
-- Time parsing helper for flexible time expressions ("in 5 minutes", "tomorrow at 9am")
-- Telegram notification tools
-- MCP configuration for Claude Code
+- Launch Hapi subprocess with correct working directory
+- Handle sticky notes (prepend to prompt)
+- Capture stdout/stderr
+- Report success/failure
 
 ## Architecture Decisions
 
@@ -241,20 +295,27 @@ All public methods must have docstrings with:
 - `docs/04_DEPLOYMENT.md` - Production deployment (Phase 8)
 - `docs/IMPLEMENTATION_ROADMAP.md` - Full implementation plan
 
-### Implemented Files (Phases 1-2)
+### Implemented Files (Phases 1-3)
 - `src/reeve/pulse/enums.py` - Priority and status enums
 - `src/reeve/pulse/models.py` - Pulse SQLAlchemy model with TZDateTime
 - `src/reeve/pulse/queue.py` - PulseQueue class with async operations
 - `src/reeve/utils/config.py` - Configuration management
+- `src/reeve/mcp/pulse_server.py` - Pulse Queue MCP server (FastMCP)
+- `src/reeve/mcp/notification_server.py` - Telegram Notifier MCP server (FastMCP)
 - `alembic/versions/07ce7ae63b4a_create_pulses_table.py` - Initial migration
 - `tests/test_phase1_validation.py` - Phase 1 validation (3 tests)
 - `tests/test_phase2_validation.py` - Phase 2 integration test
 - `tests/test_pulse_queue.py` - Comprehensive queue unit tests (29 tests)
+- `tests/test_mcp_servers.py` - MCP server tests (16 tests)
+- `mcp_config.json.example` - Example MCP configuration for Claude Code
+- `docs/MCP_SETUP.md` - MCP server setup and troubleshooting guide
 - `pytest.ini` - Pytest configuration for async tests
 
-### To Be Implemented (Phase 3)
-- `src/reeve/mcp/pulse_server.py` - Pulse Queue MCP server
-- `src/reeve/mcp/notification_server.py` - Telegram Notifier MCP server
+### To Be Implemented (Phase 4+)
+- `src/reeve/pulse/executor.py` - Pulse executor (Hapi launcher)
+- `src/reeve/pulse/daemon.py` - Main daemon process
+- `src/reeve/api/server.py` - FastAPI HTTP server
+- `src/reeve/integrations/telegram.py` - Telegram listener
 
 ## Quick Start Commands
 
@@ -306,24 +367,23 @@ pulse = Pulse(
 
 ## Next Session Prompt
 
-When starting Phase 3, use this prompt:
+When starting Phase 4, use this prompt:
 
 ```
-I'm ready to implement Phase 3 (MCP Integration) for the Pulse Queue system.
+I'm ready to implement Phase 4 (Pulse Executor) for the Pulse Queue system.
 
 Please implement:
-1. Pulse Queue MCP server (src/reeve/mcp/pulse_server.py) with tools:
-   - schedule_pulse()
-   - list_upcoming_pulses()
-   - cancel_pulse()
-   - reschedule_pulse()
-2. Telegram Notifier MCP server (src/reeve/mcp/notification_server.py) with tools:
-   - send_notification()
-   - send_message_with_link()
-3. MCP configuration for Claude Code (~/.config/claude-code/mcp_config.json)
-4. Time parsing helper for flexible time expressions
+1. PulseExecutor class (src/reeve/pulse/executor.py) that:
+   - Launches Hapi subprocess with correct working directory
+   - Handles sticky notes (prepends them to the prompt)
+   - Captures stdout/stderr
+   - Reports success/failure
+   - Handles timeouts and crashes gracefully
+2. Unit tests with mocked Hapi command
+3. Test prompt building with sticky notes
+4. Test error handling (Hapi crash, timeout, etc.)
 
-Refer to docs/02_MCP_INTEGRATION.md for the complete MCP server specifications.
+Refer to docs/03_DAEMON_AND_API.md for the complete executor specifications.
 ```
 
 ## Design Principles
@@ -360,6 +420,7 @@ Current versions (from `uv.lock`):
 
 ---
 
-**Last Updated**: 2026-01-19 (after Phase 2 completion)
-**Current Commit**: 52eac4c
+**Last Updated**: 2026-01-19 (after Phase 3 completion)
+**Current Commit**: TBD (pending commit)
 **Current Migration**: 07ce7ae63b4a
+**Test Status**: 49/49 tests PASSED

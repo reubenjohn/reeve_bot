@@ -1,0 +1,33 @@
+{
+  "mcpServers": {
+    "pulse-queue": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "/home/reuben/workspace/reeve_bot",
+        "python",
+        "-m",
+        "reeve.mcp.pulse_server"
+      ],
+      "env": {
+        "PULSE_DB_PATH": "/home/reuben/.reeve/pulse_queue.db"
+      }
+    },
+    "telegram-notifier": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "/home/reuben/workspace/reeve_bot",
+        "python",
+        "-m",
+        "reeve.mcp.notification_server"
+      ],
+      "env": {
+        "TELEGRAM_BOT_TOKEN": "your_bot_token_here",
+        "TELEGRAM_CHAT_ID": "your_chat_id_here"
+      }
+    }
+  }
+}
