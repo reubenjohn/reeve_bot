@@ -146,7 +146,7 @@ A **Pulse** is a scheduled wake-up event for Reeve. When a pulse fires, it launc
 - 33 Phase 1-2 tests (unchanged)
 - 18 Phase 3 MCP tests (reorganized into 3 files)
 
-### ✅ Phase 4: Pulse Executor - COMPLETED (Commit: TBD)
+### ✅ Phase 4: Pulse Executor - COMPLETED (Commit: 5d7b2ab)
 
 **Goal**: Execute pulses by launching Hapi sessions.
 
@@ -482,6 +482,6 @@ Current versions (from `uv.lock`):
 ---
 
 **Last Updated**: 2026-01-19 (after Phase 4 completion)
-**Current Commit**: TBD
+**Current Commit**: 5d7b2ab
 **Current Migration**: 07ce7ae63b4a
 **Test Status**: 69/69 tests PASSED
