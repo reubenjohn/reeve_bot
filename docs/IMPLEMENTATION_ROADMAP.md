@@ -67,10 +67,10 @@ This document provides a step-by-step implementation guide for building the Puls
    - Verify: `sqlite3 ~/.reeve/pulse_queue.db .schema`
 
 **Deliverables**:
-- ✅ Clean project structure
-- ✅ Working database with `pulses` table
-- ✅ Type-safe enums
-- ✅ Alembic migrations working
+- ⌛ Clean project structure
+- ⌛ Working database with `pulses` table
+- ⌛ Type-safe enums
+- ⌛ Alembic migrations working
 
 **Validation**:
 ```python
@@ -122,9 +122,9 @@ print(f"Created: {pulse}")
    - Provide sensible defaults
 
 **Deliverables**:
-- ✅ Fully functional `PulseQueue` class
-- ✅ 100% test coverage for queue operations
-- ✅ Configuration management
+- ⌛ Fully functional `PulseQueue` class
+- ⌛ 100% test coverage for queue operations
+- ⌛ Configuration management
 
 **Validation**:
 ```python
@@ -193,9 +193,9 @@ asyncio.run(test())
    - Test error handling (invalid times, missing tokens, etc.)
 
 **Deliverables**:
-- ✅ Two working MCP servers
-- ✅ Type-safe tool definitions
-- ✅ Comprehensive documentation for Claude
+- ⌛ Two working MCP servers
+- ⌛ Type-safe tool definitions
+- ⌛ Comprehensive documentation for Claude
 
 **Validation**:
 ```bash
@@ -232,8 +232,8 @@ list_upcoming_pulses(limit=10)
    - Test error handling (Hapi crash, timeout, etc.)
 
 **Deliverables**:
-- ✅ Working executor that can launch Hapi
-- ✅ Tests with mocked Hapi
+- ⌛ Working executor that can launch Hapi
+- ⌛ Tests with mocked Hapi
 
 **Validation**:
 ```python
@@ -283,9 +283,9 @@ asyncio.run(test())
    - Verify database updates
 
 **Deliverables**:
-- ✅ Functional daemon process
-- ✅ Pulse execution working end-to-end
-- ✅ Proper logging
+- ⌛ Functional daemon process
+- ⌛ Pulse execution working end-to-end
+- ⌛ Proper logging
 
 **Validation**:
 ```bash
@@ -333,9 +333,9 @@ schedule_pulse(
    - Test authentication (valid/invalid tokens)
 
 **Deliverables**:
-- ✅ Working REST API
-- ✅ API runs alongside daemon
-- ✅ Token authentication working
+- ⌛ Working REST API
+- ⌛ API runs alongside daemon
+- ⌛ Token authentication working
 
 **Validation**:
 ```bash
@@ -384,9 +384,9 @@ curl -H "Authorization: Bearer your_token" \
    - Update documentation
 
 **Deliverables**:
-- ✅ Production-ready Telegram listener
-- ✅ End-to-end message flow working
-- ✅ Prototype deprecated
+- ⌛ Production-ready Telegram listener
+- ⌛ End-to-end message flow working
+- ⌛ Prototype deprecated
 
 **Validation**:
 ```bash
@@ -433,10 +433,10 @@ uv run python -m reeve.integrations.telegram
    - Document troubleshooting steps
 
 **Deliverables**:
-- ✅ Daemon running as systemd service
-- ✅ Telegram listener as systemd service
-- ✅ Monitoring and backups configured
-- ✅ Complete deployment documentation
+- ⌛ Daemon running as systemd service
+- ⌛ Telegram listener as systemd service
+- ⌛ Monitoring and backups configured
+- ⌛ Complete deployment documentation
 
 **Validation**:
 ```bash
@@ -484,10 +484,10 @@ sudo journalctl -u reeve-daemon -f
    - Test database recovery after crash
 
 **Deliverables**:
-- ✅ Comprehensive test suite
-- ✅ Performance benchmarks
-- ✅ Updated documentation
-- ✅ Hardened error handling
+- ⌛ Comprehensive test suite
+- ⌛ Performance benchmarks
+- ⌛ Updated documentation
+- ⌛ Hardened error handling
 
 ---
 
@@ -495,29 +495,29 @@ sudo journalctl -u reeve-daemon -f
 
 The Pulse Queue system is complete when:
 
-1. ✅ **Reeve can schedule its own wake-ups**
+1. ⌛ **Reeve can schedule its own wake-ups**
    - MCP tools work from Claude Code
    - Pulses execute at correct times
    - Session resumption works
 
-2. ✅ **External events trigger Reeve**
+2. ⌛ **External events trigger Reeve**
    - Telegram messages → immediate pulses
    - HTTP API accessible to other integrations
    - Authentication enforced
 
-3. ✅ **Production-ready**
+3. ⌛ **Production-ready**
    - Runs as systemd service
    - Automatic restarts on crash
    - Logs rotated and monitored
    - Database backed up daily
 
-4. ✅ **Documented**
+4. ⌛ **Documented**
    - Implementation guide complete
    - Deployment guide complete
    - Troubleshooting guide complete
    - Code well-commented
 
-5. ✅ **Tested**
+5. ⌛ **Tested**
    - Unit tests for all components
    - Integration tests for full flows
    - Manual testing completed

@@ -100,11 +100,11 @@ reeve_bot/
 ### 3. Configuration Strategy
 
 **Environment Variables** (`.env` file):
-- `PULSE_DB_PATH`: Path to SQLite database (default: `~/.reeve/pulse_queue.db`)
+- `REEVE_DESK_PATH`: Path to user's Desk repository (e.g., `~/my_reeve/`)
+- `PULSE_DB_PATH`: Path to SQLite database (default: `$REEVE_DESK_PATH/.reeve/pulse_queue.db`)
 - `PULSE_API_PORT`: HTTP API port (default: `8765`)
 - `PULSE_API_TOKEN`: Authentication token for HTTP API
 - `HAPI_COMMAND`: Path to Hapi executable (default: `hapi`)
-- `REEVE_DESK_PATH`: Path to user's Desk repository (e.g., `~/my_reeve/`)
 
 **Why this approach:**
 - Allows different deployments (local dev, production, testing)

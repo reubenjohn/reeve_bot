@@ -102,7 +102,7 @@ Stop the daemon with `Ctrl+C` if it's working correctly.
 
 ---
 
-## Systemd Service Setup
+## Systemd Service Setup (out of scope of MVP)
 
 ### 1. Create Service File
 
