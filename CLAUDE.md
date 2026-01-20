@@ -113,12 +113,13 @@ A **Pulse** is a scheduled wake-up event for Reeve. When a pulse fires, it launc
    - Clean output formatting with emojis and relative times
 
 2. **Telegram Notifier MCP Server** (`src/reeve/mcp/notification_server.py`)
-   - Built with FastMCP
-   - Two MCP tools:
+   - Built with FastMCP with Context integration
+   - Single MCP tool:
      - `send_notification()` - Send push notifications via Telegram
-     - `send_message_with_link()` - Send notifications with inline keyboard buttons
+   - Auto-detects session ID and generates "View in Claude Code" button
    - Supports MarkdownV2, HTML, and plain text formatting
-   - Priority levels: silent, normal, critical
+   - Priority levels: silent (no sound), normal (with sound), critical (with sound)
+   - Configurable Hapi base URL via `HAPI_BASE_URL` environment variable
    - Error handling for Telegram API failures
 
 3. **MCP Configuration**
@@ -135,18 +136,18 @@ A **Pulse** is a scheduled wake-up event for Reeve. When a pulse fires, it launc
    - UTC timezone-aware datetime handling
 
 5. **Test Suite** (`tests/test_mcp_servers.py`)
-   - 16 comprehensive tests:
+   - 18 comprehensive tests:
      - 9 time parsing tests (ISO, relative, keywords, edge cases)
      - 2 emoji helper tests
      - 2 pulse queue MCP tool tests
-     - 2 Telegram notifier tests
+     - 4 Telegram notifier tests (auto-session link, failure handling, silent priority, no session ID)
      - 1 full integration test (schedule → list → cancel)
    - All tests use async patterns
    - Mock-based testing for external dependencies
 
-**Test Results**: 49/49 tests PASSED
+**Test Results**: 51/51 tests PASSED
 - 33 Phase 1-2 tests (unchanged)
-- 16 Phase 3 MCP tests (new)
+- 18 Phase 3 MCP tests (updated)
 
 ### 🔄 Next: Phase 4 - Pulse Executor
 

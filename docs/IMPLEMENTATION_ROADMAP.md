@@ -183,11 +183,12 @@ uv run pytest tests/ -v
 
 2. **Telegram Notifier MCP Server** (`src/reeve/mcp/notification_server.py`) ✅
    - Implemented tools using FastMCP:
-     - `send_notification()` - Push notifications via Telegram
-     - `send_message_with_link()` - Notifications with inline keyboard buttons
+     - `send_notification()` - Push notifications via Telegram with auto-generated session links
+   - Auto-detects session ID via FastMCP Context and generates "View in Claude Code" button
    - Integrated with Telegram Bot API
    - Supports MarkdownV2, HTML, and plain text formatting
-   - Priority levels: silent, normal, critical
+   - Priority levels: silent, normal, critical (controls notification sound)
+   - Configurable Hapi base URL via `HAPI_BASE_URL` environment variable
    - Error handling for API failures
 
 3. **MCP Configuration** ✅

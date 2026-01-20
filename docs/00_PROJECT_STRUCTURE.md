@@ -138,7 +138,7 @@ reeve_bot/
    - Used by: Reeve (primary interface)
 
 2. **`telegram-notifier` MCP Server** (src/reeve/mcp/notification_server.py):
-   - Tools: `send_notification`, `send_message`
+   - Tools: `send_notification` (auto-generates session links)
    - Used by: Reeve (to push notifications to user)
 
 **Why separate servers?**

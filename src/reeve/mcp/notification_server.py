@@ -4,13 +4,23 @@ MCP Server for Telegram Notifications
 This server exposes tools that allow Reeve to send push notifications to the
 user via Telegram. This is Reeve's "voice" - how it communicates proactively.
 
+Environment Variables:
+    TELEGRAM_BOT_TOKEN: Telegram bot token (required)
+    TELEGRAM_CHAT_ID: User's Telegram chat ID (required)
+    HAPI_BASE_URL: Base URL for Hapi sessions (optional, defaults to https://hapi.run)
+
 Usage:
     Configure in ~/.config/claude-code/mcp_config.json:
     {
       "mcpServers": {
         "telegram-notifier": {
           "command": "uv",
-          "args": ["run", "--directory", "/path/to/reeve_bot", "python", "-m", "reeve.mcp.notification_server"]
+          "args": ["run", "--directory", "/path/to/reeve_bot", "python", "-m", "reeve.mcp.notification_server"],
+          "env": {
+            "TELEGRAM_BOT_TOKEN": "your_bot_token",
+            "TELEGRAM_CHAT_ID": "your_chat_id",
+            "HAPI_BASE_URL": "https://hapi.run"
+          }
         }
       }
     }
@@ -20,7 +30,7 @@ import os
 from typing import Annotated, Literal, Optional
 
 import requests
-from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP, Context
 from pydantic import Field
 
 # Initialize the MCP server
@@ -29,6 +39,7 @@ mcp = FastMCP("telegram-notifier")
 # Telegram Bot Configuration
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")  # The user's chat ID
+HAPI_BASE_URL = os.getenv("HAPI_BASE_URL", "https://hapi.run")
 
 if not BOT_TOKEN or not CHAT_ID:
     raise ValueError("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID environment variables are required")
@@ -41,6 +52,7 @@ if not BOT_TOKEN or not CHAT_ID:
 
 @mcp.tool()
 async def send_notification(
+    ctx: Context,
     message: Annotated[
         str,
         Field(
@@ -59,6 +71,18 @@ async def send_notification(
             max_length=4096,
         ),
     ],
+    priority: Annotated[
+        Literal["silent", "normal", "critical"],
+        Field(
+            description=(
+                "Notification priority level:\n"
+                "- 'silent' (🔕): No alert, just logs to chat (no sound/vibration)\n"
+                "- 'normal' (🔔): Standard push notification with sound (default)\n"
+                "- 'critical' (🚨): High-priority alert with sound\n\n"
+                "This controls both notification behavior and routing."
+            ),
+        ),
+    ] = "normal",
     parse_mode: Annotated[
         Literal["MarkdownV2", "HTML", "Markdown"] | None,
         Field(
@@ -72,28 +96,6 @@ async def send_notification(
             ),
         ),
     ] = None,
-    disable_notification: Annotated[
-        bool,
-        Field(
-            description=(
-                "If True, sends the message silently (no sound/vibration). "
-                "Use for low-priority updates that don't require immediate attention.\n\n"
-                "Examples: background task completions, non-urgent status updates."
-            ),
-        ),
-    ] = False,
-    priority: Annotated[
-        Literal["silent", "normal", "critical"],
-        Field(
-            description=(
-                "Notification priority level:\n"
-                "- 'silent' (🔕): No alert, just logs to chat (disable_notification=True)\n"
-                "- 'normal' (🔔): Standard push notification (default)\n"
-                "- 'critical' (🚨): High-priority alert (future: may override DND)\n\n"
-                "This is a semantic hint for future notification routing."
-            ),
-        ),
-    ] = "normal",
 ) -> str:
     """
     Send a push notification to the user via Telegram.
@@ -103,6 +105,14 @@ async def send_notification(
     - Provide task completion updates
     - Request user input or decisions
     - Share summaries and insights
+
+    The tool automatically includes a "View in Claude Code" button linking to the current
+    session, so the user can quickly jump back to the conversation context.
+
+    Priority levels control notification behavior:
+    - silent: No sound/vibration (for background updates)
+    - normal: Standard notification with sound (default)
+    - critical: High-priority alert with sound
 
     When to use:
     - Proactive alerts: "Something happened you should know about"
@@ -115,8 +125,10 @@ async def send_notification(
     - High-frequency updates (batch them into summaries)
 
     Examples:
-        # Simple alert
-        send_notification("✓ Daily briefing complete. 3 meetings today.")
+        # Simple alert with auto-generated Claude Code link
+        send_notification(
+            message="✓ Daily briefing complete. 3 meetings today."
+        )
 
         # Formatted urgent alert
         send_notification(
@@ -135,9 +147,17 @@ async def send_notification(
         Confirmation message or error details
     """
     try:
-        # Handle priority -> disable_notification mapping
-        if priority == "silent":
-            disable_notification = True
+        # Determine notification sound based on priority
+        disable_notification = priority == "silent"
+
+        # Auto-generate Hapi URL from session ID
+        session_link_url = None
+        try:
+            session_id = ctx.session_id
+            session_link_url = f"{HAPI_BASE_URL}/sessions/{session_id}"
+        except (RuntimeError, AttributeError):
+            # Session ID not available - no link button
+            pass
 
         # Send via Telegram Bot API
         url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
@@ -150,94 +170,18 @@ async def send_notification(
         if parse_mode:
             payload["parse_mode"] = parse_mode
 
-        response = requests.post(url, json=payload, timeout=10)
-        response.raise_for_status()
-
-        return f"✓ Notification sent successfully ({priority})"
-
-    except requests.exceptions.RequestException as e:
-        return f"✗ Failed to send notification: {str(e)}"
-
-
-@mcp.tool()
-async def send_message_with_link(
-    message: Annotated[
-        str,
-        Field(
-            description="The notification message (see send_notification for formatting)",
-            min_length=1,
-            max_length=4096,
-        ),
-    ],
-    link_url: Annotated[
-        str,
-        Field(
-            description=(
-                "URL to include as a clickable button or inline link.\n"
-                "Examples: Hapi session URL, calendar event, Google Doc, GitHub PR"
-            ),
-            examples=[
-                "https://hapi.example.com/session/abc123",
-                "https://calendar.google.com/event?eid=xyz",
-                "https://github.com/user/repo/pull/42",
-            ],
-        ),
-    ],
-    link_text: Annotated[
-        str,
-        Field(
-            description="Button text or link label (e.g., 'Open Session', 'View Event', 'Review PR')",
-            max_length=50,
-        ),
-    ] = "Open",
-    parse_mode: Annotated[
-        Literal["MarkdownV2", "HTML", "Markdown"] | None,
-        Field(description="Message formatting mode (see send_notification)"),
-    ] = None,
-) -> str:
-    """
-    Send a notification with a clickable link button.
-
-    Use this when the notification naturally leads to an action (opening a URL).
-    This provides a better UX than embedding URLs in message text.
-
-    Examples:
-        # Link to a Hapi session
-        send_message_with_link(
-            message="🔔 I've started research on the Japan trip. Take a look when you have time.",
-            link_url="https://hapi.example.com/session/abc123",
-            link_text="Open Session"
-        )
-
-        # Link to a calendar event
-        send_message_with_link(
-            message="📅 Reminder: Team standup in 15 minutes",
-            link_url="https://calendar.google.com/event?eid=xyz",
-            link_text="View Event"
-        )
-
-    Returns:
-        Confirmation message or error details
-    """
-    try:
-        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-
-        # Create inline keyboard button
-        reply_markup = {"inline_keyboard": [[{"text": link_text, "url": link_url}]]}
-
-        payload = {
-            "chat_id": CHAT_ID,
-            "text": message,
-            "reply_markup": reply_markup,
-        }
-
-        if parse_mode:
-            payload["parse_mode"] = parse_mode
+        # Add session link button if available
+        if session_link_url:
+            reply_markup = {
+                "inline_keyboard": [[{"text": "View in Claude Code", "url": session_link_url}]]
+            }
+            payload["reply_markup"] = reply_markup
 
         response = requests.post(url, json=payload, timeout=10)
         response.raise_for_status()
 
-        return f"✓ Notification with link sent successfully"
+        link_info = " with link" if session_link_url else ""
+        return f"✓ Notification{link_info} sent successfully ({priority})"
 
     except requests.exceptions.RequestException as e:
         return f"✗ Failed to send notification: {str(e)}"

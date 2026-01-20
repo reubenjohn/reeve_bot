@@ -203,7 +203,8 @@ Once MCP servers are working:
 
 ### Telegram Notifier Tools
 
-- `send_notification(message, priority, parse_mode, ...)` - Send a push notification
-- `send_message_with_link(message, link_url, link_text, ...)` - Send notification with button
+- `send_notification(message, priority, parse_mode)` - Send a push notification with auto-generated session link
+
+The notification tool automatically includes a "View in Claude Code" button that links back to the current session, so the user can quickly return to the conversation.
 
 See the MCP server source code for complete documentation on each tool.
