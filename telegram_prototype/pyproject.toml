@@ -1,0 +1,8 @@
+[project]
+name = "reeve-bot"
+version = "0.1.0"
+description = "Telegram bot that listens for messages and triggers Goose AI assistant"
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.32.5",
+]
