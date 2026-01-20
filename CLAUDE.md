@@ -29,7 +29,7 @@ A **Pulse** is a scheduled wake-up event for Reeve. When a pulse fires, it launc
    - `src/reeve/mcp/` - MCP servers (to be implemented)
    - `src/reeve/api/` - HTTP REST API (to be implemented)
    - `src/reeve/integrations/` - External event listeners (to be implemented)
-   - `src/reeve/utils/` - Shared utilities (to be implemented)
+   - `src/reeve/utils/` - Shared utilities
 
 2. **Database Schema**
    - SQLite database at `~/.reeve/pulse_queue.db`
@@ -39,7 +39,7 @@ A **Pulse** is a scheduled wake-up event for Reeve. When a pulse fires, it launc
 
 3. **Models & Enums**
    - `src/reeve/pulse/enums.py`: `PulsePriority` and `PulseStatus` enums
-   - `src/reeve/pulse/models.py`: `Pulse` SQLAlchemy model
+   - `src/reeve/pulse/models.py`: `Pulse` SQLAlchemy model with `TZDateTime` for timezone handling
    - All fields properly typed with comments
 
 4. **Alembic Setup**
@@ -47,20 +47,65 @@ A **Pulse** is a scheduled wake-up event for Reeve. When a pulse fires, it launc
    - Environment variable support: `PULSE_DB_URL`
    - Default path: `~/.reeve/pulse_queue.db`
 
-### 🔄 Next: Phase 2 - Queue Management
+### ✅ Phase 2: Queue Management - COMPLETED (Commit: 52eac4c)
 
-**Goal**: Implement the `PulseQueue` class with async business logic.
+**What's been implemented:**
+
+1. **PulseQueue Class** (`src/reeve/pulse/queue.py`)
+   - Async SQLAlchemy session management
+   - `schedule_pulse()` - Create new pulses
+   - `get_due_pulses()` - Query pending pulses with priority ordering (using CASE statement)
+   - `get_upcoming_pulses()` - List future pulses
+   - `get_pulse()` - Retrieve pulse by ID
+   - `mark_processing()` - Transition to processing state
+   - `mark_completed()` - Mark successful completion
+   - `mark_failed()` - Handle failures with exponential backoff retry (2^retry_count minutes)
+   - `cancel_pulse()` - Cancel pending pulses
+   - `reschedule_pulse()` - Change scheduled time
+   - `initialize()` - Initialize database schema
+   - `close()` - Clean up resources
+
+2. **Configuration Management** (`src/reeve/utils/config.py`)
+   - `ReeveConfig` class with environment variable support
+   - Path expansion for `~` and `$VAR` in paths
+   - Database URL handling (async and sync modes)
+   - Singleton pattern with `get_config()` and `reload_config()`
+
+3. **Enhanced Database Models** (`src/reeve/pulse/models.py`)
+   - `TZDateTime` custom type for proper timezone handling with SQLite
+   - Updated to SQLAlchemy 2.0 style (`orm.declarative_base`)
+   - All datetime fields preserve timezone information
+
+4. **Comprehensive Test Suite** (`tests/test_pulse_queue.py`)
+   - 29 unit tests covering all queue operations
+   - Priority ordering tests with custom CASE ordering
+   - Retry logic with exponential backoff tests
+   - Concurrent operations tests
+   - Edge case coverage
+   - In-memory SQLite for fast, isolated testing
+
+5. **Validation Tests** (`tests/test_phase2_validation.py`)
+   - Integration test from roadmap
+   - End-to-end workflow validation
+
+**Test Results**: 33/33 tests PASSED
+- 3 Phase 1 validation tests
+- 1 Phase 2 integration test
+- 29 Phase 2 unit tests
+
+### 🔄 Next: Phase 3 - MCP Integration
+
+**Goal**: Expose queue functionality to Reeve via MCP tools.
 
 **Files to create:**
-- `src/reeve/pulse/queue.py` - Core queue management class
-- `src/reeve/utils/config.py` - Configuration loading
-- `tests/test_pulse_queue.py` - Comprehensive unit tests
+- `src/reeve/mcp/pulse_server.py` - Pulse Queue MCP server
+- `src/reeve/mcp/notification_server.py` - Telegram Notifier MCP server
 
 **Key requirements:**
-- Async SQLAlchemy operations
-- Methods: `schedule_pulse()`, `get_due_pulses()`, `mark_processing()`, `mark_completed()`, `mark_failed()`, `cancel_pulse()`, `reschedule_pulse()`
-- Retry logic with exponential backoff (2^retry_count minutes)
-- In-memory database for testing
+- MCP tool definitions for scheduling, listing, canceling, and rescheduling pulses
+- Time parsing helper for flexible time expressions ("in 5 minutes", "tomorrow at 9am")
+- Telegram notification tools
+- MCP configuration for Claude Code
 
 ## Architecture Decisions
 
@@ -169,38 +214,22 @@ All public methods must have docstrings with:
 
 ## Important Implementation Notes
 
-### For Phase 2 (Queue Management)
+### For Phase 3 (MCP Integration)
 
-1. **Session Management**
-   ```python
-   self.engine = create_async_engine(db_url, echo=False)
-   self.SessionLocal = async_sessionmaker(
-       self.engine,
-       class_=AsyncSession,
-       expire_on_commit=False
-   )
-   ```
+1. **MCP Tool Structure**
+   - Use `Annotated[Type, Field(...)]` for all parameters
+   - Provide comprehensive docstrings (visible to Claude)
+   - Return structured data (not raw model objects)
 
-2. **Priority Ordering**
-   SQLAlchemy will order enums by their definition order (CRITICAL first).
-   The enum definition order matches desired priority (highest to lowest).
+2. **Time Parsing**
+   - Implement flexible time parsing ("in 5 minutes", "tomorrow at 9am", "2026-01-20 15:00")
+   - Always convert to UTC timezone-aware datetime
+   - Handle relative and absolute time expressions
 
-3. **Timezone Awareness**
-   Always use `datetime.now(timezone.utc)` - never naive datetimes.
-
-4. **Retry Backoff**
-   ```python
-   retry_delay_minutes = 2 ** pulse.retry_count
-   # 0 retries = 1 min, 1 retry = 2 min, 2 retries = 4 min, 3 retries = 8 min
-   ```
-
-5. **Transaction Handling**
-   Use `async with self.SessionLocal() as session:` for automatic cleanup.
-   Call `await session.commit()` explicitly.
-
-6. **Error Handling**
-   Be defensive - check if pulse exists before updating.
-   Return `False` or `None` on failure, log errors appropriately.
+3. **Error Handling**
+   - Catch exceptions and return user-friendly error messages
+   - Log errors for debugging
+   - Never expose internal stack traces to MCP calls
 
 ## File References
 
@@ -212,16 +241,20 @@ All public methods must have docstrings with:
 - `docs/04_DEPLOYMENT.md` - Production deployment (Phase 8)
 - `docs/IMPLEMENTATION_ROADMAP.md` - Full implementation plan
 
-### Implemented Files
+### Implemented Files (Phases 1-2)
 - `src/reeve/pulse/enums.py` - Priority and status enums
-- `src/reeve/pulse/models.py` - Pulse SQLAlchemy model
-- `alembic/versions/07ce7ae63b4a_create_pulses_table.py` - Initial migration
-- `tests/test_phase1_validation.py` - Phase 1 validation
-
-### To Be Implemented (Phase 2)
-- `src/reeve/pulse/queue.py` - PulseQueue class
+- `src/reeve/pulse/models.py` - Pulse SQLAlchemy model with TZDateTime
+- `src/reeve/pulse/queue.py` - PulseQueue class with async operations
 - `src/reeve/utils/config.py` - Configuration management
-- `tests/test_pulse_queue.py` - Queue unit tests
+- `alembic/versions/07ce7ae63b4a_create_pulses_table.py` - Initial migration
+- `tests/test_phase1_validation.py` - Phase 1 validation (3 tests)
+- `tests/test_phase2_validation.py` - Phase 2 integration test
+- `tests/test_pulse_queue.py` - Comprehensive queue unit tests (29 tests)
+- `pytest.ini` - Pytest configuration for async tests
+
+### To Be Implemented (Phase 3)
+- `src/reeve/mcp/pulse_server.py` - Pulse Queue MCP server
+- `src/reeve/mcp/notification_server.py` - Telegram Notifier MCP server
 
 ## Quick Start Commands
 
@@ -273,19 +306,24 @@ pulse = Pulse(
 
 ## Next Session Prompt
 
-When starting Phase 2, use this prompt:
+When starting Phase 3, use this prompt:
 
 ```
-I'm ready to implement Phase 2 (Queue Management) for the Pulse Queue system.
+I'm ready to implement Phase 3 (MCP Integration) for the Pulse Queue system.
 
 Please implement:
-1. PulseQueue class in src/reeve/pulse/queue.py with async SQLAlchemy
-2. All queue methods (schedule, get_due_pulses, mark_*, cancel, reschedule)
-3. Retry logic with exponential backoff
-4. Configuration management in src/reeve/utils/config.py
-5. Comprehensive unit tests in tests/test_pulse_queue.py
+1. Pulse Queue MCP server (src/reeve/mcp/pulse_server.py) with tools:
+   - schedule_pulse()
+   - list_upcoming_pulses()
+   - cancel_pulse()
+   - reschedule_pulse()
+2. Telegram Notifier MCP server (src/reeve/mcp/notification_server.py) with tools:
+   - send_notification()
+   - send_message_with_link()
+3. MCP configuration for Claude Code (~/.config/claude-code/mcp_config.json)
+4. Time parsing helper for flexible time expressions
 
-Refer to docs/01_PULSE_QUEUE_DESIGN.md for the complete PulseQueue implementation specification.
+Refer to docs/02_MCP_INTEGRATION.md for the complete MCP server specifications.
 ```
 
 ## Design Principles
@@ -322,6 +360,6 @@ Current versions (from `uv.lock`):
 
 ---
 
-**Last Updated**: 2026-01-19 (after Phase 1 completion)
-**Current Commit**: ece5e41
+**Last Updated**: 2026-01-19 (after Phase 2 completion)
+**Current Commit**: 52eac4c
 **Current Migration**: 07ce7ae63b4a

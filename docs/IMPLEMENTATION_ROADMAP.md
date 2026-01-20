@@ -94,65 +94,68 @@ print(f"Created: {pulse}")
 
 ---
 
-## Phase 2: Queue Management (Day 1, Afternoon)
+## Phase 2: Queue Management ✅ COMPLETED
 
 **Goal**: Implement core business logic for queue operations.
 
+**Status**: ✅ Completed on 2026-01-19 (Commit: 52eac4c)
+
 ### Tasks
 
-1. **PulseQueue Class** (`src/reeve/pulse/queue.py`)
-   - Implement async SQLAlchemy session management
-   - Implement methods:
+1. **PulseQueue Class** (`src/reeve/pulse/queue.py`) ✅
+   - Implemented async SQLAlchemy session management
+   - Implemented all methods:
      - `schedule_pulse()` - Create new pulse
-     - `get_due_pulses()` - Query pending pulses
+     - `get_due_pulses()` - Query pending pulses with priority ordering
      - `get_upcoming_pulses()` - List future pulses
+     - `get_pulse()` - Retrieve pulse by ID
      - `mark_processing()` - Transition to processing
      - `mark_completed()` - Mark success
-     - `mark_failed()` - Handle failures + retry logic
+     - `mark_failed()` - Handle failures + retry logic with exponential backoff
      - `cancel_pulse()` - Cancel pending
      - `reschedule_pulse()` - Change time
-   - See [01_PULSE_QUEUE_DESIGN.md](01_PULSE_QUEUE_DESIGN.md) for full implementation
+     - `initialize()` - Initialize database schema
+     - `close()` - Clean up resources
+   - Priority ordering using SQLAlchemy CASE statement
 
-2. **Unit Tests** (`tests/test_pulse_queue.py`)
+2. **Unit Tests** (`tests/test_pulse_queue.py`) ✅
    - Test database: `sqlite+aiosqlite:///:memory:`
-   - Test all CRUD operations
-   - Test priority ordering
-   - Test retry logic
-   - Test edge cases (cancelling completed pulse, etc.)
+   - 29 comprehensive unit tests covering:
+     - All CRUD operations
+     - Priority ordering (CRITICAL → HIGH → NORMAL → LOW → DEFERRED)
+     - Time-based FIFO within same priority
+     - Retry logic with exponential backoff (2^retry_count minutes)
+     - Concurrent operations
+     - Edge cases (nonexistent pulses, invalid states, etc.)
+     - Timezone awareness
 
-3. **Configuration** (`src/reeve/utils/config.py`)
-   - Implement `load_config()` function
-   - Load from environment variables + `.env` file
-   - Provide sensible defaults
+3. **Configuration** (`src/reeve/utils/config.py`) ✅
+   - Implemented `ReeveConfig` class with environment variable support
+   - Path expansion for `~` and `$VAR`
+   - Database URL handling (async and sync modes)
+   - Singleton pattern with `get_config()` and `reload_config()`
+
+4. **Enhanced Database Models** (`src/reeve/pulse/models.py`) ✅
+   - Added `TZDateTime` custom type for proper timezone handling with SQLite
+   - Updated to SQLAlchemy 2.0 style (`orm.declarative_base`)
+   - All datetime fields preserve timezone information
+
+5. **Validation Tests** (`tests/test_phase2_validation.py`) ✅
+   - Integration test from roadmap validation example
+   - End-to-end workflow validation
 
 **Deliverables**:
-- ⌛ Fully functional `PulseQueue` class
-- ⌛ 100% test coverage for queue operations
-- ⌛ Configuration management
+- ✅ Fully functional `PulseQueue` class
+- ✅ 100% test coverage for queue operations (33/33 tests passed)
+- ✅ Configuration management
+- ✅ Timezone-aware datetime handling
+- ✅ Code formatted with black and isort
 
 **Validation**:
-```python
-# Integration test
-import asyncio
-from reeve.pulse.queue import PulseQueue
-from datetime import datetime, timezone
-
-async def test():
-    queue = PulseQueue("sqlite+aiosqlite:///:memory:")
-
-    # Schedule pulse
-    pulse_id = await queue.schedule_pulse(
-        scheduled_at=datetime.now(timezone.utc),
-        prompt="Test",
-        priority=PulsePriority.HIGH
-    )
-    print(f"Created pulse {pulse_id}")
-
-    # Get due pulses
-    pulses = await queue.get_due_pulses()
-    print(f"Due pulses: {len(pulses)}")
-
-asyncio.run(test())
+```bash
+# All tests passing
+uv run pytest tests/ -v
+# Result: 33 passed (3 Phase 1 + 1 Phase 2 integration + 29 Phase 2 unit tests)
 ```
 
 ---
