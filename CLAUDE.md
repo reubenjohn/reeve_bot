@@ -135,19 +135,16 @@ A **Pulse** is a scheduled wake-up event for Reeve. When a pulse fires, it launc
    - Case-insensitive parsing
    - UTC timezone-aware datetime handling
 
-5. **Test Suite** (`tests/test_mcp_servers.py`)
-   - 18 comprehensive tests:
-     - 9 time parsing tests (ISO, relative, keywords, edge cases)
-     - 2 emoji helper tests
-     - 2 pulse queue MCP tool tests
-     - 4 Telegram notifier tests (auto-session link, failure handling, silent priority, no session ID)
-     - 1 full integration test (schedule → list → cancel)
+5. **Test Suite** (split into 3 files for better organization)
+   - `tests/test_pulse_server_helpers.py` - 11 tests for time parsing and emoji helpers
+   - `tests/test_pulse_server_tools.py` - 3 tests for pulse queue MCP tools and integration
+   - `tests/test_notification_server.py` - 4 tests for Telegram notifier MCP tools
    - All tests use async patterns
    - Mock-based testing for external dependencies
 
 **Test Results**: 51/51 tests PASSED
 - 33 Phase 1-2 tests (unchanged)
-- 18 Phase 3 MCP tests (updated)
+- 18 Phase 3 MCP tests (reorganized into 3 files)
 
 ### 🔄 Next: Phase 4 - Pulse Executor
 
@@ -307,7 +304,9 @@ All public methods must have docstrings with:
 - `tests/test_phase1_validation.py` - Phase 1 validation (3 tests)
 - `tests/test_phase2_validation.py` - Phase 2 integration test
 - `tests/test_pulse_queue.py` - Comprehensive queue unit tests (29 tests)
-- `tests/test_mcp_servers.py` - MCP server tests (16 tests)
+- `tests/test_pulse_server_helpers.py` - Pulse server helper tests (11 tests)
+- `tests/test_pulse_server_tools.py` - Pulse server MCP tool tests (3 tests)
+- `tests/test_notification_server.py` - Telegram notifier tests (4 tests)
 - `mcp_config.json.example` - Example MCP configuration for Claude Code
 - `docs/MCP_SETUP.md` - MCP server setup and troubleshooting guide
 - `pytest.ini` - Pytest configuration for async tests

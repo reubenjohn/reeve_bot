@@ -198,26 +198,24 @@ uv run pytest tests/ -v
    - Server startup tested successfully
 
 4. **Testing** ✅
-   - Created `tests/test_mcp_servers.py` with 16 tests:
-     - 9 time parsing tests (ISO, relative, keywords, edge cases)
-     - 2 emoji helper tests
-     - 2 pulse queue MCP tool tests
-     - 2 Telegram notifier tests
-     - 1 full integration test (schedule → list → cancel)
-   - All tests pass (49/49 total across all phases)
+   - Created MCP server test suite (split into 3 files, 18 tests total):
+     - `tests/test_pulse_server_helpers.py` - 11 tests (time parsing, emoji helpers)
+     - `tests/test_pulse_server_tools.py` - 3 tests (MCP tools, integration)
+     - `tests/test_notification_server.py` - 4 tests (Telegram notifier)
+   - All tests pass (51/51 total across all phases)
 
 **Deliverables**:
 - ✅ Two working MCP servers built with FastMCP
 - ✅ Type-safe tool definitions with Pydantic validation
 - ✅ Comprehensive documentation for Claude and users
-- ✅ 16 comprehensive tests with mocking and integration coverage
+- ✅ 18 comprehensive tests split across 3 files with mocking and integration coverage
 - ✅ Example configuration and setup guide
 
 **Validation**:
 ```bash
 # Run tests
-uv run pytest tests/test_mcp_servers.py -v
-# Result: 16/16 tests PASSED
+uv run pytest tests/test_pulse_server_helpers.py tests/test_pulse_server_tools.py tests/test_notification_server.py -v
+# Result: 18/18 tests PASSED
 
 # Test server startup
 uv run python -m reeve.mcp.pulse_server
