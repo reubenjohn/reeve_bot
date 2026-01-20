@@ -231,28 +231,33 @@ uv run python -m reeve.mcp.notification_server
 
 ---
 
-## Phase 4: Pulse Executor (Day 2, Afternoon)
+## Phase 4: Pulse Executor ✅ COMPLETED
 
 **Goal**: Execute pulses by launching Hapi sessions.
 
+**Status**: ✅ Completed on 2026-01-19
+
 ### Tasks
 
-1. **PulseExecutor Class** (`src/reeve/pulse/executor.py`)
-   - Implement `execute()` method
-   - Launch Hapi subprocess with correct working directory
-   - Handle sticky notes (prepend to prompt)
-   - Capture stdout/stderr
-   - Report success/failure
+1. **PulseExecutor Class** (`src/reeve/pulse/executor.py`) ✅
+   - Implemented `execute()` method with full async support
+   - Launches Hapi subprocess with correct working directory
+   - Handles sticky notes (appended to prompt, not prepended)
+   - Captures stdout/stderr with UTF-8 error handling
+   - Reports success/failure with detailed error messages
+   - Includes timeout handling with configurable defaults
    - See [03_DAEMON_AND_API.md](03_DAEMON_AND_API.md)
 
-2. **Testing**
-   - Mock Hapi command for unit tests
-   - Test prompt building with sticky notes
-   - Test error handling (Hapi crash, timeout, etc.)
+2. **Testing** ✅
+   - 18 comprehensive unit tests with mocked Hapi command
+   - Tests prompt building with and without sticky notes
+   - Tests error handling (Hapi crash, timeout, command not found, invalid paths)
+   - Tests configuration (path expansion, custom timeout)
+   - Integration-style tests for full execution flow
 
 **Deliverables**:
-- ⌛ Working executor that can launch Hapi
-- ⌛ Tests with mocked Hapi
+- ✅ Working executor that can launch Hapi with full error handling
+- ✅ 18 comprehensive tests with mocked Hapi (all passing)
 
 **Validation**:
 ```python
@@ -516,8 +521,10 @@ The Pulse Queue system is complete when:
 
 1. 🔄 **Reeve can schedule its own wake-ups** (Partially Complete)
    - ✅ MCP tools work from Claude Code (Phase 3)
-   - ⌛ Pulses execute at correct times (Phase 4-5: Executor + Daemon)
-   - ⌛ Session resumption works (Phase 4-5)
+   - ✅ Executor can launch Hapi sessions (Phase 4)
+   - ⌛ Pulses execute at correct times (Phase 5: Daemon)
+   - ✅ Session resumption supported by executor (Phase 4)
+   - ⌛ End-to-end scheduling + execution (Phase 5)
 
 2. ⌛ **External events trigger Reeve**
    - ⌛ Telegram messages → immediate pulses (Phase 6-7: API + Telegram)
@@ -531,14 +538,14 @@ The Pulse Queue system is complete when:
    - ⌛ Database backed up daily (Phase 8)
 
 4. 🔄 **Documented** (Partially Complete)
-   - ✅ Implementation guide complete (Phases 1-3 documented)
+   - ✅ Implementation guide complete (Phases 1-4 documented)
    - ✅ MCP setup guide complete (docs/MCP_SETUP.md)
    - ⌛ Deployment guide complete (Phase 8)
    - ⌛ Troubleshooting guide complete (Phase 8)
-   - ✅ Code well-commented (Phases 1-3)
+   - ✅ Code well-commented (Phases 1-4)
 
 5. 🔄 **Tested** (Partially Complete)
-   - ✅ Unit tests for queue and MCP components (49/49 tests passing)
+   - ✅ Unit tests for queue, MCP, and executor components (69/69 tests passing)
    - ⌛ Integration tests for full flows (Phase 9)
    - ⌛ Manual testing completed (Phase 9)
    - ⌛ Performance acceptable (Phase 9)
@@ -651,27 +658,35 @@ Let's begin!
 | 1. Foundation | Project structure, models, migrations | ✅ Complete | ~2 hours |
 | 2. Queue | PulseQueue class + tests | ✅ Complete | ~3 hours |
 | 3. MCP Servers | Two MCP servers with tools | ✅ Complete | ~3 hours |
-| 4. Executor | Hapi subprocess execution | ⌛ Pending | 1-2 hours |
+| 4. Executor | Hapi subprocess execution | ✅ Complete | ~1.5 hours |
 | 5. Daemon | Main daemon loop | ⌛ Pending | 2-3 hours |
 | 6. HTTP API | FastAPI endpoints | ⌛ Pending | 2-3 hours |
 | 7. Telegram | Listener integration | ⌛ Pending | 1-2 hours |
 | 8. Deployment | Systemd, monitoring | ⌛ Pending | 2-3 hours |
 | 9. Testing | Integration tests, polish | ⌛ Pending | 3-4 hours |
-| **Total** | | **3/9 Complete** | **8 hours spent, 11-20 hours remaining** |
+| **Total** | | **4/9 Complete** | **~9.5 hours spent, 10-18 hours remaining** |
 
-**Progress**: Phases 1-3 completed (Foundation, Queue Management, MCP Integration)
-**Next**: Phase 4 - Pulse Executor
+**Progress**: Phases 1-4 completed (Foundation, Queue Management, MCP Integration, Pulse Executor)
+**Next**: Phase 5 - Daemon
 
 ---
 
 ## Change Log
 
+- **2026-01-19**: Phase 4 (Pulse Executor) completed
+  - Implemented PulseExecutor class with async Hapi subprocess execution
+  - Added prompt building with sticky notes appended (not prepended)
+  - Implemented timeout handling with configurable defaults
+  - Created 18 comprehensive unit tests with mocked subprocess
+  - All tests cover execution, error handling, and configuration
+  - Total: 69/69 tests passing
+
 - **2026-01-19**: Phase 3 (MCP Integration) completed
   - Implemented Pulse Queue MCP server with 4 tools
   - Implemented Telegram Notifier MCP server with 2 tools
-  - Created comprehensive test suite (16 tests)
+  - Created comprehensive test suite (18 tests across 3 files)
   - Added MCP setup guide and configuration template
-  - All 49 tests passing
+  - Total: 51/51 tests passing
 
 - **2026-01-19**: Phase 2 (Queue Management) completed
   - Implemented PulseQueue class with 11 methods

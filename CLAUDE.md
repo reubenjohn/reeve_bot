@@ -93,7 +93,7 @@ A **Pulse** is a scheduled wake-up event for Reeve. When a pulse fires, it launc
 - 1 Phase 2 integration test
 - 29 Phase 2 unit tests
 
-### ✅ Phase 3: MCP Integration - COMPLETED (Commit: TBD)
+### ✅ Phase 3: MCP Integration - COMPLETED (Commit: b4ff8ed)
 
 **What's been implemented:**
 
@@ -146,18 +146,77 @@ A **Pulse** is a scheduled wake-up event for Reeve. When a pulse fires, it launc
 - 33 Phase 1-2 tests (unchanged)
 - 18 Phase 3 MCP tests (reorganized into 3 files)
 
-### 🔄 Next: Phase 4 - Pulse Executor
+### ✅ Phase 4: Pulse Executor - COMPLETED (Commit: TBD)
 
 **Goal**: Execute pulses by launching Hapi sessions.
 
+**What's been implemented:**
+
+1. **PulseExecutor Class** (`src/reeve/pulse/executor.py`)
+   - Async subprocess execution for Hapi sessions
+   - Key features:
+     - `execute()` - Launch Hapi with prompt, session link, and working directory
+     - `build_prompt()` - Build full prompt with sticky notes appended (not prepended)
+     - Timeout handling with configurable defaults (1 hour default)
+     - Working directory validation and path expansion
+     - UTF-8 error handling for subprocess output
+     - Graceful timeout with process cleanup
+   - Configuration:
+     - `hapi_command` - Path to Hapi executable
+     - `desk_path` - Default working directory (user's Desk)
+     - `timeout_seconds` - Maximum execution time
+   - Return format:
+     - `stdout` - Standard output from Hapi
+     - `stderr` - Standard error from Hapi
+     - `return_code` - Process exit code
+     - `timed_out` - Whether execution timed out
+   - Error handling:
+     - RuntimeError on non-zero exit codes
+     - RuntimeError on timeout
+     - RuntimeError on command not found
+     - RuntimeError on invalid working directory
+
+2. **Prompt Building with Sticky Notes**
+   - Sticky notes are appended to the base prompt (not prepended)
+   - Clear formatting with 📌 emoji header
+   - Each note on separate line with bullet point
+   - Blank line separator between base prompt and sticky notes
+   - Example format:
+     ```
+     Daily morning briefing
+
+     📌 Reminders:
+       - Check if user replied to ski trip
+       - Follow up on PR review
+     ```
+
+3. **Comprehensive Test Suite** (`tests/test_pulse_executor.py`)
+   - 18 unit tests covering:
+     - Prompt building (4 tests: no notes, with notes, empty list, single note)
+     - Successful execution (4 tests: basic, with session link, with stderr, default desk path)
+     - Error handling (5 tests: non-zero exit, command not found, missing working dir, timeout, UTF-8 errors)
+     - Configuration (2 tests: path expansion, custom timeout)
+     - Integration scenarios (3 tests: full flow, timeout override, working dir override)
+   - All tests use async patterns with mocked subprocess
+   - Tests verify command construction and parameter passing
+
+**Test Results**: 69/69 tests PASSED
+- 51 Phase 1-3 tests (unchanged)
+- 18 Phase 4 executor tests (new)
+
+### 🔄 Next: Phase 5 - Daemon
+
+**Goal**: Build the main daemon process that orchestrates pulse execution.
+
 **Files to create:**
-- `src/reeve/pulse/executor.py` - PulseExecutor class
+- `src/reeve/pulse/daemon.py` - PulseDaemon class
+- `src/reeve/utils/logging.py` - Logging configuration
 
 **Key requirements:**
-- Launch Hapi subprocess with correct working directory
-- Handle sticky notes (prepend to prompt)
-- Capture stdout/stderr
-- Report success/failure
+- Scheduler loop (polls every 1 second)
+- Concurrent execution of pulses
+- Integration with PulseExecutor
+- Graceful shutdown handling
 
 ## Architecture Decisions
 
@@ -293,10 +352,11 @@ All public methods must have docstrings with:
 - `docs/04_DEPLOYMENT.md` - Production deployment (Phase 8)
 - `docs/IMPLEMENTATION_ROADMAP.md` - Full implementation plan
 
-### Implemented Files (Phases 1-3)
+### Implemented Files (Phases 1-4)
 - `src/reeve/pulse/enums.py` - Priority and status enums
 - `src/reeve/pulse/models.py` - Pulse SQLAlchemy model with TZDateTime
 - `src/reeve/pulse/queue.py` - PulseQueue class with async operations
+- `src/reeve/pulse/executor.py` - PulseExecutor class for Hapi execution
 - `src/reeve/utils/config.py` - Configuration management
 - `src/reeve/mcp/pulse_server.py` - Pulse Queue MCP server (FastMCP)
 - `src/reeve/mcp/notification_server.py` - Telegram Notifier MCP server (FastMCP)
@@ -307,13 +367,14 @@ All public methods must have docstrings with:
 - `tests/test_pulse_server_helpers.py` - Pulse server helper tests (11 tests)
 - `tests/test_pulse_server_tools.py` - Pulse server MCP tool tests (3 tests)
 - `tests/test_notification_server.py` - Telegram notifier tests (4 tests)
+- `tests/test_pulse_executor.py` - Pulse executor tests (18 tests)
 - `mcp_config.json.example` - Example MCP configuration for Claude Code
 - `docs/MCP_SETUP.md` - MCP server setup and troubleshooting guide
 - `pytest.ini` - Pytest configuration for async tests
 
-### To Be Implemented (Phase 4+)
-- `src/reeve/pulse/executor.py` - Pulse executor (Hapi launcher)
+### To Be Implemented (Phase 5+)
 - `src/reeve/pulse/daemon.py` - Main daemon process
+- `src/reeve/utils/logging.py` - Logging configuration
 - `src/reeve/api/server.py` - FastAPI HTTP server
 - `src/reeve/integrations/telegram.py` - Telegram listener
 
@@ -367,23 +428,23 @@ pulse = Pulse(
 
 ## Next Session Prompt
 
-When starting Phase 4, use this prompt:
+When starting Phase 5, use this prompt:
 
 ```
-I'm ready to implement Phase 4 (Pulse Executor) for the Pulse Queue system.
+I'm ready to implement Phase 5 (Pulse Daemon) for the Pulse Queue system.
 
 Please implement:
-1. PulseExecutor class (src/reeve/pulse/executor.py) that:
-   - Launches Hapi subprocess with correct working directory
-   - Handles sticky notes (prepends them to the prompt)
-   - Captures stdout/stderr
-   - Reports success/failure
-   - Handles timeouts and crashes gracefully
-2. Unit tests with mocked Hapi command
-3. Test prompt building with sticky notes
-4. Test error handling (Hapi crash, timeout, etc.)
+1. PulseDaemon class (src/reeve/pulse/daemon.py) that:
+   - Runs a scheduler loop that polls every 1 second
+   - Executes due pulses using PulseExecutor
+   - Handles concurrent pulse execution
+   - Implements graceful shutdown (SIGTERM/SIGINT)
+   - Integrates prompt building with sticky notes
+2. Logging configuration (src/reeve/utils/logging.py)
+3. Unit tests for the daemon
+4. Integration tests for end-to-end pulse execution
 
-Refer to docs/03_DAEMON_AND_API.md for the complete executor specifications.
+Refer to docs/03_DAEMON_AND_API.md for the complete daemon specifications.
 ```
 
 ## Design Principles
@@ -420,7 +481,7 @@ Current versions (from `uv.lock`):
 
 ---
 
-**Last Updated**: 2026-01-19 (after Phase 3 completion)
-**Current Commit**: b4ff8ed
+**Last Updated**: 2026-01-19 (after Phase 4 completion)
+**Current Commit**: TBD
 **Current Migration**: 07ce7ae63b4a
-**Test Status**: 49/49 tests PASSED
+**Test Status**: 69/69 tests PASSED
