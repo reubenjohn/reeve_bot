@@ -6,8 +6,8 @@ Provides structured logging with file rotation and optional console output.
 
 import logging
 import sys
-from pathlib import Path
 from logging.handlers import RotatingFileHandler
+from pathlib import Path
 
 
 def setup_logging(
@@ -38,8 +38,7 @@ def setup_logging(
 
     # Format: "2026-01-20 15:30:45 | INFO     | reeve.daemon | Scheduler started"
     formatter = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
+        "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
     )
 
     # Console handler
@@ -58,10 +57,7 @@ def setup_logging(
 
         # RotatingFileHandler: 10MB max, 5 backups
         file_handler = RotatingFileHandler(
-            log_path,
-            maxBytes=10 * 1024 * 1024,  # 10MB
-            backupCount=5,
-            encoding="utf-8"
+            log_path, maxBytes=10 * 1024 * 1024, backupCount=5, encoding="utf-8"  # 10MB
         )
         file_handler.setFormatter(formatter)
         root_logger.addHandler(file_handler)

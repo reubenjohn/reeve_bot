@@ -87,9 +87,7 @@ class PulseDaemon:
             )
 
             # Calculate duration in milliseconds
-            duration_ms = int(
-                (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
-            )
+            duration_ms = int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)
 
             # Mark as completed
             await self.queue.mark_completed(pulse_id, duration_ms)
@@ -111,9 +109,7 @@ class PulseDaemon:
             )
 
             if retry_pulse_id:
-                self.logger.info(
-                    f"Pulse {pulse_id} scheduled for retry as pulse {retry_pulse_id}"
-                )
+                self.logger.info(f"Pulse {pulse_id} scheduled for retry as pulse {retry_pulse_id}")
             else:
                 self.logger.error(f"Pulse {pulse_id} failed permanently (no retries left)")
 
