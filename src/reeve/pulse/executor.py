@@ -118,9 +118,7 @@ class PulseExecutor:
 
             # Wait for completion with timeout
             try:
-                stdout, stderr = await asyncio.wait_for(
-                    process.communicate(), timeout=timeout
-                )
+                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=timeout)
                 timed_out = False
             except asyncio.TimeoutError:
                 self.logger.warning(f"Hapi execution timed out after {timeout}s")
@@ -160,8 +158,7 @@ class PulseExecutor:
 
             if process.returncode != 0:
                 raise RuntimeError(
-                    f"Hapi execution failed (exit code {process.returncode}): "
-                    f"{result.stderr}"
+                    f"Hapi execution failed (exit code {process.returncode}): " f"{result.stderr}"
                 )
 
             self.logger.info(

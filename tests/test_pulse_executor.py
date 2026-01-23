@@ -193,9 +193,7 @@ async def test_execute_uses_desk_path_by_default(executor):
 async def test_execute_nonzero_exit_code(executor, mock_desk):
     """Test execution failure with non-zero exit code."""
     mock_process = AsyncMock()
-    mock_process.communicate = AsyncMock(
-        return_value=(b"", b"Error: command failed")
-    )
+    mock_process.communicate = AsyncMock(return_value=(b"", b"Error: command failed"))
     mock_process.returncode = 1
 
     with patch("asyncio.create_subprocess_exec", return_value=mock_process):
@@ -234,6 +232,7 @@ async def test_execute_working_dir_not_exists(executor):
 async def test_execute_timeout(executor, mock_desk):
     """Test execution timeout handling."""
     mock_process = AsyncMock()
+
     # Simulate timeout by having communicate never return
     async def never_completes():
         await asyncio.sleep(100)  # Sleep longer than timeout

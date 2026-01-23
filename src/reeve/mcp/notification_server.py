@@ -30,7 +30,7 @@ import os
 from typing import Annotated, Literal, Optional
 
 import requests
-from mcp.server.fastmcp import FastMCP, Context
+from mcp.server.fastmcp import Context, FastMCP
 from pydantic import Field
 
 # Initialize the MCP server

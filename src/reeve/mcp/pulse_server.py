@@ -22,7 +22,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from typing import Annotated, Literal, Optional
 
-from mcp.server.fastmcp import FastMCP, Context
+from mcp.server.fastmcp import Context, FastMCP
 from pydantic import Field
 
 from reeve.pulse.enums import PulsePriority, PulseStatus
@@ -196,7 +196,9 @@ async def schedule_pulse(
 
         # Format response
         time_str = parsed_time.strftime("%Y-%m-%d %H:%M:%S %Z")
-        session_info = f"\nSession: Resume current ({session_id})" if session_id else "\nSession: New session"
+        session_info = (
+            f"\nSession: Resume current ({session_id})" if session_id else "\nSession: New session"
+        )
         return (
             f"✓ Pulse scheduled successfully\n\n"
             f"Pulse ID: {pulse_id}\n"
