@@ -68,18 +68,38 @@ Demonstrates:
 - Timeout handling
 - Error handling
 
-### Phase 5+: Future Demos
+### Phase 5: Pulse Daemon
+```bash
+# With real Hapi (if installed)
+uv run python demos/phase5_daemon_demo.py
 
-Demo scripts for Phases 5-8 will be created as those phases are implemented.
+# Mock mode (no Hapi required)
+uv run python demos/phase5_daemon_demo.py --mock
+```
+
+Demonstrates:
+- Daemon startup and initialization
+- Scheduler loop (polls every 1 second)
+- Priority-based pulse execution
+- Concurrent pulse execution
+- Sticky notes integration
+- Graceful shutdown (SIGINT/SIGTERM)
+- Status monitoring in real-time
+
+**Note:** The daemon will run for ~15 seconds, execute all scheduled pulses, then shutdown gracefully.
+
+### Phase 6+: Future Demos
+
+Demo scripts for Phases 6-8 will be created as those phases are implemented.
 
 ## Running All Demos
 
 To run all completed phase demos in sequence:
 
 ```bash
-for demo in demos/phase{1,2,3,4}_*.py; do
+for demo in demos/phase{1,2,3,4,5}_*.py; do
     echo "=== Running $demo ==="
-    uv run python "$demo"
+    uv run python "$demo" --mock  # Use mock mode for phase 4 and 5
     echo ""
 done
 ```
@@ -117,7 +137,7 @@ After implementing each phase, Claude should:
 | 1-2 | SQLite database (local) |
 | 3 | SQLite + Telegram Bot API (optional) |
 | 4 | SQLite + Hapi CLI (if available, else mock) |
-| 5 | SQLite + Hapi CLI |
+| 5 | SQLite + Hapi CLI + Daemon (background process) |
 | 6 | SQLite + Hapi CLI + HTTP REST API |
 | 7 | SQLite + Hapi CLI + HTTP API + Telegram Bot API |
 | 8 | All of the above + systemd + cron |
