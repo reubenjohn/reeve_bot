@@ -92,6 +92,21 @@ pulse = Pulse(
 print(f"Created: {pulse}")
 ```
 
+**Demo**: Database Schema
+```bash
+# Run the demo script
+uv run python demos/phase1_database_demo.py
+
+# Expected output:
+# ✓ Database initialized at ~/.reeve/pulse_queue.db
+# ✓ Created pulse with ID: 1
+# ✓ Verified pulse in database:
+#   - Scheduled at: 2026-01-19 10:30:00+00:00
+#   - Priority: NORMAL
+#   - Status: PENDING
+# ✓ Phase 1 Demo Complete!
+```
+
 ---
 
 ## Phase 2: Queue Management ✅ COMPLETED
@@ -156,6 +171,38 @@ print(f"Created: {pulse}")
 # All tests passing
 uv run pytest tests/ -v
 # Result: 33 passed (3 Phase 1 + 1 Phase 2 integration + 29 Phase 2 unit tests)
+```
+
+**Demo**: Queue Operations
+```bash
+# Run the demo script
+uv run python demos/phase2_queue_demo.py
+
+# Expected output:
+# ✓ Initialized PulseQueue
+# ✓ Scheduled pulse #1: "High priority task" (due in 5 seconds, priority: HIGH)
+# ✓ Scheduled pulse #2: "Normal maintenance" (due in 10 seconds, priority: NORMAL)
+# ✓ Scheduled pulse #3: "Low priority cleanup" (due in 15 seconds, priority: LOW)
+#
+# Upcoming pulses (3):
+# 🔔 #1 - HIGH - in 5s - "High priority task"
+# ⏰ #2 - NORMAL - in 10s - "Normal maintenance"
+# 📋 #3 - LOW - in 15s - "Low priority cleanup"
+#
+# ✓ Marked pulse #1 as PROCESSING
+# ✓ Marked pulse #1 as COMPLETED
+#
+# ✓ Simulating failure for pulse #2...
+# ✓ Marked pulse #2 as FAILED (retry_count=1, will retry in 2 minutes)
+#
+# ✓ Cancelled pulse #3
+#
+# Final status:
+# - Pulse #1: COMPLETED ✅
+# - Pulse #2: PENDING (scheduled for retry in ~2 minutes) 🔄
+# - Pulse #3: CANCELLED ❌
+#
+# ✓ Phase 2 Demo Complete!
 ```
 
 ---
@@ -229,6 +276,62 @@ uv run python -m reeve.mcp.notification_server
 # Then in Claude Code session, tools are automatically available
 ```
 
+**Demo**: MCP Tools Integration
+
+**Step 1: Configure MCP servers** (one-time setup)
+```bash
+# Copy example config
+cp mcp_config.json.example ~/.config/claude-code/mcp_config.json
+
+# Edit to add Telegram credentials (optional for telegram-notifier)
+# TELEGRAM_BOT_TOKEN: Get from @BotFather on Telegram
+# TELEGRAM_CHAT_ID: Your Telegram user ID
+```
+
+**Step 2a: Demo via Interactive Script**
+```bash
+# Run the demo script (doesn't require MCP configuration)
+uv run python demos/phase3_mcp_demo.py
+
+# Expected output:
+# ✓ Testing Pulse Queue MCP Tools
+# ✓ Scheduled pulse #1: "Morning briefing" (in 1 hour, priority: HIGH)
+# ✓ Scheduled pulse #2: "Afternoon check-in" (in 4 hours, priority: NORMAL)
+# ✓ Listed 2 upcoming pulses
+# ✓ Rescheduled pulse #1 to 30 minutes from now
+# ✓ Cancelled pulse #2
+#
+# ✓ Testing Telegram Notifier MCP Tool
+# ✓ Sent test notification: "Phase 3 demo completed! 🎉"
+#   (Check your Telegram for the message)
+#
+# ✓ Phase 3 Demo Complete!
+```
+
+**Step 2b: Demo via Claude Code** (after MCP configuration)
+```
+In a Claude Code session, use the MCP tools directly:
+
+1. Schedule a pulse:
+   schedule_pulse(
+     scheduled_at="in 30 minutes",
+     prompt="Test notification from MCP",
+     priority="high"
+   )
+
+2. List upcoming pulses:
+   list_upcoming_pulses(limit=10)
+
+3. Send a notification:
+   send_notification(
+     message="Testing Telegram integration!",
+     priority="normal"
+   )
+
+4. Cancel a pulse:
+   cancel_pulse(pulse_id=1)
+```
+
 ---
 
 ## Phase 4: Pulse Executor ✅ COMPLETED
@@ -279,6 +382,55 @@ async def test():
 asyncio.run(test())
 ```
 
+**Demo**: Pulse Executor with Real Hapi
+
+**Note**: This demo requires Hapi to be installed and configured. If Hapi is not available, the demo will use a mock executor.
+
+```bash
+# Run the demo script
+uv run python demos/phase4_executor_demo.py
+
+# Expected output (with real Hapi):
+# ✓ Testing PulseExecutor
+# ✓ Building prompt with sticky notes...
+#
+# Prompt to send:
+# ─────────────────────────────────────
+# Tell me a programming joke and then exit
+#
+# 📌 Reminders:
+#   - Keep it short
+#   - Make it funny
+# ─────────────────────────────────────
+#
+# ✓ Launching Hapi session...
+# ✓ Execution completed successfully!
+#
+# Output:
+# ─────────────────────────────────────
+# Why do programmers prefer dark mode?
+# Because light attracts bugs! 🐛
+# ─────────────────────────────────────
+#
+# Execution time: 2.3 seconds
+# ✓ Phase 4 Demo Complete!
+```
+
+**Alternative Demo** (if Hapi not available):
+```bash
+# The demo script will automatically detect if Hapi is available
+# If not, it will demonstrate the executor with a mock command
+uv run python demos/phase4_executor_demo.py --mock
+
+# Expected output (mock mode):
+# ℹ Hapi not found, using mock executor
+# ✓ Mock execution successful
+# ✓ Prompt building tested
+# ✓ Timeout handling tested
+# ✓ Error handling tested
+# ✓ Phase 4 Demo Complete (mock mode)!
+```
+
 ---
 
 ## Phase 5: Daemon (Day 3, Morning)
@@ -326,6 +478,68 @@ schedule_pulse(
 # Terminal 1: Watch logs for execution
 # Should see: "Executing pulse X: Test pulse execution..."
 # Should see: "Pulse X completed successfully in Yms"
+```
+
+**Demo**: End-to-End Pulse Execution
+
+**Step 1: Start the daemon**
+```bash
+# Terminal 1: Start daemon in foreground
+uv run python -m reeve.pulse.daemon
+
+# Expected output:
+# 2026-01-19 10:30:00 | INFO | Starting Pulse Daemon...
+# 2026-01-19 10:30:00 | INFO | Database: ~/.reeve/pulse_queue.db
+# 2026-01-19 10:30:00 | INFO | Scheduler loop started (polling every 1s)
+# 2026-01-19 10:30:00 | INFO | Ready to execute pulses
+```
+
+**Step 2: Schedule pulses via MCP** (in Claude Code or via demo script)
+```bash
+# Terminal 2: Run the demo script
+uv run python demos/phase5_daemon_demo.py
+
+# The script will:
+# 1. Schedule 3 pulses with different priorities and timing
+# 2. Watch the daemon execute them in priority order
+# 3. Verify retry logic on simulated failures
+# 4. Test graceful shutdown
+```
+
+**Expected daemon output**:
+```
+2026-01-19 10:30:05 | INFO | Found 3 due pulses
+2026-01-19 10:30:05 | INFO | Executing pulse #1 (CRITICAL): "Emergency system check"
+2026-01-19 10:30:05 | INFO | Launching Hapi session...
+2026-01-19 10:30:08 | INFO | Pulse #1 completed successfully (3.2s)
+2026-01-19 10:30:10 | INFO | Executing pulse #2 (HIGH): "Morning briefing"
+2026-01-19 10:30:10 | INFO | Launching Hapi session...
+2026-01-19 10:30:13 | INFO | Pulse #2 completed successfully (2.8s)
+2026-01-19 10:30:15 | INFO | Executing pulse #3 (NORMAL): "Check calendar"
+2026-01-19 10:30:15 | INFO | Launching Hapi session...
+2026-01-19 10:30:18 | INFO | Pulse #3 completed successfully (2.1s)
+```
+
+**Step 3: Test retry logic**
+```bash
+# The demo script will schedule a pulse that intentionally fails
+# Expected daemon output:
+2026-01-19 10:31:00 | INFO | Executing pulse #4 (HIGH): "Flaky task"
+2026-01-19 10:31:00 | INFO | Launching Hapi session...
+2026-01-19 10:31:02 | ERROR | Pulse #4 failed: Hapi returned error code 1
+2026-01-19 10:31:02 | INFO | Scheduling retry #1 in 2 minutes
+2026-01-19 10:33:02 | INFO | Executing pulse #5 (HIGH): "Flaky task (retry 1)"
+2026-01-19 10:33:02 | INFO | Launching Hapi session...
+2026-01-19 10:33:05 | INFO | Pulse #5 completed successfully (2.5s)
+```
+
+**Step 4: Test graceful shutdown**
+```bash
+# In Terminal 1, press Ctrl+C
+^C2026-01-19 10:35:00 | INFO | Received shutdown signal
+2026-01-19 10:35:00 | INFO | Waiting for 1 running pulse to complete...
+2026-01-19 10:35:02 | INFO | All pulses completed
+2026-01-19 10:35:02 | INFO | Daemon shut down gracefully
 ```
 
 ---
@@ -385,6 +599,79 @@ curl -H "Authorization: Bearer your_token" \
   http://localhost:8765/api/pulse/upcoming?limit=10
 ```
 
+**Demo**: HTTP API Integration
+
+**Prerequisites**:
+```bash
+# Set API token in .env file
+echo "PULSE_API_TOKEN=your_secret_token_here" >> .env
+```
+
+**Step 1: Start daemon with API** (Terminal 1)
+```bash
+uv run python -m reeve.pulse.daemon
+
+# Expected output:
+# 2026-01-19 10:30:00 | INFO | Starting Pulse Daemon...
+# 2026-01-19 10:30:00 | INFO | Starting HTTP API on port 8765...
+# 2026-01-19 10:30:00 | INFO | API docs available at http://localhost:8765/docs
+# 2026-01-19 10:30:00 | INFO | Scheduler loop started
+```
+
+**Step 2: Run demo script** (Terminal 2)
+```bash
+uv run python demos/phase6_api_demo.py
+
+# The script will test all API endpoints:
+# ✓ Health check
+# ✓ Status endpoint
+# ✓ Trigger pulse (immediate)
+# ✓ Trigger pulse (scheduled)
+# ✓ List upcoming pulses
+# ✓ Authentication (valid token)
+# ✓ Authentication (invalid token - should fail)
+#
+# Expected output:
+# ✓ Health check: {"status": "healthy", "version": "0.1.0"}
+# ✓ Status: {"daemon_uptime": "5m", "pulses_executed": 42, "pending": 3}
+# ✓ Triggered immediate pulse: {"pulse_id": 123, "scheduled_at": "now"}
+# ✓ Triggered scheduled pulse: {"pulse_id": 124, "scheduled_at": "2026-01-19T11:00:00Z"}
+# ✓ Listed 2 upcoming pulses
+# ✓ Invalid token rejected with 401
+# ✓ Phase 6 Demo Complete!
+```
+
+**Step 3: Manual curl testing**
+```bash
+# Health check (no auth required)
+curl http://localhost:8765/api/health
+
+# Trigger a pulse
+curl -X POST http://localhost:8765/api/pulse/trigger \
+  -H "Authorization: Bearer your_secret_token_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Check my calendar and send me a summary",
+    "scheduled_at": "now",
+    "priority": "high",
+    "source": "manual_curl"
+  }'
+
+# Expected response:
+# {"pulse_id": 125, "scheduled_at": "2026-01-19T10:30:15Z", "status": "pending"}
+
+# Watch Terminal 1 (daemon logs):
+# 2026-01-19 10:30:15 | INFO | API: Received pulse trigger from manual_curl
+# 2026-01-19 10:30:15 | INFO | Executing pulse #125 (HIGH): "Check my calendar..."
+# 2026-01-19 10:30:18 | INFO | Pulse #125 completed successfully (2.8s)
+```
+
+**Step 4: Explore API docs**
+```bash
+# Open browser to http://localhost:8765/docs
+# FastAPI provides interactive Swagger UI for testing all endpoints
+```
+
 ---
 
 ## Phase 7: Telegram Integration (Day 4, Morning)
@@ -426,6 +713,89 @@ uv run python -m reeve.integrations.telegram
 # - Listener: "✓ Pulse 123 triggered"
 # - Daemon: "Executing pulse 123: Telegram message from User: hello"
 # - Daemon: "Pulse 123 completed successfully"
+```
+
+**Demo**: Telegram Integration (Full Loop)
+
+**Prerequisites**:
+```bash
+# Ensure Telegram credentials are in .env
+# TELEGRAM_BOT_TOKEN=your_bot_token
+# TELEGRAM_CHAT_ID=your_chat_id
+# PULSE_API_TOKEN=your_secret_token
+```
+
+**Step 1: Start daemon** (Terminal 1)
+```bash
+uv run python -m reeve.pulse.daemon
+
+# Expected output:
+# 2026-01-19 10:30:00 | INFO | Starting Pulse Daemon...
+# 2026-01-19 10:30:00 | INFO | Starting HTTP API on port 8765...
+# 2026-01-19 10:30:00 | INFO | Scheduler loop started
+```
+
+**Step 2: Start Telegram listener** (Terminal 2)
+```bash
+uv run python -m reeve.integrations.telegram
+
+# Expected output:
+# 2026-01-19 10:30:05 | INFO | Starting Telegram Listener...
+# 2026-01-19 10:30:05 | INFO | Bot username: @YourBotName
+# 2026-01-19 10:30:05 | INFO | Listening for messages from chat_id: 123456789
+# 2026-01-19 10:30:05 | INFO | Polling for updates...
+```
+
+**Step 3: Run demo script** (Terminal 3)
+```bash
+uv run python demos/phase7_telegram_demo.py
+
+# The script will:
+# 1. Send a test message to the bot
+# 2. Verify the listener receives it
+# 3. Verify a pulse is triggered via API
+# 4. Verify the daemon executes it
+# 5. Verify Reeve responds back via Telegram
+```
+
+**Expected output across terminals**:
+
+**Terminal 2 (Telegram Listener)**:
+```
+2026-01-19 10:30:10 | INFO | 📩 Telegram message from User (123456789): hello
+2026-01-19 10:30:10 | INFO | Triggering pulse via API...
+2026-01-19 10:30:10 | INFO | ✓ Pulse 42 triggered
+```
+
+**Terminal 1 (Daemon)**:
+```
+2026-01-19 10:30:10 | INFO | API: Received pulse trigger from telegram
+2026-01-19 10:30:10 | INFO | Executing pulse #42 (CRITICAL): "Telegram message from User: hello"
+2026-01-19 10:30:10 | INFO | Launching Hapi session...
+2026-01-19 10:30:13 | INFO | Pulse #42 completed successfully (3.1s)
+```
+
+**Your Telegram App**:
+```
+[Your message]
+hello
+
+[Bot's response]
+Hi! I received your message. How can I help you today?
+
+💬 View in Claude Code: https://hapi.example.com/session/abc123
+```
+
+**Step 4: Test complex interactions**
+```bash
+# Send: "What's on my calendar today?"
+# Expected: Bot responds with your calendar summary
+
+# Send: "Remind me to call John in 2 hours"
+# Expected: Bot confirms and schedules a pulse
+
+# Send: "What's the weather like?"
+# Expected: Bot fetches weather and responds
 ```
 
 ---
@@ -475,6 +845,98 @@ sudo systemctl status reeve-telegram
 sudo journalctl -u reeve-daemon -f
 ```
 
+**Demo**: Production Deployment
+
+**Step 1: Install as systemd services**
+```bash
+# Run the deployment script
+sudo bash demos/phase8_deployment_demo.sh
+
+# Expected output:
+# ✓ Created systemd service: reeve-daemon.service
+# ✓ Created systemd service: reeve-telegram.service
+# ✓ Reloaded systemd daemon
+# ✓ Enabled reeve-daemon.service
+# ✓ Enabled reeve-telegram.service
+# ✓ Started reeve-daemon.service
+# ✓ Started reeve-telegram.service
+# ✓ Services are running
+```
+
+**Step 2: Verify services are running**
+```bash
+sudo systemctl status reeve-daemon
+
+# Expected output:
+# ● reeve-daemon.service - Reeve Pulse Queue Daemon
+#    Loaded: loaded (/etc/systemd/system/reeve-daemon.service; enabled)
+#    Active: active (running) since Sun 2026-01-19 10:30:00 UTC; 5min ago
+#    Main PID: 12345 (python)
+#    Tasks: 3 (limit: 4915)
+#    Memory: 45.2M
+#    CGroup: /system.slice/reeve-daemon.service
+#            └─12345 /usr/bin/python -m reeve.pulse.daemon
+#
+# Jan 19 10:30:00 hostname systemd[1]: Started Reeve Pulse Queue Daemon
+# Jan 19 10:30:00 hostname python[12345]: INFO | Starting Pulse Daemon...
+# Jan 19 10:30:00 hostname python[12345]: INFO | Scheduler loop started
+```
+
+**Step 3: Test end-to-end functionality**
+```bash
+# Send a Telegram message
+# Expected: Bot responds within a few seconds
+
+# Check daemon logs
+sudo journalctl -u reeve-daemon -n 50
+
+# Expected to see pulse execution logs
+```
+
+**Step 4: Test automatic restart**
+```bash
+# Simulate a crash
+sudo kill -9 $(pgrep -f "reeve.pulse.daemon")
+
+# Wait a few seconds, then check status
+sleep 5
+sudo systemctl status reeve-daemon
+
+# Expected: Service should auto-restart
+# Active: active (running) since Sun 2026-01-19 10:35:15 UTC; 2s ago
+```
+
+**Step 5: Verify monitoring and backups**
+```bash
+# Check log rotation
+ls -lh /var/log/reeve/
+
+# Check database backup
+ls -lh ~/.reeve/backups/
+
+# Check health check cron
+crontab -l | grep reeve
+
+# Expected:
+# */5 * * * * /usr/local/bin/reeve-health-check.sh
+# 0 3 * * * /usr/local/bin/reeve-backup.sh
+```
+
+**Step 6: Graceful shutdown test**
+```bash
+# Stop services
+sudo systemctl stop reeve-daemon
+sudo systemctl stop reeve-telegram
+
+# Verify they stopped cleanly
+sudo journalctl -u reeve-daemon -n 10
+
+# Expected to see graceful shutdown logs:
+# Jan 19 10:40:00 hostname python[12345]: INFO | Received shutdown signal
+# Jan 19 10:40:00 hostname python[12345]: INFO | Waiting for running pulses...
+# Jan 19 10:40:02 hostname python[12345]: INFO | Daemon shut down gracefully
+```
+
 ---
 
 ## Phase 9: Integration Testing & Polish (Ongoing)
@@ -512,6 +974,145 @@ sudo journalctl -u reeve-daemon -f
 - ⌛ Performance benchmarks
 - ⌛ Updated documentation
 - ⌛ Hardened error handling
+
+---
+
+## Demo Strategy & Self-Testing
+
+### Philosophy
+
+After each phase is complete, there are **two levels of validation**:
+
+1. **Automated Tests**: Unit tests and integration tests (already covered in each phase)
+2. **Real-World Demos**: Interactive demonstrations using actual APIs and services
+
+The demos serve multiple purposes:
+- **Verify functionality** with real-world data and APIs
+- **Provide examples** for users to understand what's possible
+- **Enable testing** by Claude before handing off to the user
+- **Document usage** through concrete examples
+
+### Demo Scripts Location
+
+All demo scripts are in the `demos/` directory:
+```
+demos/
+  phase1_database_demo.py       # Database schema and model creation
+  phase2_queue_demo.py          # Queue operations (schedule, query, retry)
+  phase3_mcp_demo.py            # MCP tools integration
+  phase4_executor_demo.py       # Pulse execution with Hapi
+  phase5_daemon_demo.py         # Daemon orchestration
+  phase6_api_demo.py            # HTTP API endpoints
+  phase7_telegram_demo.py       # Telegram bot integration
+  phase8_deployment_demo.sh     # Systemd deployment
+```
+
+### Self-Testing Protocol (for Claude)
+
+After implementing each phase, Claude should:
+
+1. **Run automated tests first**:
+   ```bash
+   uv run pytest tests/ -v -k "phase_N"
+   ```
+
+2. **Run the demo script**:
+   ```bash
+   uv run python demos/phaseN_*_demo.py
+   ```
+
+3. **For MCP phases (3+), use MCP tools directly**:
+   - Claude has access to the MCP servers in the current session
+   - Can call `schedule_pulse()`, `list_upcoming_pulses()`, etc. directly
+   - Can verify responses and behavior in real-time
+
+4. **For daemon/API phases (5+), test with background processes**:
+   ```bash
+   # Start daemon in background
+   uv run python -m reeve.pulse.daemon &
+
+   # Run demo script to interact with it
+   uv run python demos/phase5_daemon_demo.py
+
+   # Clean up background process
+   pkill -f "reeve.pulse.daemon"
+   ```
+
+5. **For Telegram phases (3, 7), test with real Telegram API** (if credentials available):
+   - Use `send_notification()` MCP tool to send test message
+   - Verify message appears in Telegram
+   - For Phase 7, verify full message loop
+
+6. **Report results to user**:
+   - Confirm what was tested
+   - Share any interesting output or observations
+   - Flag any issues or unexpected behavior
+   - Provide next steps for user to try
+
+### Example Self-Testing Workflow
+
+**After completing Phase 3 (MCP Integration)**:
+
+```
+Claude's internal process:
+
+1. Run tests: ✅ 51/51 tests passed
+2. Run demo script: ✅ Successfully scheduled/listed/cancelled pulses
+3. Test MCP tools directly:
+   - schedule_pulse(scheduled_at="in 1 minute", prompt="Test", priority="high")
+   - list_upcoming_pulses(limit=5)
+   - Result: ✅ Tools work correctly, pulse scheduled
+4. Test Telegram notifier (if configured):
+   - send_notification(message="Test from Claude", priority="normal")
+   - Check: ✅ Message sent, Telegram API responded
+5. Report to user:
+   "✅ Phase 3 complete and tested! I've verified:
+    - All 18 MCP tests pass
+    - Demo script works
+    - MCP tools are functional (scheduled a test pulse)
+    - Telegram notifier works (sent test message)
+
+    Ready for you to try! Use the demo commands in the updated roadmap."
+```
+
+### Real-World API Usage
+
+Each demo uses real APIs where appropriate:
+
+| Phase | Real APIs Used |
+|-------|----------------|
+| 1-2 | SQLite database (local) |
+| 3 | SQLite database + Telegram Bot API (optional) |
+| 4 | SQLite + Hapi CLI (if available, else mock) |
+| 5 | SQLite + Hapi CLI |
+| 6 | SQLite + Hapi CLI + HTTP REST API |
+| 7 | SQLite + Hapi CLI + HTTP API + Telegram Bot API |
+| 8 | All of the above + systemd + cron |
+
+### Running Demos Safely
+
+All demo scripts:
+- Use the actual production database (`~/.reeve/pulse_queue.db`)
+- Create test data with clear labels (e.g., "DEMO: Test pulse")
+- Clean up after themselves (optional `--cleanup` flag)
+- Are idempotent (safe to run multiple times)
+- Provide verbose output for debugging
+
+### Demo Output Format
+
+Each demo follows this structure:
+```
+✓ [Step description]
+  - [Detail 1]
+  - [Detail 2]
+
+Expected output:
+─────────────────────────────────────
+[Actual output from API/command]
+─────────────────────────────────────
+
+✓ Phase N Demo Complete!
+```
 
 ---
 

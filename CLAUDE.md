@@ -371,6 +371,11 @@ All public methods must have docstrings with:
 - `mcp_config.json.example` - Example MCP configuration for Claude Code
 - `docs/MCP_SETUP.md` - MCP server setup and troubleshooting guide
 - `pytest.ini` - Pytest configuration for async tests
+- `demos/phase1_database_demo.py` - Phase 1 demo: Database schema
+- `demos/phase2_queue_demo.py` - Phase 2 demo: Queue operations
+- `demos/phase3_mcp_demo.py` - Phase 3 demo: MCP integration
+- `demos/phase4_executor_demo.py` - Phase 4 demo: Pulse executor
+- `demos/README.md` - Demo usage guide and self-testing protocol
 
 ### To Be Implemented (Phase 5+)
 - `src/reeve/pulse/daemon.py` - Main daemon process
@@ -389,6 +394,12 @@ uv run alembic upgrade head
 
 # Run tests
 uv run pytest tests/ -v
+
+# Run demos (interactive real-world examples)
+uv run python demos/phase1_database_demo.py
+uv run python demos/phase2_queue_demo.py
+uv run python demos/phase3_mcp_demo.py
+uv run python demos/phase4_executor_demo.py --mock
 
 # Format code
 uv run black src/

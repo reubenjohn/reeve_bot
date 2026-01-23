@@ -1,0 +1,168 @@
+# Reeve Bot Demos
+
+This directory contains interactive demonstration scripts for each phase of the Pulse Queue system. These demos show real-world functionality using actual APIs and services.
+
+## Purpose
+
+The demos serve multiple purposes:
+- **Verify functionality** with real-world data and APIs
+- **Provide examples** for users to understand what's possible
+- **Enable self-testing** by Claude before handing off to users
+- **Document usage** through concrete, runnable examples
+
+## Available Demos
+
+### Phase 1: Database Schema
+```bash
+uv run python demos/phase1_database_demo.py
+```
+
+Demonstrates:
+- Database initialization
+- Pulse model creation
+- Enum integration
+- Basic CRUD operations
+
+### Phase 2: Queue Operations
+```bash
+uv run python demos/phase2_queue_demo.py
+```
+
+Demonstrates:
+- Scheduling pulses with different priorities
+- Priority-based ordering (CRITICAL → HIGH → NORMAL → LOW → DEFERRED)
+- State transitions (PENDING → PROCESSING → COMPLETED/FAILED)
+- Retry logic with exponential backoff
+- Cancelling pulses
+
+### Phase 3: MCP Integration
+```bash
+uv run python demos/phase3_mcp_demo.py
+```
+
+Demonstrates:
+- Flexible time parsing (ISO 8601, relative times, keywords)
+- Scheduling pulses with priorities, tags, and sticky notes
+- Listing and formatting upcoming pulses
+- Rescheduling and cancelling pulses
+- Telegram notifications (if configured)
+
+**Note:** To test Telegram notifications, set:
+```bash
+export TELEGRAM_BOT_TOKEN=your_bot_token
+export TELEGRAM_CHAT_ID=your_chat_id
+```
+
+### Phase 4: Pulse Executor
+```bash
+# With real Hapi (if installed)
+uv run python demos/phase4_executor_demo.py
+
+# Mock mode (no Hapi required)
+uv run python demos/phase4_executor_demo.py --mock
+```
+
+Demonstrates:
+- Prompt building with and without sticky notes
+- Hapi subprocess execution
+- Timeout handling
+- Error handling
+
+### Phase 5+: Future Demos
+
+Demo scripts for Phases 5-8 will be created as those phases are implemented.
+
+## Running All Demos
+
+To run all completed phase demos in sequence:
+
+```bash
+for demo in demos/phase{1,2,3,4}_*.py; do
+    echo "=== Running $demo ==="
+    uv run python "$demo"
+    echo ""
+done
+```
+
+## Demo Data Cleanup
+
+All demos:
+- Use the production database (`~/.reeve/pulse_queue.db`)
+- Create test data with clear labels (prefixed with "DEMO:")
+- Clean up after themselves automatically
+- Are idempotent (safe to run multiple times)
+
+## Self-Testing Protocol (for Claude)
+
+After implementing each phase, Claude should:
+
+1. **Run automated tests first:**
+   ```bash
+   uv run pytest tests/ -v -k "phase_N"
+   ```
+
+2. **Run the demo script:**
+   ```bash
+   uv run python demos/phaseN_*_demo.py
+   ```
+
+3. **For MCP phases (3+), use MCP tools directly** in the Claude Code session
+
+4. **Report results to user** with observations and next steps
+
+## Real-World API Usage
+
+| Phase | Real APIs Used |
+|-------|----------------|
+| 1-2 | SQLite database (local) |
+| 3 | SQLite + Telegram Bot API (optional) |
+| 4 | SQLite + Hapi CLI (if available, else mock) |
+| 5 | SQLite + Hapi CLI |
+| 6 | SQLite + Hapi CLI + HTTP REST API |
+| 7 | SQLite + Hapi CLI + HTTP API + Telegram Bot API |
+| 8 | All of the above + systemd + cron |
+
+## Demo Output Format
+
+Each demo follows this structure:
+```
+✓ [Step description]
+  - [Detail 1]
+  - [Detail 2]
+
+Expected output:
+─────────────────────────────────────
+[Actual output from API/command]
+─────────────────────────────────────
+
+✓ Phase N Demo Complete!
+```
+
+## Troubleshooting
+
+### Database locked errors
+If you get "database is locked" errors, make sure no other processes (daemon, tests) are accessing the database:
+```bash
+pkill -f "reeve.pulse"
+```
+
+### Telegram API errors
+If Telegram notifications fail:
+1. Verify credentials are set correctly
+2. Check bot token is valid: `curl https://api.telegram.org/bot<TOKEN>/getMe`
+3. Verify chat ID is correct
+
+### Hapi not found
+Phase 4 demo will automatically fall back to mock mode if Hapi is not found. To use real Hapi:
+1. Install Hapi: Follow setup instructions
+2. Ensure it's in your PATH: `which hapi`
+
+## Contributing
+
+When adding new demos:
+1. Follow the existing naming convention: `phaseN_description_demo.py`
+2. Include comprehensive docstrings
+3. Use emoji indicators (✓, ❌, ⚠, etc.)
+4. Clean up demo data in a `finally` block
+5. Provide clear output with separators
+6. Update this README with usage instructions
