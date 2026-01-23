@@ -466,7 +466,7 @@ uv run python demos/phase4_executor_demo.py --mock
 **Validation**:
 ```bash
 # Terminal 1: Start daemon
-uv run python -m reeve.pulse.daemon
+uv run python -m reeve.pulse
 
 # Terminal 2: Schedule pulse via MCP (in Claude Code)
 schedule_pulse(
@@ -485,7 +485,7 @@ schedule_pulse(
 **Step 1: Start the daemon**
 ```bash
 # Terminal 1: Start daemon in foreground
-uv run python -m reeve.pulse.daemon
+uv run python -m reeve.pulse
 
 # Expected output:
 # 2026-01-19 10:30:00 | INFO | Starting Pulse Daemon...
@@ -578,7 +578,7 @@ uv run python demos/phase5_daemon_demo.py
 **Validation**:
 ```bash
 # Start daemon (includes API)
-uv run python -m reeve.pulse.daemon
+uv run python -m reeve.pulse
 
 # Test health endpoint
 curl http://localhost:8765/api/health
@@ -609,7 +609,7 @@ echo "PULSE_API_TOKEN=your_secret_token_here" >> .env
 
 **Step 1: Start daemon with API** (Terminal 1)
 ```bash
-uv run python -m reeve.pulse.daemon
+uv run python -m reeve.pulse
 
 # Expected output:
 # 2026-01-19 10:30:00 | INFO | Starting Pulse Daemon...
@@ -702,7 +702,7 @@ curl -X POST http://localhost:8765/api/pulse/trigger \
 **Validation**:
 ```bash
 # Terminal 1: Start daemon
-uv run python -m reeve.pulse.daemon
+uv run python -m reeve.pulse
 
 # Terminal 2: Start Telegram listener
 uv run python -m reeve.integrations.telegram
@@ -727,7 +727,7 @@ uv run python -m reeve.integrations.telegram
 
 **Step 1: Start daemon** (Terminal 1)
 ```bash
-uv run python -m reeve.pulse.daemon
+uv run python -m reeve.pulse
 
 # Expected output:
 # 2026-01-19 10:30:00 | INFO | Starting Pulse Daemon...
@@ -875,7 +875,7 @@ sudo systemctl status reeve-daemon
 #    Tasks: 3 (limit: 4915)
 #    Memory: 45.2M
 #    CGroup: /system.slice/reeve-daemon.service
-#            └─12345 /usr/bin/python -m reeve.pulse.daemon
+#            └─12345 /usr/bin/python -m reeve.pulse
 #
 # Jan 19 10:30:00 hostname systemd[1]: Started Reeve Pulse Queue Daemon
 # Jan 19 10:30:00 hostname python[12345]: INFO | Starting Pulse Daemon...
@@ -1029,7 +1029,7 @@ After implementing each phase, Claude should:
 4. **For daemon/API phases (5+), test with background processes**:
    ```bash
    # Start daemon in background
-   uv run python -m reeve.pulse.daemon &
+   uv run python -m reeve.pulse &
 
    # Run demo script to interact with it
    uv run python demos/phase5_daemon_demo.py
@@ -1181,7 +1181,7 @@ uv run isort src/
 uv run mypy src/
 
 # Run daemon (dev mode)
-uv run python -m reeve.pulse.daemon
+uv run python -m reeve.pulse
 ```
 
 ### Git Workflow

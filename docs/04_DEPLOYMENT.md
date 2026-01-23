@@ -78,7 +78,7 @@ Before setting up systemd, verify the daemon runs correctly:
 
 ```bash
 # Start daemon
-uv run python -m reeve.pulse.daemon
+uv run python -m reeve.pulse
 
 # In another terminal, test the API
 curl http://localhost:8765/api/health
@@ -121,7 +121,7 @@ Group=reuben
 WorkingDirectory=/home/reuben/workspace/reeve_bot
 
 # Use uv to run the daemon
-ExecStart=/home/reuben/.local/bin/uv run python -m reeve.pulse.daemon
+ExecStart=/home/reuben/.local/bin/uv run python -m reeve.pulse
 
 # Environment
 EnvironmentFile=/home/reuben/workspace/reeve_bot/.env

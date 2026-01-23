@@ -253,7 +253,7 @@ src/reeve/integrations/
 - **Fast**: Rust-based, faster than pip/poetry
 - **Lock file**: Reproducible builds
 - **Modern**: PEP 621 compliant pyproject.toml
-- **Script runner**: `uv run python -m reeve.pulse.daemon`
+- **Script runner**: `uv run python -m reeve.pulse`
 
 ### Why FastAPI (or aiohttp)?
 
@@ -291,7 +291,7 @@ uv run alembic upgrade head  # Initialize database
 
 ```bash
 # Terminal 1: Run daemon
-uv run python -m reeve.pulse.daemon
+uv run python -m reeve.pulse
 
 # Terminal 2: Trigger test pulse
 uv run python cli/pulse.py schedule "Test pulse" --priority HIGH

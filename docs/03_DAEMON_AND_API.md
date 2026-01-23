@@ -52,7 +52,7 @@ This daemon runs three concurrent asyncio tasks:
 
 Usage:
     # Development
-    uv run python -m reeve.pulse.daemon
+    uv run python -m reeve.pulse
 
     # Production (via systemd)
     systemctl start reeve-daemon
