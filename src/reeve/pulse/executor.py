@@ -76,14 +76,15 @@ class PulseExecutor:
             raise RuntimeError(f"Working directory does not exist: {cwd}")
 
         # Build Hapi command
-        cmd = [self.hapi_command, "run"]
+        # Use --print for non-interactive execution (automated pulse execution)
+        cmd = [self.hapi_command, "--print"]
 
         # Add session resume flag if provided
         if session_id:
             cmd.extend(["--resume", session_id])
 
-        # Add prompt
-        cmd.extend(["--text", prompt])
+        # Add prompt as positional argument (must be last)
+        cmd.append(prompt)
 
         self.logger.debug(f"Executing: {' '.join(cmd)} (cwd: {cwd}, timeout: {timeout}s)")
 

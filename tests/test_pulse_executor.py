@@ -322,10 +322,10 @@ async def test_full_execution_flow(executor, mock_desk):
     # Verify the command was constructed correctly
     call_args = mock_exec.call_args[0]
     assert "hapi" in call_args
-    assert "run" in call_args
+    assert "--print" in call_args
     assert "--resume" in call_args
     assert "session-abc" in call_args
-    assert "--text" in call_args
+    assert full_prompt in call_args  # Prompt is passed as positional arg
 
     # Verify the result
     assert result["return_code"] == 0
