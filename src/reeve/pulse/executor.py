@@ -6,9 +6,31 @@ sessions with the pulse's prompt as the initial context.
 """
 
 import asyncio
+import json
 import logging
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional
+
+from pydantic import BaseModel, Field
+
+
+class ExecutionResult(BaseModel):
+    """
+    Result of a pulse execution.
+
+    Attributes:
+        stdout: Standard output from Hapi/Claude Code
+        stderr: Standard error from Hapi/Claude Code
+        return_code: Process exit code (0 = success, -1 = timeout)
+        timed_out: Whether the execution timed out
+        session_id: Session ID of the executed session (new or resumed)
+    """
+
+    stdout: str = Field(..., description="Standard output from Hapi/Claude Code")
+    stderr: str = Field(..., description="Standard error from Hapi/Claude Code")
+    return_code: int = Field(..., description="Process exit code (0 = success, -1 = timeout)")
+    timed_out: bool = Field(..., description="Whether the execution timed out")
+    session_id: Optional[str] = Field(None, description="Session ID of the executed session")
 
 
 class PulseExecutor:
@@ -48,7 +70,7 @@ class PulseExecutor:
         session_id: Optional[str] = None,
         working_dir: Optional[str] = None,
         timeout_override: Optional[int] = None,
-    ) -> Dict[str, any]:
+    ) -> ExecutionResult:
         """
         Execute a pulse by launching a Hapi session.
 
@@ -59,11 +81,7 @@ class PulseExecutor:
             timeout_override: Override timeout for this specific execution
 
         Returns:
-            Execution result dict with:
-                - stdout: str - Standard output from Hapi
-                - stderr: str - Standard error from Hapi
-                - return_code: int - Process exit code
-                - timed_out: bool - Whether execution timed out
+            ExecutionResult with stdout, stderr, return_code, timed_out, and session_id
 
         Raises:
             RuntimeError: If Hapi execution fails (non-zero exit code)
@@ -77,7 +95,8 @@ class PulseExecutor:
 
         # Build Hapi command
         # Use --print for non-interactive execution (automated pulse execution)
-        cmd = [self.hapi_command, "--print"]
+        # Use --output-format json to get structured output with session_id
+        cmd = [self.hapi_command, "--print", "--output-format", "json"]
 
         # Add session resume flag if provided
         if session_id:
@@ -112,26 +131,42 @@ class PulseExecutor:
                 stdout = b""
                 stderr = b"Execution timed out"
 
-            result = {
-                "stdout": stdout.decode("utf-8", errors="replace"),
-                "stderr": stderr.decode("utf-8", errors="replace"),
-                "return_code": process.returncode if not timed_out else -1,
-                "timed_out": timed_out,
-            }
+            stdout_str = stdout.decode("utf-8", errors="replace")
+            stderr_str = stderr.decode("utf-8", errors="replace")
+            return_code = process.returncode if not timed_out else -1
+
+            # Parse JSON output to extract session_id (if available)
+            extracted_session_id = None
+            if not timed_out and return_code == 0:
+                try:
+                    # Claude Code --output-format json outputs JSON with session_id
+                    json_output = json.loads(stdout_str)
+                    extracted_session_id = json_output.get("session_id")
+                except (json.JSONDecodeError, KeyError):
+                    # If JSON parsing fails, we'll proceed without session_id
+                    self.logger.debug("Could not parse session_id from JSON output")
+
+            result = ExecutionResult(
+                stdout=stdout_str,
+                stderr=stderr_str,
+                return_code=return_code,
+                timed_out=timed_out,
+                session_id=extracted_session_id,
+            )
 
             # Check for errors
             if timed_out:
-                raise RuntimeError(
-                    f"Hapi execution timed out after {timeout}s: {result['stderr']}"
-                )
+                raise RuntimeError(f"Hapi execution timed out after {timeout}s: {result.stderr}")
 
             if process.returncode != 0:
                 raise RuntimeError(
                     f"Hapi execution failed (exit code {process.returncode}): "
-                    f"{result['stderr']}"
+                    f"{result.stderr}"
                 )
 
-            self.logger.info(f"Hapi execution completed successfully")
+            self.logger.info(
+                f"Hapi execution completed successfully (session_id: {extracted_session_id})"
+            )
             return result
 
         except FileNotFoundError:

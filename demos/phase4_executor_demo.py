@@ -58,16 +58,17 @@ async def demo_with_real_hapi():
             timeout_override=30,
         )
 
-        if result["return_code"] == 0:
+        if result.return_code == 0:
             print(f"✓ Execution completed successfully!")
+            print(f"  Session ID: {result.session_id}")
             print(f"\nOutput:")
             print("─" * 60)
-            print(result["stdout"].strip())
+            print(result.stdout.strip())
             print("─" * 60)
         else:
-            print(f"❌ Execution failed with return code: {result['return_code']}")
-            if result["stderr"]:
-                print(f"Error: {result['stderr']}")
+            print(f"❌ Execution failed with return code: {result.return_code}")
+            if result.stderr:
+                print(f"Error: {result.stderr}")
 
     except Exception as e:
         print(f"❌ Execution failed: {e}")
@@ -100,67 +101,103 @@ async def demo_with_real_hapi():
             timeout_override=30,
         )
 
-        if result["return_code"] == 0:
+        if result.return_code == 0:
             print(f"✓ Execution completed successfully!")
+            print(f"  Session ID: {result.session_id}")
             print(f"\nOutput:")
             print("─" * 60)
-            print(result["stdout"].strip())
+            print(result.stdout.strip())
             print("─" * 60)
         else:
-            print(f"❌ Execution failed with return code: {result['return_code']}")
+            print(f"❌ Execution failed with return code: {result.return_code}")
 
     except Exception as e:
         print(f"❌ Execution failed: {e}")
 
-    # Demo 3: Session resumption
+    # Demo 3: Session resumption and session ID extraction
     print(f"\n{'='*60}")
-    print("Demo 3: Session resumption with session_id")
+    print("Demo 3: Session ID extraction and resumption")
     print("-" * 60)
-    print("\nThis demonstrates how the executor handles session resumption.")
-    print("When a session_id is provided, Hapi adds --resume to continue")
-    print("an existing conversation context.\n")
+    print("\nThis demonstrates:")
+    print("  1. Extracting session_id from a NEW session (--output-format json)")
+    print("  2. Using that session_id to RESUME the session\n")
 
-    # Use a mock session ID for demonstration
-    mock_session_id = "abc123-session-id"
-    prompt = "What was the previous answer I asked about? (This would only work with a real session)"
+    # Step 1: Create a new session and capture its session_id
+    print("Step 1: Create a new session")
+    print("-" * 60)
 
-    print(f"Session ID: {mock_session_id}")
-    print(f"Prompt: '{prompt}'")
-    print("\nCommand that would be executed:")
-    print(f"  hapi --print --resume {mock_session_id} \"{prompt}\"")
-    print("\nNote: This would fail since the session doesn't exist, but it")
-    print("demonstrates how the executor constructs commands for session resumption.")
+    initial_prompt = "Remember this number: 42. Just say 'OK, I'll remember 42.'"
+    print(f"Prompt: '{initial_prompt}'")
+    print("\n✓ Launching new Hapi session...")
 
     try:
-        result = await executor.execute(
-            prompt=prompt,
-            session_id=mock_session_id,
-            timeout_override=15,
+        # Execute first prompt (creates NEW session)
+        result1 = await executor.execute(
+            prompt=initial_prompt,
+            timeout_override=30,
         )
 
-        if result["return_code"] == 0:
-            print(f"\n✓ Execution completed successfully!")
-            print(f"\nOutput:")
-            print("─" * 60)
-            print(result["stdout"].strip())
-            print("─" * 60)
+        if result1.return_code == 0:
+            print(f"✓ New session created successfully!")
+            print(f"  Session ID: {result1.session_id}")
+
+            if result1.session_id:
+                # Step 2: Resume the session using captured session_id
+                print(f"\nStep 2: Resume the session")
+                print("-" * 60)
+
+                followup_prompt = "What number did I ask you to remember?"
+                print(f"Resuming session: {result1.session_id}")
+                print(f"Prompt: '{followup_prompt}'")
+                print("\n✓ Resuming session...")
+
+                # Execute followup prompt (RESUMES existing session)
+                result2 = await executor.execute(
+                    prompt=followup_prompt,
+                    session_id=result1.session_id,  # Use captured session_id
+                    timeout_override=30,
+                )
+
+                if result2.return_code == 0:
+                    print(f"✓ Session resumed successfully!")
+                    print(f"  Session ID: {result2.session_id}")
+                    print(f"\nOutput:")
+                    print("─" * 60)
+                    print(result2.stdout.strip())
+                    print("─" * 60)
+                    print("\n✅ Session continuity verified!")
+                    print("   The model remembered '42' from the first message.")
+                else:
+                    print(f"❌ Resume failed with return code: {result2.return_code}")
+            else:
+                print("\n⚠ Warning: session_id not extracted from JSON output")
+                print("   This could mean:")
+                print("   - Claude Code version doesn't support --json mode")
+                print("   - Output format is different than expected")
+                print("\nRaw output:")
+                print("─" * 60)
+                print(result1.stdout[:500])
+                print("─" * 60)
         else:
-            print(f"\n⚠ Expected behavior: Execution failed because session doesn't exist")
-            print(f"   Return code: {result['return_code']}")
-            print(f"   This proves the --resume flag was added correctly!")
-            if result["stderr"]:
-                print(f"\n   Error (expected): {result['stderr'][:200]}")
+            print(f"❌ Initial execution failed with return code: {result1.return_code}")
+            if result1.stderr:
+                print(f"Error: {result1.stderr}")
 
     except Exception as e:
-        print(f"\n⚠ Expected behavior: Execution failed - {str(e)[:150]}")
-        print("   This proves the --resume flag was added correctly!")
+        print(f"❌ Demo failed: {e}")
 
     print("\n" + "=" * 60)
     print("✅ Phase 4 Demo Complete!")
     print("\nKey features demonstrated:")
-    print("  1. Simple prompt execution")
+    print("  1. Simple prompt execution with session_id extraction")
     print("  2. Sticky notes (appended to prompt)")
-    print("  3. Session resumption with --resume flag")
+    print("  3. Session ID extraction from JSON output (--output-format json)")
+    print("  4. Session resumption using captured session_id")
+    print("\nTechnical details:")
+    print("  - Executor uses --output-format json to get structured output")
+    print("  - Session ID is extracted from JSON response")
+    print("  - ExecutionResult is a Pydantic model (type-safe)")
+    print("  - Session continuity enables multi-turn pulse workflows")
 
 
 async def demo_with_mock():
@@ -208,9 +245,10 @@ async def demo_with_mock():
         )
 
         print(f"✓ Mock execution completed")
-        print(f"  Return code: {result['return_code']}")
-        print(f"  Timed out: {result['timed_out']}")
-        print(f"  Output: {result['stdout'].strip()}")
+        print(f"  Return code: {result.return_code}")
+        print(f"  Timed out: {result.timed_out}")
+        print(f"  Session ID: {result.session_id}")
+        print(f"  Output: {result.stdout.strip()}")
 
     except Exception as e:
         print(f"❌ Mock execution failed: {e}")
@@ -239,6 +277,10 @@ async def demo_with_mock():
     print("  - Sticky notes are appended (not prepended)")
     print("  - Mock execution workflow")
     print("  - Session resumption concept")
+    print("\nWith real Hapi, you'll also see:")
+    print("  - Session ID extraction from --output-format json output")
+    print("  - ExecutionResult Pydantic model")
+    print("  - Multi-turn conversation using captured session_id")
 
 
 async def main():
