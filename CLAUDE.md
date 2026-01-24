@@ -204,19 +204,70 @@ A **Pulse** is a scheduled wake-up event for Reeve. When a pulse fires, it launc
 - 51 Phase 1-3 tests (unchanged)
 - 18 Phase 4 executor tests (new)
 
-### 🔄 Next: Phase 5 - Daemon
+### ✅ Phase 5: Pulse Daemon - COMPLETED (Commit: b9b9714)
 
 **Goal**: Build the main daemon process that orchestrates pulse execution.
 
+**What's been implemented:**
+
+1. **PulseDaemon Class** (`src/reeve/pulse/daemon.py` - 273 lines)
+   - Scheduler loop polling every 1 second
+   - Concurrent pulse execution (up to 10 per iteration)
+   - Signal handling (SIGTERM, SIGINT) for graceful shutdown
+   - 30-second grace period for in-flight pulses
+   - Automatic retry on failures with exponential backoff
+   - Error recovery with 5-second backoff on database errors
+   - Key methods:
+     - `_execute_pulse()` - Execute single pulse, track duration, handle errors
+     - `_scheduler_loop()` - Poll for due pulses, spawn concurrent tasks
+     - `_handle_shutdown()` - Graceful shutdown with timeout
+     - `start()` - Main entry point (blocks until shutdown)
+   - State tracking:
+     - `self.running` - Controls scheduler loop
+     - `self.executing_pulses: set[asyncio.Task]` - In-flight tasks
+     - `self.shutdown_event: asyncio.Event()` - Shutdown signal
+
+2. **Logging Configuration** (`src/reeve/utils/logging.py` - 72 lines)
+   - `setup_logging()` function with rotating file handler
+   - RotatingFileHandler (10MB max, 5 backups)
+   - Structured formatting: `"%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"`
+   - Console + file output (configurable)
+   - Auto-creates log directory if missing
+
+3. **Entry Point** (`src/reeve/pulse/__main__.py` - 59 lines)
+   - Run as module: `python -m reeve.pulse`
+   - Configuration loading via `get_config()`
+   - Logging initialization
+   - Startup info logging (database, desk, hapi paths)
+   - Graceful KeyboardInterrupt handling
+
+4. **Test Suite** (23 comprehensive tests)
+   - `tests/test_pulse_daemon.py` - 21 unit tests covering:
+     - Pulse Execution (6 tests): success, sticky notes, session ID, failures, retries, duration
+     - Scheduler Loop (8 tests): polling, task spawning, priority, concurrency, error handling
+     - Signal Handling (4 tests): shutdown, in-flight wait, timeout, resource cleanup
+     - Integration (3 tests): full lifecycle, concurrent execution, error recovery
+   - `tests/test_phase5_validation.py` - 2 integration tests:
+     - End-to-end daemon lifecycle validation
+     - Pulse execution flow verification
+
+**Test Results**: 94/94 tests PASSED
+- 71 Phase 1-4 tests (unchanged)
+- 21 Phase 5 daemon unit tests (new)
+- 2 Phase 5 validation tests (new)
+
+### 🔄 Next: Phase 6 - HTTP API
+
+**Goal**: Add FastAPI server to allow external systems to trigger pulses.
+
 **Files to create:**
-- `src/reeve/pulse/daemon.py` - PulseDaemon class
-- `src/reeve/utils/logging.py` - Logging configuration
+- `src/reeve/api/server.py` - FastAPI server implementation
+- Tests for API endpoints
 
 **Key requirements:**
-- Scheduler loop (polls every 1 second)
-- Concurrent execution of pulses
-- Integration with PulseExecutor
-- Graceful shutdown handling
+- REST API endpoints (trigger pulse, list upcoming, health check)
+- Bearer token authentication
+- Run concurrently with daemon scheduler
 
 ## Architecture Decisions
 
@@ -352,12 +403,15 @@ All public methods must have docstrings with:
 - `docs/04_DEPLOYMENT.md` - Production deployment (Phase 8)
 - `docs/IMPLEMENTATION_ROADMAP.md` - Full implementation plan
 
-### Implemented Files (Phases 1-4)
+### Implemented Files (Phases 1-5)
 - `src/reeve/pulse/enums.py` - Priority and status enums
 - `src/reeve/pulse/models.py` - Pulse SQLAlchemy model with TZDateTime
 - `src/reeve/pulse/queue.py` - PulseQueue class with async operations
 - `src/reeve/pulse/executor.py` - PulseExecutor class for Hapi execution
+- `src/reeve/pulse/daemon.py` - PulseDaemon class with scheduler loop (273 lines)
+- `src/reeve/pulse/__main__.py` - Entry point for daemon module (59 lines)
 - `src/reeve/utils/config.py` - Configuration management
+- `src/reeve/utils/logging.py` - Logging configuration with rotation (72 lines)
 - `src/reeve/mcp/pulse_server.py` - Pulse Queue MCP server (FastMCP)
 - `src/reeve/mcp/notification_server.py` - Telegram Notifier MCP server (FastMCP)
 - `alembic/versions/07ce7ae63b4a_create_pulses_table.py` - Initial migration
@@ -368,6 +422,8 @@ All public methods must have docstrings with:
 - `tests/test_pulse_server_tools.py` - Pulse server MCP tool tests (3 tests)
 - `tests/test_notification_server.py` - Telegram notifier tests (4 tests)
 - `tests/test_pulse_executor.py` - Pulse executor tests (18 tests)
+- `tests/test_pulse_daemon.py` - Pulse daemon unit tests (21 tests)
+- `tests/test_phase5_validation.py` - Phase 5 validation tests (2 tests)
 - `mcp_config.json.example` - Example MCP configuration for Claude Code
 - `docs/MCP_SETUP.md` - MCP server setup and troubleshooting guide
 - `pytest.ini` - Pytest configuration for async tests
@@ -377,11 +433,10 @@ All public methods must have docstrings with:
 - `demos/phase4_executor_demo.py` - Phase 4 demo: Pulse executor
 - `demos/README.md` - Demo usage guide and self-testing protocol
 
-### To Be Implemented (Phase 5+)
-- `src/reeve/pulse/daemon.py` - Main daemon process
-- `src/reeve/utils/logging.py` - Logging configuration
+### To Be Implemented (Phase 6+)
 - `src/reeve/api/server.py` - FastAPI HTTP server
 - `src/reeve/integrations/telegram.py` - Telegram listener
+- `demos/phase5_daemon_demo.py` - Phase 5 demo: Daemon orchestration
 
 ## Quick Start Commands
 
@@ -394,6 +449,12 @@ uv run alembic upgrade head
 
 # Run tests
 uv run pytest tests/ -v
+
+# Run daemon (Phase 5+)
+uv run python -m reeve.pulse
+
+# Run daemon with custom log level
+LOG_LEVEL=DEBUG uv run python -m reeve.pulse
 
 # Run demos (interactive real-world examples)
 uv run python demos/phase1_database_demo.py
@@ -439,23 +500,24 @@ pulse = Pulse(
 
 ## Next Session Prompt
 
-When starting Phase 5, use this prompt:
+When starting Phase 6, use this prompt:
 
 ```
-I'm ready to implement Phase 5 (Pulse Daemon) for the Pulse Queue system.
+I'm ready to implement Phase 6 (HTTP API) for the Pulse Queue system.
 
 Please implement:
-1. PulseDaemon class (src/reeve/pulse/daemon.py) that:
-   - Runs a scheduler loop that polls every 1 second
-   - Executes due pulses using PulseExecutor
-   - Handles concurrent pulse execution
-   - Implements graceful shutdown (SIGTERM/SIGINT)
-   - Integrates prompt building with sticky notes
-2. Logging configuration (src/reeve/utils/logging.py)
-3. Unit tests for the daemon
-4. Integration tests for end-to-end pulse execution
+1. FastAPI server (src/reeve/api/server.py) that:
+   - Exposes REST endpoints for external pulse triggers
+   - POST /api/pulse/trigger - Create new pulse
+   - GET /api/pulse/upcoming - List upcoming pulses
+   - GET /api/health - Health check
+   - GET /api/status - Daemon status
+   - Implements Bearer token authentication
+2. Integrate API server with daemon to run concurrently
+3. Unit tests for API endpoints
+4. Integration tests for API → Queue → Execution flow
 
-Refer to docs/03_DAEMON_AND_API.md for the complete daemon specifications.
+Refer to docs/03_DAEMON_AND_API.md for the complete API specifications.
 ```
 
 ## Design Principles
@@ -492,7 +554,7 @@ Current versions (from `uv.lock`):
 
 ---
 
-**Last Updated**: 2026-01-19 (after Phase 4 completion)
-**Current Commit**: 5d7b2ab
+**Last Updated**: 2026-01-23 (Phase 5 documentation)
+**Current Commit**: b9b9714 (Phase 5: Pulse Daemon)
 **Current Migration**: 07ce7ae63b4a
-**Test Status**: 69/69 tests PASSED
+**Test Status**: 94/94 tests PASSED
