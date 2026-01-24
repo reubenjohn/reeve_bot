@@ -282,7 +282,7 @@ def test_schedule_pulse_missing_auth_header(client: TestClient):
     assert response.status_code == 401
     data = response.json()
     assert "detail" in data
-    assert "Authorization" in data["detail"]
+    assert "Not authenticated" in data["detail"]
 
 
 def test_schedule_pulse_invalid_auth_header_format(client: TestClient):
@@ -299,7 +299,7 @@ def test_schedule_pulse_invalid_auth_header_format(client: TestClient):
     assert response.status_code == 401
     data = response.json()
     assert "detail" in data
-    assert "Bearer" in data["detail"]
+    assert "Not authenticated" in data["detail"]
 
 
 def test_schedule_pulse_invalid_token(client: TestClient):

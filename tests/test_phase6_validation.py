@@ -210,7 +210,7 @@ async def test_api_authentication_required(app, test_queue, test_config):
             },
         )
         assert response.status_code == 401
-        assert "Authorization" in response.json()["detail"]
+        assert "Not authenticated" in response.json()["detail"]
 
         # Test 2: Invalid token
         response = await client.post(

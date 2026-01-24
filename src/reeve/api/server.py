@@ -14,7 +14,8 @@ Endpoints:
 from datetime import datetime
 from typing import List, Literal, Optional
 
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
 
 from reeve.pulse.enums import PulsePriority
@@ -99,6 +100,10 @@ class UpcomingPulsesResponse(BaseModel):
 # ========================================================================
 
 
+# HTTPBearer security scheme for OpenAPI/Swagger UI
+security = HTTPBearer()
+
+
 def create_bearer_token_dependency(config: ReeveConfig):
     """
     Create a dependency for bearer token authentication.
@@ -110,18 +115,20 @@ def create_bearer_token_dependency(config: ReeveConfig):
         FastAPI dependency function for token verification
     """
 
-    async def verify_bearer_token(authorization: str = Header(None)) -> bool:
+    async def verify_bearer_token(
+        credentials: HTTPAuthorizationCredentials = Depends(security),
+    ) -> bool:
         """
         Verify API token from Authorization header.
 
         Args:
-            authorization: Authorization header value (e.g., "Bearer token123")
+            credentials: HTTP Bearer credentials from Authorization header
 
         Returns:
             True if authorized
 
         Raises:
-            HTTPException: 401 if missing/malformed header, 403 if invalid token
+            HTTPException: 401 if missing token, 403 if invalid token, 500 if not configured
         """
         # Authentication is always required (no dev mode)
         api_token = config.pulse_api_token
@@ -132,15 +139,7 @@ def create_bearer_token_dependency(config: ReeveConfig):
                 detail="API token not configured. Set PULSE_API_TOKEN environment variable.",
             )
 
-        if not authorization or not authorization.startswith("Bearer "):
-            raise HTTPException(
-                status_code=401,
-                detail="Missing or invalid Authorization header. Expected: 'Bearer <token>'",
-            )
-
-        token = authorization[7:]  # Remove "Bearer " prefix
-
-        if token != api_token:
+        if credentials.credentials != api_token:
             raise HTTPException(status_code=403, detail="Invalid API token")
 
         return True
