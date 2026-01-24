@@ -1,13 +1,20 @@
 """
-Unit tests for Telegram listener core functionality.
+Unit tests for TelegramListener.
 
-Tests cover:
-1. Offset Management - Persistence and error handling
-2. Telegram Polling - API interactions and error cases
-3. Message Processing - Filtering, formatting, and pulse triggering
+Tests the Telegram integration functionality:
+1. Offset Management - Persistence and error handling (6 tests)
+2. Telegram Polling - API interactions and error cases (7 tests)
+3. Message Processing - Filtering, formatting, and pulse triggering (7 tests)
+4. API Integration - Pulse trigger via HTTP API (5 tests)
+5. Error Handling - Exponential backoff and shutdown logic (5 tests)
+6. Signal Handling - Graceful shutdown (3 tests)
+7. Integration Tests - End-to-end workflows (2 tests)
+
+Total: 35 tests covering initialization, message flow, error recovery, and lifecycle management.
 """
 
 import pytest
+import asyncio
 import signal
 from unittest.mock import AsyncMock, MagicMock, patch, mock_open, call
 from pathlib import Path
