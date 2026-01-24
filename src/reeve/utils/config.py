@@ -9,6 +9,15 @@ import os
 from pathlib import Path
 from typing import Optional
 
+from dotenv import load_dotenv
+
+# Load .env file from project root (if it exists)
+# This should run once when the module is imported
+_project_root = Path(__file__).parent.parent.parent.parent  # reeve/utils -> src/reeve/utils -> src -> project root
+_env_path = _project_root / ".env"
+if _env_path.exists():
+    load_dotenv(_env_path)
+
 
 def expand_path(path: str) -> str:
     """

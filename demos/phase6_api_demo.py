@@ -5,13 +5,13 @@ Phase 6 Demo: HTTP REST API
 This demo verifies:
 - Health check endpoint
 - Bearer token authentication
-- POST /api/pulse/trigger - Schedule pulses via HTTP
+- POST /api/pulse/schedule - Schedule pulses via HTTP
 - GET /api/pulse/upcoming - List upcoming pulses
 - GET /api/status - Daemon status
 - Error handling and validation
 
 Note: This demo requires the daemon to be running.
-Run: uv run python -m reeve.pulse
+Run: export PULSE_API_TOKEN=test-token-123 && uv run python -m reeve.pulse
 """
 
 import asyncio
@@ -165,7 +165,7 @@ async def demo_schedule_immediate() -> None:
 
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            f"{API_BASE_URL}/api/pulse/trigger", json=payload, headers=get_headers()
+            f"{API_BASE_URL}/api/pulse/schedule", json=payload, headers=get_headers()
         )
         print_response(response)
 
@@ -187,7 +187,7 @@ async def demo_schedule_relative() -> None:
 
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            f"{API_BASE_URL}/api/pulse/trigger", json=payload, headers=get_headers()
+            f"{API_BASE_URL}/api/pulse/schedule", json=payload, headers=get_headers()
         )
         print_response(response)
 
@@ -220,7 +220,7 @@ async def demo_schedule_iso() -> None:
 
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            f"{API_BASE_URL}/api/pulse/trigger", json=payload, headers=get_headers()
+            f"{API_BASE_URL}/api/pulse/schedule", json=payload, headers=get_headers()
         )
         print_response(response)
 
@@ -256,7 +256,7 @@ async def demo_status() -> None:
             data = response.json()
             print_success(
                 "Status retrieved",
-                {"Running": data["daemon_running"], "Executing": data["executing_pulses"]},
+                {"Status": data["status"], "Database": data["database"], "Desk": data["desk_path"]},
             )
 
 
@@ -381,7 +381,7 @@ Technical details:
 
 API Endpoints:
   GET  /api/health          - Health check (no auth)
-  POST /api/pulse/trigger   - Schedule a new pulse
+  POST /api/pulse/schedule  - Schedule a new pulse
   GET  /api/pulse/upcoming  - List upcoming pulses
   GET  /api/status          - Daemon status
 """
