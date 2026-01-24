@@ -71,6 +71,11 @@ class ReeveConfig:
         self.pulse_api_port: int = int(os.getenv("PULSE_API_PORT", "8765"))
         self.pulse_api_token: Optional[str] = os.getenv("PULSE_API_TOKEN")
 
+        # Telegram configuration (Phase 7)
+        self.telegram_bot_token: Optional[str] = os.getenv("TELEGRAM_BOT_TOKEN")
+        self.telegram_chat_id: Optional[str] = os.getenv("TELEGRAM_CHAT_ID")
+        self.pulse_api_url: str = os.getenv("PULSE_API_URL", "http://localhost:8765")
+
         # Hapi/Claude Code command
         self.hapi_command: str = os.getenv("HAPI_COMMAND", "hapi")
 
