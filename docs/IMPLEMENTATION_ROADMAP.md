@@ -552,36 +552,52 @@ uv run python demos/phase5_daemon_demo.py
 
 ---
 
-## Phase 6: HTTP API (Day 3, Afternoon)
+## Phase 6: HTTP API (Day 3, Afternoon) ✅ COMPLETED
 
 **Goal**: Allow external systems to trigger pulses.
 
 ### Tasks
 
-1. **FastAPI Server** (`src/reeve/api/server.py`)
-   - Implement `create_api_server()` function
-   - Implement endpoints:
-     - `POST /api/pulse/trigger` - Create pulse
-     - `GET /api/pulse/upcoming` - List pulses
-     - `GET /api/health` - Health check
-     - `GET /api/status` - Daemon status
-   - Add authentication (Bearer token)
-   - Use Pydantic models for validation
+1. **FastAPI Server** (`src/reeve/api/server.py`) ✅
+   - Implemented `create_app()` factory function (295 lines)
+   - Implemented endpoints:
+     - `POST /api/pulse/schedule` - Create pulse ✅
+     - `GET /api/pulse/upcoming` - List pulses ✅
+     - `GET /api/health` - Health check (no auth) ✅
+     - `GET /api/status` - Daemon status ✅
+   - Bearer token authentication with custom dependency ✅
+   - Pydantic models for request/response validation ✅
+   - Flexible time parsing via `parse_time_string()` utility ✅
    - See [03_DAEMON_AND_API.md](03_DAEMON_AND_API.md)
 
-2. **Integrate with Daemon**
-   - Add `_run_api_server()` method to daemon
-   - Run API concurrently with scheduler
+2. **Integrate with Daemon** ✅
+   - Integrated API server in `__main__.py` ✅
+   - API runs concurrently with scheduler using asyncio ✅
+   - Shared PulseQueue instance for database access ✅
+   - Graceful shutdown handling for both components ✅
 
-3. **Testing**
-   - Unit tests for each endpoint
-   - Integration test: API → Database → Execution
-   - Test authentication (valid/invalid tokens)
+3. **Time Parsing Utility** (`src/reeve/utils/time_parser.py`) ✅
+   - Extracted shared time parsing logic (79 lines) ✅
+   - Used by both MCP server and API server ✅
+   - Supports ISO 8601, relative times, and keywords ✅
+
+4. **Testing** ✅
+   - 8 comprehensive unit tests (`tests/test_api_server.py`) ✅
+   - All endpoint tests (schedule, list, health, status) ✅
+   - Authentication tests (valid, invalid, missing) ✅
+   - All tests pass: 154/154 ✅
+
+5. **Demo Script** (`demos/phase6_api_demo.py`) ✅
+   - 8 comprehensive demo functions (418 lines) ✅
+   - Health check, authentication, schedule (now/relative/ISO), list, status, cleanup ✅
+   - Uses httpx for async HTTP requests ✅
+   - Interactive flow with daemon running check ✅
 
 **Deliverables**:
-- ⌛ Working REST API
-- ⌛ API runs alongside daemon
-- ⌛ Token authentication working
+- ✅ Working REST API with 4 endpoints
+- ✅ API runs alongside daemon concurrently
+- ✅ Bearer token authentication working
+- ✅ Comprehensive test suite and demo script
 
 **Validation**:
 ```bash

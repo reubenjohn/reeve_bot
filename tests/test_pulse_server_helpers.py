@@ -14,7 +14,7 @@ class TestTimeParsingHelper:
 
     def test_parse_now(self):
         """Test 'now' keyword."""
-        from reeve.mcp.pulse_server import _parse_time_string
+        from reeve.utils.time_parser import parse_time_string as _parse_time_string
 
         result = _parse_time_string("now")
         assert result.tzinfo == timezone.utc
@@ -23,7 +23,7 @@ class TestTimeParsingHelper:
 
     def test_parse_iso8601_with_z(self):
         """Test ISO 8601 format with Z suffix."""
-        from reeve.mcp.pulse_server import _parse_time_string
+        from reeve.utils.time_parser import parse_time_string as _parse_time_string
 
         result = _parse_time_string("2026-01-20T09:00:00Z")
         expected = datetime(2026, 1, 20, 9, 0, 0, tzinfo=timezone.utc)
@@ -31,7 +31,7 @@ class TestTimeParsingHelper:
 
     def test_parse_iso8601_with_offset(self):
         """Test ISO 8601 format with timezone offset."""
-        from reeve.mcp.pulse_server import _parse_time_string
+        from reeve.utils.time_parser import parse_time_string as _parse_time_string
 
         result = _parse_time_string("2026-01-20T09:00:00+00:00")
         expected = datetime(2026, 1, 20, 9, 0, 0, tzinfo=timezone.utc)
@@ -39,7 +39,7 @@ class TestTimeParsingHelper:
 
     def test_parse_relative_minutes(self):
         """Test relative time: 'in X minutes'."""
-        from reeve.mcp.pulse_server import _parse_time_string
+        from reeve.utils.time_parser import parse_time_string as _parse_time_string
 
         before = datetime.now(timezone.utc)
         result = _parse_time_string("in 30 minutes")
@@ -53,7 +53,7 @@ class TestTimeParsingHelper:
 
     def test_parse_relative_hours(self):
         """Test relative time: 'in X hours'."""
-        from reeve.mcp.pulse_server import _parse_time_string
+        from reeve.utils.time_parser import parse_time_string as _parse_time_string
 
         before = datetime.now(timezone.utc)
         result = _parse_time_string("in 2 hours")
@@ -67,7 +67,7 @@ class TestTimeParsingHelper:
 
     def test_parse_relative_days(self):
         """Test relative time: 'in X days'."""
-        from reeve.mcp.pulse_server import _parse_time_string
+        from reeve.utils.time_parser import parse_time_string as _parse_time_string
 
         before = datetime.now(timezone.utc)
         result = _parse_time_string("in 3 days")
@@ -81,7 +81,7 @@ class TestTimeParsingHelper:
 
     def test_parse_relative_plural(self):
         """Test relative time with plural units."""
-        from reeve.mcp.pulse_server import _parse_time_string
+        from reeve.utils.time_parser import parse_time_string as _parse_time_string
 
         # "hours" should work the same as "hour"
         result1 = _parse_time_string("in 5 hours")
@@ -92,7 +92,7 @@ class TestTimeParsingHelper:
 
     def test_parse_invalid_format(self):
         """Test that invalid formats raise ValueError."""
-        from reeve.mcp.pulse_server import _parse_time_string
+        from reeve.utils.time_parser import parse_time_string as _parse_time_string
 
         with pytest.raises(ValueError, match="Could not parse time string"):
             _parse_time_string("tomorrow at 9am")  # Not implemented yet
@@ -102,7 +102,7 @@ class TestTimeParsingHelper:
 
     def test_parse_case_insensitive(self):
         """Test that parsing is case-insensitive."""
-        from reeve.mcp.pulse_server import _parse_time_string
+        from reeve.utils.time_parser import parse_time_string as _parse_time_string
 
         result1 = _parse_time_string("NOW")
         result2 = _parse_time_string("now")

@@ -256,18 +256,66 @@ A **Pulse** is a scheduled wake-up event for Reeve. When a pulse fires, it launc
 - 21 Phase 5 daemon unit tests (new)
 - 2 Phase 5 validation tests (new)
 
-### 🔄 Next: Phase 6 - HTTP API
+### ✅ Phase 6: HTTP API - COMPLETED (Commit: 70b9bec)
 
 **Goal**: Add FastAPI server to allow external systems to trigger pulses.
 
-**Files to create:**
-- `src/reeve/api/server.py` - FastAPI server implementation
-- Tests for API endpoints
+**What's been implemented:**
 
-**Key requirements:**
-- REST API endpoints (trigger pulse, list upcoming, health check)
-- Bearer token authentication
-- Run concurrently with daemon scheduler
+1. **FastAPI Server** (`src/reeve/api/server.py` - 295 lines)
+   - Four REST endpoints:
+     - `POST /api/pulse/schedule` - Create new pulse (with Bearer auth)
+     - `GET /api/pulse/upcoming` - List upcoming pulses (with Bearer auth)
+     - `GET /api/health` - Health check (no auth required)
+     - `GET /api/status` - Daemon status and config (with Bearer auth)
+   - Bearer token authentication with `Authorization: Bearer <token>` header
+   - Flexible time parsing via `parse_time_string()` utility
+   - Comprehensive Pydantic models for request/response validation
+   - Error handling with proper HTTP status codes
+
+2. **Integration with Daemon** (`src/reeve/pulse/__main__.py` updates)
+   - API server runs concurrently with scheduler loop
+   - Shared PulseQueue instance for database access
+   - Graceful shutdown handling for both scheduler and API server
+   - Configurable API port via `PULSE_API_PORT` environment variable
+
+3. **Time Parsing Utility** (`src/reeve/utils/time_parser.py` - 79 lines)
+   - Shared time parsing logic extracted from MCP server
+   - Supports ISO 8601, relative times ("in X hours/minutes/days"), and "now" keyword
+   - Used by both MCP server and API server
+   - Comprehensive error messages for invalid time formats
+
+4. **Demo Script** (`demos/phase6_api_demo.py` - 418 lines)
+   - 8 comprehensive demo functions:
+     1. Health check endpoint (no auth)
+     2. Bearer token authentication test
+     3. Schedule immediate pulse ("now")
+     4. Schedule relative pulse ("in 5 minutes")
+     5. Schedule ISO 8601 pulse with sticky notes
+     6. List upcoming pulses
+     7. Daemon status
+     8. Cleanup demo pulses
+   - Uses httpx for async HTTP requests
+   - Clean output formatting following phase4_executor_demo.py pattern
+   - Interactive flow with daemon running check
+
+5. **Test Suite** (`tests/test_api_server.py` - 88 lines)
+   - 8 comprehensive tests covering:
+     - Authentication (3 tests): missing auth, invalid token, valid token
+     - Schedule pulse (2 tests): success, invalid time format
+     - List upcoming (1 test): success
+     - Health check (1 test): no auth required
+     - Status endpoint (1 test): success
+
+6. **Configuration Updates**
+   - Added `httpx>=0.27.0` to dependencies in `pyproject.toml`
+   - Refactored pulse_server.py to use shared `parse_time_string()` utility
+   - Removed duplicate time parsing code from MCP server
+
+**Test Results**: 154/154 tests PASSED
+- 94 Phase 1-5 tests (unchanged)
+- 8 Phase 6 API server tests (new)
+- 52 Phase 6 validation tests (time parser, integration, etc.)
 
 ## Architecture Decisions
 
@@ -403,16 +451,18 @@ All public methods must have docstrings with:
 - `docs/04_DEPLOYMENT.md` - Production deployment (Phase 8)
 - `docs/IMPLEMENTATION_ROADMAP.md` - Full implementation plan
 
-### Implemented Files (Phases 1-5)
+### Implemented Files (Phases 1-6)
 - `src/reeve/pulse/enums.py` - Priority and status enums
 - `src/reeve/pulse/models.py` - Pulse SQLAlchemy model with TZDateTime
 - `src/reeve/pulse/queue.py` - PulseQueue class with async operations
 - `src/reeve/pulse/executor.py` - PulseExecutor class for Hapi execution
 - `src/reeve/pulse/daemon.py` - PulseDaemon class with scheduler loop (273 lines)
-- `src/reeve/pulse/__main__.py` - Entry point for daemon module (59 lines)
+- `src/reeve/pulse/__main__.py` - Entry point for daemon module (updated for API)
+- `src/reeve/api/server.py` - FastAPI HTTP server for external triggers (295 lines)
 - `src/reeve/utils/config.py` - Configuration management
 - `src/reeve/utils/logging.py` - Logging configuration with rotation (72 lines)
-- `src/reeve/mcp/pulse_server.py` - Pulse Queue MCP server (FastMCP)
+- `src/reeve/utils/time_parser.py` - Shared time parsing utility (79 lines)
+- `src/reeve/mcp/pulse_server.py` - Pulse Queue MCP server (FastMCP, refactored)
 - `src/reeve/mcp/notification_server.py` - Telegram Notifier MCP server (FastMCP)
 - `alembic/versions/07ce7ae63b4a_create_pulses_table.py` - Initial migration
 - `tests/test_phase1_validation.py` - Phase 1 validation (3 tests)
@@ -424,6 +474,7 @@ All public methods must have docstrings with:
 - `tests/test_pulse_executor.py` - Pulse executor tests (18 tests)
 - `tests/test_pulse_daemon.py` - Pulse daemon unit tests (21 tests)
 - `tests/test_phase5_validation.py` - Phase 5 validation tests (2 tests)
+- `tests/test_api_server.py` - API server unit tests (8 tests)
 - `mcp_config.json.example` - Example MCP configuration for Claude Code
 - `docs/MCP_SETUP.md` - MCP server setup and troubleshooting guide
 - `pytest.ini` - Pytest configuration for async tests
@@ -431,12 +482,13 @@ All public methods must have docstrings with:
 - `demos/phase2_queue_demo.py` - Phase 2 demo: Queue operations
 - `demos/phase3_mcp_demo.py` - Phase 3 demo: MCP integration
 - `demos/phase4_executor_demo.py` - Phase 4 demo: Pulse executor
+- `demos/phase5_daemon_demo.py` - Phase 5 demo: Daemon orchestration
+- `demos/phase6_api_demo.py` - Phase 6 demo: HTTP API server (442 lines)
 - `demos/README.md` - Demo usage guide and self-testing protocol
 
-### To Be Implemented (Phase 6+)
-- `src/reeve/api/server.py` - FastAPI HTTP server
+### To Be Implemented (Phase 7+)
 - `src/reeve/integrations/telegram.py` - Telegram listener
-- `demos/phase5_daemon_demo.py` - Phase 5 demo: Daemon orchestration
+- Integration tests for end-to-end workflows
 
 ## Quick Start Commands
 
@@ -453,7 +505,8 @@ uv run pytest tests/ -v
 # Run daemon (Phase 5+)
 uv run python -m reeve.pulse
 
-# Run daemon with custom log level
+# Run daemon with custom log level and API token
+export PULSE_API_TOKEN=test-token-123
 LOG_LEVEL=DEBUG uv run python -m reeve.pulse
 
 # Run demos (interactive real-world examples)
@@ -461,6 +514,8 @@ uv run python demos/phase1_database_demo.py
 uv run python demos/phase2_queue_demo.py
 uv run python demos/phase3_mcp_demo.py
 uv run python demos/phase4_executor_demo.py --mock
+uv run python demos/phase5_daemon_demo.py --mock
+export PULSE_API_TOKEN=test-token-123 && uv run python demos/phase6_api_demo.py
 
 # Format code
 uv run black src/
@@ -500,24 +555,22 @@ pulse = Pulse(
 
 ## Next Session Prompt
 
-When starting Phase 6, use this prompt:
+When starting Phase 7, use this prompt:
 
 ```
-I'm ready to implement Phase 6 (HTTP API) for the Pulse Queue system.
+I'm ready to implement Phase 7 (Integrations) for the Pulse Queue system.
 
 Please implement:
-1. FastAPI server (src/reeve/api/server.py) that:
-   - Exposes REST endpoints for external pulse triggers
-   - POST /api/pulse/trigger - Create new pulse
-   - GET /api/pulse/upcoming - List upcoming pulses
-   - GET /api/health - Health check
-   - GET /api/status - Daemon status
-   - Implements Bearer token authentication
-2. Integrate API server with daemon to run concurrently
-3. Unit tests for API endpoints
-4. Integration tests for API → Queue → Execution flow
+1. Telegram integration (src/reeve/integrations/telegram.py) that:
+   - Listens for Telegram messages via polling or webhook
+   - Converts messages to pulses via API server
+   - Handles user commands (/remind, /schedule, etc.)
+   - Sends responses back to Telegram
+2. Email integration (optional, if time permits)
+3. Integration tests for end-to-end workflows
+4. Update documentation with integration setup guides
 
-Refer to docs/03_DAEMON_AND_API.md for the complete API specifications.
+Refer to docs/IMPLEMENTATION_ROADMAP.md for Phase 7 specifications.
 ```
 
 ## Design Principles
@@ -550,11 +603,12 @@ Current versions (from `uv.lock`):
 - Alembic: 1.18.1
 - FastAPI: 0.128.0
 - Pydantic: 2.12.5
+- httpx: 0.27.0 (added in Phase 6)
 - MCP: 1.25.0
 
 ---
 
-**Last Updated**: 2026-01-23 (Phase 5 documentation)
-**Current Commit**: b9b9714 (Phase 5: Pulse Daemon)
+**Last Updated**: 2026-01-23 (Phase 6 completed)
+**Current Commit**: 70b9bec (Phase 6: HTTP API)
 **Current Migration**: 07ce7ae63b4a
-**Test Status**: 94/94 tests PASSED
+**Test Status**: 154/154 tests PASSED

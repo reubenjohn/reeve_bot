@@ -88,20 +88,55 @@ Demonstrates:
 
 **Note:** The daemon will run for ~15 seconds, execute all scheduled pulses, then shutdown gracefully.
 
-### Phase 6+: Future Demos
+### Phase 6: HTTP API
+```bash
+# Set API token (required)
+export PULSE_API_TOKEN=test-token
 
-Demo scripts for Phases 6-8 will be created as those phases are implemented.
+# Run demo (requires daemon to be running)
+uv run python demos/phase6_api_demo.py
+```
+
+Demonstrates:
+- Health check endpoint (GET /api/health)
+- Bearer token authentication
+- Schedule pulses via HTTP (now, relative, ISO 8601)
+- List upcoming pulses (GET /api/pulse/upcoming)
+- Daemon status (GET /api/status)
+- Request/response formatting with httpx
+
+**Note:** Start the daemon first in another terminal:
+```bash
+export PULSE_API_TOKEN=test-token
+uv run python -m reeve.pulse
+```
+
+### Phase 7+: Future Demos
+
+Demo scripts for Phases 7-8 will be created as those phases are implemented.
 
 ## Running All Demos
 
 To run all completed phase demos in sequence:
 
 ```bash
-for demo in demos/phase{1,2,3,4,5}_*.py; do
+# Phases 1-3 (no daemon required)
+for demo in demos/phase{1,2,3}_*.py; do
     echo "=== Running $demo ==="
-    uv run python "$demo" --mock  # Use mock mode for phase 4 and 5
+    uv run python "$demo"
     echo ""
 done
+
+# Phases 4-5 (mock mode, no daemon required)
+for demo in demos/phase{4,5}_*.py; do
+    echo "=== Running $demo ==="
+    uv run python "$demo" --mock
+    echo ""
+done
+
+# Phase 6 (requires daemon running in another terminal)
+# Start daemon: export PULSE_API_TOKEN=test-token && uv run python -m reeve.pulse
+# Then run: export PULSE_API_TOKEN=test-token && uv run python demos/phase6_api_demo.py
 ```
 
 ## Demo Data Cleanup

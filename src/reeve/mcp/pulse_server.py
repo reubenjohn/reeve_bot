@@ -27,6 +27,7 @@ from pydantic import Field
 
 from reeve.pulse.enums import PulsePriority, PulseStatus
 from reeve.pulse.queue import PulseQueue
+from reeve.utils.time_parser import parse_time_string
 
 # Initialize the MCP server
 mcp = FastMCP("pulse-queue")
@@ -172,7 +173,7 @@ async def schedule_pulse(
     """
     try:
         # Parse scheduled_at (handle relative times, keywords, etc.)
-        parsed_time = _parse_time_string(scheduled_at)
+        parsed_time = parse_time_string(scheduled_at)
 
         # Determine session ID based on resume_in_current_session
         session_id = None
@@ -354,7 +355,7 @@ async def reschedule_pulse(
         Confirmation message with old and new times
     """
     try:
-        parsed_time = _parse_time_string(new_scheduled_at)
+        parsed_time = parse_time_string(new_scheduled_at)
         success = await queue.reschedule_pulse(pulse_id, parsed_time)
 
         if success:
@@ -371,52 +372,6 @@ async def reschedule_pulse(
 # ============================================================================
 # Helper Functions
 # ============================================================================
-
-
-def _parse_time_string(time_str: str) -> datetime:
-    """
-    Parse a flexible time string into a UTC datetime.
-
-    Supports:
-    - ISO 8601: "2026-01-20T09:00:00Z"
-    - Relative: "in 2 hours", "in 30 minutes"
-    - Keywords: "now", "tonight", "tomorrow morning"
-
-    TODO: Integrate with a proper NLP library (dateparser, parsedatetime)
-    For now, implement basic cases.
-    """
-    time_str = time_str.strip()
-
-    # ISO 8601 (check before lowercasing to preserve 'T')
-    if "T" in time_str or time_str.endswith("Z") or time_str.endswith("+00:00"):
-        return datetime.fromisoformat(time_str.replace("Z", "+00:00"))
-
-    # Convert to lowercase for keyword/relative matching
-    time_str_lower = time_str.lower()
-
-    # Keyword: "now"
-    if time_str_lower == "now":
-        return datetime.now(timezone.utc)
-
-    # Relative: "in X hours/minutes"
-    if time_str_lower.startswith("in "):
-        parts = time_str_lower[3:].split()
-        if len(parts) == 2:
-            amount = int(parts[0])
-            unit = parts[1].rstrip("s")  # "hours" -> "hour"
-
-            if unit == "minute":
-                return datetime.now(timezone.utc) + timedelta(minutes=amount)
-            elif unit == "hour":
-                return datetime.now(timezone.utc) + timedelta(hours=amount)
-            elif unit == "day":
-                return datetime.now(timezone.utc) + timedelta(days=amount)
-
-    # Fallback: raise error for unimplemented formats
-    raise ValueError(
-        f"Could not parse time string: '{time_str}'. "
-        f"Supported formats: ISO 8601, 'now', 'in X hours/minutes/days'"
-    )
 
 
 def _priority_emoji(priority: str) -> str:
