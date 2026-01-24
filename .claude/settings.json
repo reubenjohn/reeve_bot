@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(gh repo create:*)",
-      "Bash(uv run alembic:*)"
+      "Bash(uv run alembic:*)",
+      "Bash(export PULSE_API_TOKEN=test-token-123)"
     ]
   }
 }
