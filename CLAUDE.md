@@ -317,6 +317,79 @@ A **Pulse** is a scheduled wake-up event for Reeve. When a pulse fires, it launc
 - 8 Phase 6 API server tests (new)
 - 52 Phase 6 validation tests (time parser, integration, etc.)
 
+### ✅ Phase 7: Telegram Integration - COMPLETED (Commit: TBD)
+
+**Goal**: Build Telegram listener to convert incoming messages to pulses.
+
+**What's been implemented:**
+
+1. **TelegramListener Class** (`src/reeve/integrations/telegram/listener.py` - 595 lines)
+   - Async polling-based integration with Telegram Bot API
+   - Key features:
+     - Long polling (100s timeout) for efficient resource usage
+     - Offset persistence to prevent duplicate message processing
+     - Chat ID filtering (only processes authorized user)
+     - Exponential backoff error handling (up to 5 minutes)
+     - Graceful shutdown with SIGTERM/SIGINT handlers
+   - Configuration via environment variables:
+     - `TELEGRAM_BOT_TOKEN` - Bot token from @BotFather
+     - `TELEGRAM_CHAT_ID` - Authorized user's chat ID
+     - `PULSE_API_URL` - API server URL (default: http://127.0.0.1:8765)
+     - `PULSE_API_TOKEN` - Bearer token for API authentication
+   - Message flow:
+     - Polls getUpdates endpoint with long polling
+     - Filters messages by chat ID
+     - Builds prompt: "Telegram message from {user}: {text}"
+     - Triggers pulse via HTTP API with priority=critical
+     - Tags: ["telegram", "user_message"]
+     - Saves offset after successful batch processing
+   - Error recovery:
+     - Exponential backoff: 2^error_count seconds (max 300s)
+     - Fatal error detection (invalid token, max retries)
+     - Automatic shutdown on fatal errors
+
+2. **Entry Point** (`src/reeve/integrations/telegram/__main__.py`)
+   - Run as module: `python -m reeve.integrations.telegram`
+   - Configuration loading and validation
+   - Logging initialization
+   - Graceful KeyboardInterrupt handling
+
+3. **Demo Script** (`demos/phase7_telegram_demo.py` - 475 lines)
+   - 7 comprehensive demo functions:
+     1. Start mock Telegram API server (getMe, getUpdates)
+     2. Start mock Pulse API server (schedule endpoint)
+     3. Configure listener with mock endpoints
+     4. Simulate incoming message from Alice
+     5. Show listener polling flow
+     6. Verify pulse triggered with correct metadata
+     7. Verify offset persistence to disk
+   - Mock servers using aiohttp.web
+   - Clean output formatting with status indicators
+   - Full integration flow demonstration
+
+4. **Test Suite** (`tests/test_telegram_listener.py` - 35 tests)
+   - Comprehensive unit tests covering:
+     - Offset Management (6 tests): load, save, persistence, errors
+     - Telegram Polling (7 tests): API interactions, long polling, errors
+     - Message Processing (7 tests): filtering, formatting, chat ID
+     - API Integration (5 tests): pulse triggering, authentication
+     - Error Handling (5 tests): exponential backoff, fatal errors
+     - Signal Handling (3 tests): graceful shutdown, cleanup
+     - Integration (2 tests): end-to-end workflows
+   - All tests use async patterns with mocked HTTP clients
+   - Mock-based testing for Telegram and Pulse APIs
+
+5. **Validation Tests** (`tests/test_phase7_validation.py` - 2 tests)
+   - End-to-end integration test with real components
+   - Validates full message flow: Telegram → Listener → API → Queue
+   - Verifies pulse created with correct metadata
+   - Tests offset persistence
+
+**Test Results**: 191/191 tests PASSED
+- 154 Phase 1-6 tests (unchanged)
+- 35 Phase 7 Telegram listener unit tests (new)
+- 2 Phase 7 validation tests (new)
+
 ## Architecture Decisions
 
 ### Database
@@ -451,7 +524,7 @@ All public methods must have docstrings with:
 - `docs/04_DEPLOYMENT.md` - Production deployment (Phase 8)
 - `docs/IMPLEMENTATION_ROADMAP.md` - Full implementation plan
 
-### Implemented Files (Phases 1-6)
+### Implemented Files (Phases 1-7)
 - `src/reeve/pulse/enums.py` - Priority and status enums
 - `src/reeve/pulse/models.py` - Pulse SQLAlchemy model with TZDateTime
 - `src/reeve/pulse/queue.py` - PulseQueue class with async operations
@@ -459,6 +532,8 @@ All public methods must have docstrings with:
 - `src/reeve/pulse/daemon.py` - PulseDaemon class with scheduler loop (273 lines)
 - `src/reeve/pulse/__main__.py` - Entry point for daemon module (updated for API)
 - `src/reeve/api/server.py` - FastAPI HTTP server for external triggers (295 lines)
+- `src/reeve/integrations/telegram/listener.py` - TelegramListener class (595 lines)
+- `src/reeve/integrations/telegram/__main__.py` - Entry point for Telegram listener
 - `src/reeve/utils/config.py` - Configuration management
 - `src/reeve/utils/logging.py` - Logging configuration with rotation (72 lines)
 - `src/reeve/utils/time_parser.py` - Shared time parsing utility (79 lines)
@@ -475,6 +550,8 @@ All public methods must have docstrings with:
 - `tests/test_pulse_daemon.py` - Pulse daemon unit tests (21 tests)
 - `tests/test_phase5_validation.py` - Phase 5 validation tests (2 tests)
 - `tests/test_api_server.py` - API server unit tests (8 tests)
+- `tests/test_telegram_listener.py` - Telegram listener unit tests (35 tests)
+- `tests/test_phase7_validation.py` - Phase 7 validation tests (2 tests)
 - `mcp_config.json.example` - Example MCP configuration for Claude Code
 - `docs/MCP_SETUP.md` - MCP server setup and troubleshooting guide
 - `pytest.ini` - Pytest configuration for async tests
@@ -484,11 +561,13 @@ All public methods must have docstrings with:
 - `demos/phase4_executor_demo.py` - Phase 4 demo: Pulse executor
 - `demos/phase5_daemon_demo.py` - Phase 5 demo: Daemon orchestration
 - `demos/phase6_api_demo.py` - Phase 6 demo: HTTP API server (442 lines)
+- `demos/phase7_telegram_demo.py` - Phase 7 demo: Telegram integration (475 lines)
 - `demos/README.md` - Demo usage guide and self-testing protocol
 
-### To Be Implemented (Phase 7+)
-- `src/reeve/integrations/telegram.py` - Telegram listener
-- Integration tests for end-to-end workflows
+### To Be Implemented (Phase 8+)
+- Production deployment configuration
+- Systemd service files
+- Email integration (optional)
 
 ## Quick Start Commands
 
@@ -516,6 +595,7 @@ uv run python demos/phase3_mcp_demo.py
 uv run python demos/phase4_executor_demo.py --mock
 uv run python demos/phase5_daemon_demo.py --mock
 export PULSE_API_TOKEN=test-token-123 && uv run python demos/phase6_api_demo.py
+uv run python demos/phase7_telegram_demo.py
 
 # Format code
 uv run black src/
@@ -555,22 +635,25 @@ pulse = Pulse(
 
 ## Next Session Prompt
 
-When starting Phase 7, use this prompt:
+When starting Phase 8, use this prompt:
 
 ```
-I'm ready to implement Phase 7 (Integrations) for the Pulse Queue system.
+I'm ready to implement Phase 8 (Production Deployment) for the Pulse Queue system.
 
 Please implement:
-1. Telegram integration (src/reeve/integrations/telegram.py) that:
-   - Listens for Telegram messages via polling or webhook
-   - Converts messages to pulses via API server
-   - Handles user commands (/remind, /schedule, etc.)
-   - Sends responses back to Telegram
-2. Email integration (optional, if time permits)
-3. Integration tests for end-to-end workflows
-4. Update documentation with integration setup guides
+1. Systemd service files for:
+   - Pulse daemon (reeve-daemon.service)
+   - Telegram listener (reeve-telegram.service)
+2. Installation script with:
+   - Virtual environment setup
+   - Dependency installation
+   - Service registration
+   - Log directory creation
+3. Configuration validation script
+4. Update documentation with deployment guides
+5. Create production best practices guide
 
-Refer to docs/IMPLEMENTATION_ROADMAP.md for Phase 7 specifications.
+Refer to docs/IMPLEMENTATION_ROADMAP.md for Phase 8 specifications.
 ```
 
 ## Design Principles
@@ -608,7 +691,7 @@ Current versions (from `uv.lock`):
 
 ---
 
-**Last Updated**: 2026-01-23 (Phase 6 completed)
-**Current Commit**: 70b9bec (Phase 6: HTTP API)
+**Last Updated**: 2026-01-23 (Phase 7 completed)
+**Current Commit**: fcb3c5b (Phase 7: Telegram Integration)
 **Current Migration**: 07ce7ae63b4a
-**Test Status**: 154/154 tests PASSED
+**Test Status**: 191/191 tests PASSED

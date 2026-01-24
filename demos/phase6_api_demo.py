@@ -139,9 +139,7 @@ async def demo_auth_test() -> None:
 
         # Test with valid auth header
         print("\nAttempting request with valid auth header...")
-        response = await client.get(
-            f"{API_BASE_URL}/api/pulse/upcoming", headers=get_headers()
-        )
+        response = await client.get(f"{API_BASE_URL}/api/pulse/upcoming", headers=get_headers())
         if response.status_code == 200:
             print_success("✓ Authenticated request accepted", {"Status": 200})
         else:

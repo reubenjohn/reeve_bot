@@ -8,14 +8,14 @@ This test validates the complete Phase 6 implementation:
 """
 
 import asyncio
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
-from httpx import AsyncClient, ASGITransport
+from httpx import ASGITransport, AsyncClient
 
+from reeve.api.server import create_app
 from reeve.pulse.enums import PulsePriority, PulseStatus
 from reeve.pulse.queue import PulseQueue
-from reeve.api.server import create_app
 from reeve.utils.config import ReeveConfig
 
 

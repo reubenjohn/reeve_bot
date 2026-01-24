@@ -34,9 +34,10 @@ def mock_config():
 @pytest.fixture
 def daemon(mock_config):
     """Create a PulseDaemon instance with mocked dependencies."""
-    with patch("reeve.pulse.daemon.PulseQueue") as MockQueue, patch(
-        "reeve.pulse.daemon.PulseExecutor"
-    ) as MockExecutor:
+    with (
+        patch("reeve.pulse.daemon.PulseQueue") as MockQueue,
+        patch("reeve.pulse.daemon.PulseExecutor") as MockExecutor,
+    ):
         daemon = PulseDaemon(mock_config)
 
         # Mock queue methods
@@ -76,8 +77,9 @@ async def test_daemon_starts_both_scheduler_and_api_tasks(daemon, mock_config):
         except asyncio.CancelledError:
             pass
 
-    with patch.object(daemon, "_scheduler_loop", side_effect=mock_scheduler), patch.object(
-        daemon, "_run_api_server", side_effect=mock_api
+    with (
+        patch.object(daemon, "_scheduler_loop", side_effect=mock_scheduler),
+        patch.object(daemon, "_run_api_server", side_effect=mock_api),
     ):
         # Start daemon in background
         start_task = asyncio.create_task(daemon.start())
@@ -148,8 +150,9 @@ async def test_api_server_runs_concurrently_with_scheduler(daemon, mock_config):
         except asyncio.CancelledError:
             pass
 
-    with patch.object(daemon, "_scheduler_loop", side_effect=mock_scheduler_loop), patch.object(
-        daemon, "_run_api_server", side_effect=mock_run_api_server
+    with (
+        patch.object(daemon, "_scheduler_loop", side_effect=mock_scheduler_loop),
+        patch.object(daemon, "_run_api_server", side_effect=mock_run_api_server),
     ):
         # Start daemon in background
         start_task = asyncio.create_task(daemon.start())

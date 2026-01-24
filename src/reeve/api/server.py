@@ -15,7 +15,7 @@ from datetime import datetime
 from typing import List, Literal, Optional
 
 from fastapi import Depends, FastAPI, HTTPException
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
 from reeve.pulse.enums import PulsePriority

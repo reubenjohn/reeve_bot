@@ -126,7 +126,9 @@ async def test_phase5_integration():
             ), f"Pulse status should be COMPLETED, got {executed_pulse.status}"
             assert executed_pulse.executed_at is not None, "executed_at not set"
             assert executed_pulse.execution_duration_ms is not None, "execution_duration_ms not set"
-            assert executed_pulse.execution_duration_ms > 0, "execution_duration_ms should be positive"
+            assert (
+                executed_pulse.execution_duration_ms > 0
+            ), "execution_duration_ms should be positive"
 
             # ========================================================================
             # Test: Graceful shutdown

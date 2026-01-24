@@ -11,7 +11,7 @@ This demo verifies:
 """
 
 import asyncio
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 from reeve.pulse.enums import PulsePriority, PulseStatus
 from reeve.pulse.queue import PulseQueue
@@ -71,7 +71,9 @@ async def main():
             priority=PulsePriority.NORMAL,
         )
     )
-    print(f"✓ Scheduled pulse #{pulse_ids[-1]}: 'Normal maintenance' (due in 10s, priority: NORMAL)")
+    print(
+        f"✓ Scheduled pulse #{pulse_ids[-1]}: 'Normal maintenance' (due in 10s, priority: NORMAL)"
+    )
 
     pulse_ids.append(
         await queue.schedule_pulse(

@@ -13,12 +13,13 @@ Tests the Telegram integration functionality:
 Total: 35 tests covering initialization, message flow, error recovery, and lifecycle management.
 """
 
-import pytest
 import asyncio
-import signal
-from unittest.mock import AsyncMock, MagicMock, patch, mock_open, call
-from pathlib import Path
 import json
+import signal
+from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, call, mock_open, patch
+
+import pytest
 
 from reeve.integrations.telegram.listener import TelegramListener
 from reeve.utils.config import ReeveConfig
@@ -40,11 +41,14 @@ def mock_config():
 def listener(mock_config):
     """Create TelegramListener instance for testing."""
     # Mock environment variables required by TelegramListener
-    with patch.dict('os.environ', {
-        'TELEGRAM_BOT_TOKEN': 'test_token_123',
-        'TELEGRAM_CHAT_ID': '12345',
-        'PULSE_API_URL': 'http://localhost:8765'
-    }):
+    with patch.dict(
+        "os.environ",
+        {
+            "TELEGRAM_BOT_TOKEN": "test_token_123",
+            "TELEGRAM_CHAT_ID": "12345",
+            "PULSE_API_URL": "http://localhost:8765",
+        },
+    ):
         return TelegramListener(mock_config)
 
 
@@ -55,15 +59,15 @@ def listener(mock_config):
 
 def test_load_offset_existing_file(listener):
     """Test loading offset from existing file with valid integer."""
-    with patch.object(Path, 'exists', return_value=True):
-        with patch.object(Path, 'read_text', return_value="12345"):
+    with patch.object(Path, "exists", return_value=True):
+        with patch.object(Path, "read_text", return_value="12345"):
             offset = listener._load_offset()
             assert offset == 12345
 
 
 def test_load_offset_missing_file(listener):
     """Test loading offset when file doesn't exist, should return None."""
-    with patch.object(Path, 'exists', return_value=False):
+    with patch.object(Path, "exists", return_value=False):
         offset = listener._load_offset()
         assert offset is None
 
@@ -80,15 +84,18 @@ def test_save_offset_to_disk(listener, tmp_path):
 
 def test_offset_persistence_across_restarts(mock_config):
     """Test offset persistence: save, create new instance, verify loaded."""
-    with patch.dict('os.environ', {
-        'TELEGRAM_BOT_TOKEN': 'test_token_123',
-        'TELEGRAM_CHAT_ID': '12345',
-        'PULSE_API_URL': 'http://localhost:8765'
-    }):
-        with patch.object(Path, 'mkdir'):
-            with patch.object(Path, 'write_text') as mock_write:
-                with patch.object(Path, 'exists', return_value=True):
-                    with patch.object(Path, 'read_text', return_value="99999"):
+    with patch.dict(
+        "os.environ",
+        {
+            "TELEGRAM_BOT_TOKEN": "test_token_123",
+            "TELEGRAM_CHAT_ID": "12345",
+            "PULSE_API_URL": "http://localhost:8765",
+        },
+    ):
+        with patch.object(Path, "mkdir"):
+            with patch.object(Path, "write_text") as mock_write:
+                with patch.object(Path, "exists", return_value=True):
+                    with patch.object(Path, "read_text", return_value="99999"):
                         # First instance saves offset
                         listener1 = TelegramListener(mock_config)
                         listener1._save_offset(99999)
@@ -105,7 +112,7 @@ def test_handle_corrupted_offset_file(listener, tmp_path):
     listener.offset_file = tmp_path / "telegram_offset.txt"
     listener.offset_file.write_text("not_a_number")
 
-    with patch.object(listener, 'logger') as mock_logger:
+    with patch.object(listener, "logger") as mock_logger:
         offset = listener._load_offset()
 
         assert offset is None
@@ -144,17 +151,13 @@ async def test_successful_api_poll_with_updates(listener):
                 "update_id": 123456,
                 "message": {
                     "message_id": 1,
-                    "from": {
-                        "id": 12345,
-                        "first_name": "TestUser",
-                        "username": "testuser"
-                    },
+                    "from": {"id": 12345, "first_name": "TestUser", "username": "testuser"},
                     "chat": {"id": 12345},
                     "date": 1234567890,
-                    "text": "Hello Reeve!"
-                }
+                    "text": "Hello Reeve!",
+                },
             }
-        ]
+        ],
     }
 
     mock_response = MagicMock()
@@ -194,7 +197,7 @@ async def test_handle_telegram_timeout_normal(listener):
 
     listener.telegram_session = mock_session
 
-    with patch.object(listener, 'logger') as mock_logger:
+    with patch.object(listener, "logger") as mock_logger:
         response = await listener._get_updates()
 
         assert response is None
@@ -217,7 +220,7 @@ async def test_handle_network_errors(listener):
     listener.telegram_session = mock_session
 
     # Mock the logger to verify it's called
-    with patch.object(listener, 'logger') as mock_logger:
+    with patch.object(listener, "logger") as mock_logger:
         response = await listener._get_updates()
 
         assert response is None
@@ -243,8 +246,8 @@ async def test_verify_long_polling_timeout(listener):
 
     # Verify get called with timeout parameter
     call_args = mock_session.get.call_args
-    params = call_args[1]['params']
-    assert params['timeout'] == 100
+    params = call_args[1]["params"]
+    assert params["timeout"] == 100
 
 
 @pytest.mark.asyncio
@@ -266,8 +269,8 @@ async def test_verify_offset_parameter_sent(listener):
 
     # Verify get called with offset parameter
     call_args = mock_session.get.call_args
-    params = call_args[1]['params']
-    assert params['offset'] == 12345
+    params = call_args[1]["params"]
+    assert params["offset"] == 12345
 
 
 @pytest.mark.asyncio
@@ -276,7 +279,7 @@ async def test_handle_429_rate_limit(listener):
     expected_response = {
         "ok": False,
         "error_code": 429,
-        "description": "Too Many Requests: retry after 30"
+        "description": "Too Many Requests: retry after 30",
     }
 
     mock_response = MagicMock()
@@ -303,11 +306,9 @@ async def test_handle_401_unauthorized(listener):
     """Test 401 Unauthorized (invalid token), should raise RuntimeError."""
     mock_response = MagicMock()
     mock_response.status = 401
-    mock_response.json = AsyncMock(return_value={
-        "ok": False,
-        "error_code": 401,
-        "description": "Unauthorized"
-    })
+    mock_response.json = AsyncMock(
+        return_value={"ok": False, "error_code": 401, "description": "Unauthorized"}
+    )
     mock_response.__aenter__ = AsyncMock(return_value=mock_response)
     mock_response.__aexit__ = AsyncMock(return_value=None)
 
@@ -333,18 +334,14 @@ async def test_process_valid_text_message(listener):
         "update_id": 123456,
         "message": {
             "message_id": 1,
-            "from": {
-                "id": 12345,
-                "first_name": "TestUser",
-                "username": "testuser"
-            },
+            "from": {"id": 12345, "first_name": "TestUser", "username": "testuser"},
             "chat": {"id": 12345},
             "date": 1234567890,
-            "text": "Hello Reeve!"
-        }
+            "text": "Hello Reeve!",
+        },
     }
 
-    with patch.object(listener, '_trigger_pulse', new_callable=AsyncMock) as mock_trigger:
+    with patch.object(listener, "_trigger_pulse", new_callable=AsyncMock) as mock_trigger:
         await listener._process_update(update)
 
         mock_trigger.assert_called_once()
@@ -362,15 +359,15 @@ async def test_filter_wrong_chat_id(listener):
             "from": {
                 "id": 99999,  # Different chat ID
                 "first_name": "OtherUser",
-                "username": "otheruser"
+                "username": "otheruser",
             },
             "chat": {"id": 99999},
             "date": 1234567890,
-            "text": "Hello from wrong chat!"
-        }
+            "text": "Hello from wrong chat!",
+        },
     }
 
-    with patch.object(listener, '_trigger_pulse', new_callable=AsyncMock) as mock_trigger:
+    with patch.object(listener, "_trigger_pulse", new_callable=AsyncMock) as mock_trigger:
         await listener._process_update(update)
 
         # Should NOT trigger pulse
@@ -384,18 +381,14 @@ async def test_skip_non_text_messages(listener):
         "update_id": 123456,
         "message": {
             "message_id": 1,
-            "from": {
-                "id": 12345,
-                "first_name": "TestUser",
-                "username": "testuser"
-            },
+            "from": {"id": 12345, "first_name": "TestUser", "username": "testuser"},
             "chat": {"id": 12345},
             "date": 1234567890,
-            "photo": [{"file_id": "xyz"}]  # Photo message, no text
-        }
+            "photo": [{"file_id": "xyz"}],  # Photo message, no text
+        },
     }
 
-    with patch.object(listener, '_trigger_pulse', new_callable=AsyncMock) as mock_trigger:
+    with patch.object(listener, "_trigger_pulse", new_callable=AsyncMock) as mock_trigger:
         await listener._process_update(update)
 
         # Should NOT trigger pulse
@@ -409,18 +402,14 @@ async def test_handle_bot_commands(listener):
         "update_id": 123456,
         "message": {
             "message_id": 1,
-            "from": {
-                "id": 12345,
-                "first_name": "TestUser",
-                "username": "testuser"
-            },
+            "from": {"id": 12345, "first_name": "TestUser", "username": "testuser"},
             "chat": {"id": 12345},
             "date": 1234567890,
-            "text": "/start"
-        }
+            "text": "/start",
+        },
     }
 
-    with patch.object(listener, '_trigger_pulse', new_callable=AsyncMock) as mock_trigger:
+    with patch.object(listener, "_trigger_pulse", new_callable=AsyncMock) as mock_trigger:
         await listener._process_update(update)
 
         mock_trigger.assert_called_once()
@@ -435,18 +424,14 @@ async def test_build_prompt_with_username(listener):
         "update_id": 123456,
         "message": {
             "message_id": 1,
-            "from": {
-                "id": 12345,
-                "first_name": "TestUser",
-                "username": "testuser"
-            },
+            "from": {"id": 12345, "first_name": "TestUser", "username": "testuser"},
             "chat": {"id": 12345},
             "date": 1234567890,
-            "text": "Test message"
-        }
+            "text": "Test message",
+        },
     }
 
-    with patch.object(listener, '_trigger_pulse', new_callable=AsyncMock) as mock_trigger:
+    with patch.object(listener, "_trigger_pulse", new_callable=AsyncMock) as mock_trigger:
         await listener._process_update(update)
 
         prompt = mock_trigger.call_args[0][0]
@@ -462,16 +447,16 @@ async def test_build_prompt_without_username(listener):
             "message_id": 1,
             "from": {
                 "id": 12345,
-                "first_name": "TestUser"
+                "first_name": "TestUser",
                 # No username
             },
             "chat": {"id": 12345},
             "date": 1234567890,
-            "text": "Test message"
-        }
+            "text": "Test message",
+        },
     }
 
-    with patch.object(listener, '_trigger_pulse', new_callable=AsyncMock) as mock_trigger:
+    with patch.object(listener, "_trigger_pulse", new_callable=AsyncMock) as mock_trigger:
         await listener._process_update(update)
 
         prompt = mock_trigger.call_args[0][0]
@@ -487,7 +472,7 @@ async def test_handle_malformed_update_json(listener):
         # Missing 'message' field
     }
 
-    with patch.object(listener, '_trigger_pulse', new_callable=AsyncMock) as mock_trigger:
+    with patch.object(listener, "_trigger_pulse", new_callable=AsyncMock) as mock_trigger:
         # Should not raise exception
         await listener._process_update(update)
 
@@ -506,11 +491,13 @@ async def test_successful_pulse_trigger(listener):
     # Create mock response
     mock_response = MagicMock()
     mock_response.status = 200
-    mock_response.json = AsyncMock(return_value={
-        "pulse_id": 42,
-        "scheduled_at": "2026-01-23T10:00:00Z",
-        "message": "Pulse scheduled"
-    })
+    mock_response.json = AsyncMock(
+        return_value={
+            "pulse_id": 42,
+            "scheduled_at": "2026-01-23T10:00:00Z",
+            "message": "Pulse scheduled",
+        }
+    )
     mock_response.__aenter__ = AsyncMock(return_value=mock_response)
     mock_response.__aexit__ = AsyncMock(return_value=None)
 
@@ -635,19 +622,19 @@ async def test_verify_tags_included(listener):
 async def test_exponential_backoff_calculation(listener):
     """Test backoff calculation: 2, 4, 8, 16, 32, etc. seconds."""
     test_cases = [
-        (1, 2),    # 2^1 = 2
-        (2, 4),    # 2^2 = 4
-        (3, 8),    # 2^3 = 8
-        (4, 16),   # 2^4 = 16
-        (5, 32),   # 2^5 = 32
-        (6, 64),   # 2^6 = 64
+        (1, 2),  # 2^1 = 2
+        (2, 4),  # 2^2 = 4
+        (3, 8),  # 2^3 = 8
+        (4, 16),  # 2^4 = 16
+        (5, 32),  # 2^5 = 32
+        (6, 64),  # 2^6 = 64
         (7, 128),  # 2^7 = 128
         (8, 256),  # 2^8 = 256
     ]
 
     for error_count, expected_backoff in test_cases:
         listener.error_count = error_count
-        backoff = min(2 ** listener.error_count, 300)
+        backoff = min(2**listener.error_count, 300)
         assert backoff == expected_backoff
 
 
@@ -657,7 +644,7 @@ async def test_max_backoff_cap(listener):
     # Test high error counts
     for error_count in [9, 10, 11, 20, 100]:
         listener.error_count = error_count
-        backoff = min(2 ** listener.error_count, 300)
+        backoff = min(2**listener.error_count, 300)
         assert backoff == 300  # Capped at 300 seconds
 
 
@@ -761,7 +748,7 @@ async def test_offset_saved_during_shutdown(listener, tmp_path):
     listener.last_update_id = 99999
     listener.offset_file = tmp_path / "telegram_offset.txt"
 
-    with patch.object(listener, '_save_offset', wraps=listener._save_offset) as mock_save:
+    with patch.object(listener, "_save_offset", wraps=listener._save_offset) as mock_save:
         # Trigger shutdown
         await listener._handle_shutdown(signal.SIGTERM)
 
@@ -786,23 +773,19 @@ async def test_full_message_flow(listener, tmp_path):
             "message_id": 789,
             "from": {"id": 12345, "first_name": "Alice", "username": "alice123"},
             "chat": {"id": 12345},
-            "text": "Hello Reeve"
-        }
+            "text": "Hello Reeve",
+        },
     }
 
     # Mock Telegram API response with message
-    telegram_response = {
-        "ok": True,
-        "result": [sample_update]
-    }
+    telegram_response = {"ok": True, "result": [sample_update]}
 
     # Mock Pulse API success response
     pulse_response = MagicMock()
     pulse_response.status = 200
-    pulse_response.json = AsyncMock(return_value={
-        "pulse_id": 42,
-        "scheduled_at": "2026-01-23T10:00:00Z"
-    })
+    pulse_response.json = AsyncMock(
+        return_value={"pulse_id": 42, "scheduled_at": "2026-01-23T10:00:00Z"}
+    )
     pulse_response.__aenter__ = AsyncMock(return_value=pulse_response)
     pulse_response.__aexit__ = AsyncMock(return_value=None)
 
@@ -812,9 +795,11 @@ async def test_full_message_flow(listener, tmp_path):
     listener.api_session = api_mock
 
     # Mock _get_updates to return our response
-    with patch.object(listener, '_get_updates', new_callable=AsyncMock, return_value=telegram_response):
+    with patch.object(
+        listener, "_get_updates", new_callable=AsyncMock, return_value=telegram_response
+    ):
         # Mock _save_offset to track calls
-        with patch.object(listener, '_save_offset', wraps=listener._save_offset) as mock_save:
+        with patch.object(listener, "_save_offset", wraps=listener._save_offset) as mock_save:
             # Simulate one polling iteration
             updates_data = await listener._get_updates()
 
@@ -845,28 +830,28 @@ async def test_full_lifecycle(listener, tmp_path):
 
     # Mock bot token verification (getMe)
     getme_response = AsyncMock()
-    getme_response.json = AsyncMock(return_value={
-        "ok": True,
-        "result": {
-            "id": 123456,
-            "username": "test_bot",
-            "first_name": "Test Bot"
+    getme_response.json = AsyncMock(
+        return_value={
+            "ok": True,
+            "result": {"id": 123456, "username": "test_bot", "first_name": "Test Bot"},
         }
-    })
+    )
 
     telegram_mock = AsyncMock()
     telegram_mock.get.return_value.__aenter__.return_value = getme_response
     listener.telegram_session = telegram_mock
 
     # Mock _verify_bot_token
-    with patch.object(listener, '_verify_bot_token', new_callable=AsyncMock):
+    with patch.object(listener, "_verify_bot_token", new_callable=AsyncMock):
         # Mock _polling_loop to exit immediately
         async def mock_polling_loop():
             listener.running = False
 
-        with patch.object(listener, '_polling_loop', new_callable=AsyncMock, side_effect=mock_polling_loop):
+        with patch.object(
+            listener, "_polling_loop", new_callable=AsyncMock, side_effect=mock_polling_loop
+        ):
             # Mock signal handler registration
-            with patch.object(listener, '_register_signal_handlers'):
+            with patch.object(listener, "_register_signal_handlers"):
                 # Start and immediately stop
                 listener.running = True
                 await listener._polling_loop()

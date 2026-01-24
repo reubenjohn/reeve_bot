@@ -414,9 +414,7 @@ class TelegramListener:
                 # Handle other HTTP errors
                 if response.status != 200:
                     error_text = await response.text()
-                    self.logger.error(
-                        f"API error {response.status}: {error_text[:100]}"
-                    )
+                    self.logger.error(f"API error {response.status}: {error_text[:100]}")
                     return None
 
                 # Parse response
@@ -532,7 +530,7 @@ class TelegramListener:
             return
 
         # Calculate exponential backoff (max 5 minutes)
-        backoff_seconds = min(2 ** self.error_count, 300)
+        backoff_seconds = min(2**self.error_count, 300)
 
         self.logger.error(
             f"Error in {context} (attempt {self.error_count}/{self.max_consecutive_errors}): {error}",

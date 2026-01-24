@@ -14,11 +14,11 @@ If Hapi is not found, it will run in mock mode.
 """
 
 import asyncio
-import sys
 import shutil
+import sys
 from typing import Optional
 
-from reeve.pulse.executor import PulseExecutor, ExecutionResult
+from reeve.pulse.executor import ExecutionResult, PulseExecutor
 from reeve.utils.config import get_config
 
 # ============================================================================

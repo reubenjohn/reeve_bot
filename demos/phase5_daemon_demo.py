@@ -114,7 +114,11 @@ async def schedule_demo_pulses(queue: PulseQueue, mock_mode: bool) -> list[int]:
     pulse_ids.append(
         await queue.schedule_pulse(
             scheduled_at=now + timedelta(seconds=28),
-            prompt="DEMO: Say just 'OK'" if not mock_mode else "DEMO: Normal pulse with sticky notes (mock)",
+            prompt=(
+                "DEMO: Say just 'OK'"
+                if not mock_mode
+                else "DEMO: Normal pulse with sticky notes (mock)"
+            ),
             priority=PulsePriority.NORMAL,
             sticky_notes=[
                 "This pulse has sticky notes",
@@ -123,7 +127,10 @@ async def schedule_demo_pulses(queue: PulseQueue, mock_mode: bool) -> list[int]:
             tags=["demo", "normal"],
         )
     )
-    print_success("Scheduled NORMAL pulse", {"Due in": "28 seconds", "With": "2 sticky notes", "ID": pulse_ids[-1]})
+    print_success(
+        "Scheduled NORMAL pulse",
+        {"Due in": "28 seconds", "With": "2 sticky notes", "ID": pulse_ids[-1]},
+    )
 
     # Pulse 4: Concurrent execution test (due in 33 seconds, along with next one)
     pulse_ids.append(
@@ -145,7 +152,9 @@ async def schedule_demo_pulses(queue: PulseQueue, mock_mode: bool) -> list[int]:
             tags=["demo", "concurrent"],
         )
     )
-    print_success("Scheduled concurrent pulse B", {"Due in": "33 seconds (parallel)", "ID": pulse_ids[-1]})
+    print_success(
+        "Scheduled concurrent pulse B", {"Due in": "33 seconds (parallel)", "ID": pulse_ids[-1]}
+    )
 
     print(f"\n✓ Scheduled {len(pulse_ids)} demo pulses")
     if not mock_mode:
@@ -159,7 +168,9 @@ async def schedule_demo_pulses(queue: PulseQueue, mock_mode: bool) -> list[int]:
     return pulse_ids
 
 
-async def monitor_pulse_status(queue: PulseQueue, pulse_ids: list[int], duration: int, mock_mode: bool = False) -> None:
+async def monitor_pulse_status(
+    queue: PulseQueue, pulse_ids: list[int], duration: int, mock_mode: bool = False
+) -> None:
     """Monitor pulse execution status for a given duration."""
     print_section(f"Monitoring pulse execution for {duration} seconds")
     if mock_mode:
@@ -198,8 +209,12 @@ async def monitor_pulse_status(queue: PulseQueue, pulse_ids: list[int], duration
                         PulsePriority.DEFERRED: "🕐",
                     }.get(pulse.priority, "❓")
 
-                    prompt_preview = pulse.prompt[:40] + "..." if len(pulse.prompt) > 40 else pulse.prompt
-                    print(f"{emoji} {priority_emoji} Pulse {pulse_id}: {current_status.upper()} - {prompt_preview}")
+                    prompt_preview = (
+                        pulse.prompt[:40] + "..." if len(pulse.prompt) > 40 else pulse.prompt
+                    )
+                    print(
+                        f"{emoji} {priority_emoji} Pulse {pulse_id}: {current_status.upper()} - {prompt_preview}"
+                    )
 
                     if current_status == PulseStatus.COMPLETED and pulse.execution_duration_ms:
                         print(f"   ⏱ Executed in {pulse.execution_duration_ms}ms")
@@ -308,6 +323,7 @@ async def demo_with_real_daemon():
 
         # Send SIGINT to trigger shutdown
         import os
+
         os.kill(os.getpid(), signal.SIGINT)
 
         # Wait for daemon to shut down
@@ -426,6 +442,7 @@ async def demo_with_mock_daemon():
 
         # Send SIGINT
         import os
+
         os.kill(os.getpid(), signal.SIGINT)
 
         # Wait for shutdown

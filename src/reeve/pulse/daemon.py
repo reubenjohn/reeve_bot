@@ -185,9 +185,7 @@ class PulseDaemon:
 
         from reeve.api.server import create_app
 
-        self.logger.info(
-            f"Starting API server on http://127.0.0.1:{self.config.pulse_api_port}"
-        )
+        self.logger.info(f"Starting API server on http://127.0.0.1:{self.config.pulse_api_port}")
 
         # Create FastAPI app
         app = create_app(self.queue, self.config)

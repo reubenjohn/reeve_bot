@@ -10,11 +10,11 @@ This demo verifies:
 """
 
 import asyncio
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from reeve.pulse.models import Pulse
 from reeve.pulse.enums import PulsePriority, PulseStatus
+from reeve.pulse.models import Pulse
 from reeve.pulse.queue import PulseQueue
 from reeve.utils.config import get_config
 
@@ -63,7 +63,9 @@ async def main():
 
     # Test enum values
     print(f"\n✓ Testing enum values:")
-    print(f"  - Priority enum: {PulsePriority.NORMAL} (type: {type(PulsePriority.NORMAL).__name__})")
+    print(
+        f"  - Priority enum: {PulsePriority.NORMAL} (type: {type(PulsePriority.NORMAL).__name__})"
+    )
     print(f"  - Status enum: {PulseStatus.PENDING} (type: {type(PulseStatus.PENDING).__name__})")
     print(f"  - Enums are strings: {isinstance(PulsePriority.NORMAL, str)}")
 
