@@ -53,6 +53,7 @@ class PulseDaemon:
         # State
         self.running = False
         self.scheduler_task: Optional[asyncio.Task] = None
+        self.api_task: Optional[asyncio.Task] = None
         self.executing_pulses: set[asyncio.Task] = set()
         self.shutdown_event = asyncio.Event()
 
@@ -166,6 +167,52 @@ class PulseDaemon:
 
         self.logger.info("Scheduler loop stopped")
 
+    async def _run_api_server(self) -> None:
+        """
+        Run the FastAPI server using uvicorn.
+
+        This method:
+        1. Imports FastAPI app factory from reeve.api.server
+        2. Configures uvicorn.Server with host and port from config
+        3. Runs server with asyncio cancellation handling
+        4. Cleans up on shutdown or cancellation
+
+        The API server runs concurrently with the scheduler loop, allowing
+        external systems to trigger pulses via HTTP while the scheduler
+        manages execution.
+        """
+        import uvicorn
+
+        from reeve.api.server import create_app
+
+        self.logger.info(
+            f"Starting API server on http://127.0.0.1:{self.config.pulse_api_port}"
+        )
+
+        # Create FastAPI app
+        app = create_app(self.queue, self.config)
+
+        # Configure uvicorn server
+        config = uvicorn.Config(
+            app,
+            host="127.0.0.1",
+            port=self.config.pulse_api_port,
+            log_level="info",
+            access_log=False,  # Reduce noise, we have our own logging
+        )
+        server = uvicorn.Server(config)
+
+        try:
+            # Run server (blocks until shutdown)
+            await server.serve()
+        except asyncio.CancelledError:
+            self.logger.info("API server cancelled, shutting down")
+            # Uvicorn handles cleanup automatically
+        except Exception as e:
+            self.logger.error(f"API server error: {e}", exc_info=True)
+
+        self.logger.info("API server stopped")
+
     def _register_signal_handlers(self) -> None:
         """
         Register SIGTERM and SIGINT handlers for graceful shutdown.
@@ -190,7 +237,7 @@ class PulseDaemon:
 
         Shutdown process:
         1. Stop accepting new pulses (running=False)
-        2. Cancel scheduler task
+        2. Cancel scheduler task and API task
         3. Wait up to 30 seconds for in-flight pulses to complete
         4. Force cancel remaining tasks if timeout exceeded
         5. Close database connection
@@ -203,11 +250,18 @@ class PulseDaemon:
         # Stop accepting new pulses
         self.running = False
 
-        # Cancel scheduler task
+        # Cancel both scheduler and API tasks
         if self.scheduler_task:
             self.scheduler_task.cancel()
             try:
                 await self.scheduler_task
+            except asyncio.CancelledError:
+                pass
+
+        if self.api_task:
+            self.api_task.cancel()
+            try:
+                await self.api_task
             except asyncio.CancelledError:
                 pass
 
@@ -245,8 +299,12 @@ class PulseDaemon:
         This is the main entry point for the daemon. It:
         1. Initializes the database
         2. Registers signal handlers
-        3. Starts the scheduler loop
+        3. Starts both the scheduler loop and API server concurrently
         4. Waits for shutdown signal
+
+        Both the scheduler and API server run concurrently, allowing:
+        - Scheduler: Polls for due pulses and executes them
+        - API: Accepts external pulse triggers via HTTP
 
         This method blocks until shutdown is triggered.
         """
@@ -259,8 +317,9 @@ class PulseDaemon:
         # Register signal handlers for graceful shutdown
         self._register_signal_handlers()
 
-        # Start scheduler loop
+        # Start both scheduler loop and API server concurrently
         self.scheduler_task = asyncio.create_task(self._scheduler_loop())
+        self.api_task = asyncio.create_task(self._run_api_server())
 
         # Wait for shutdown
         await self.shutdown_event.wait()

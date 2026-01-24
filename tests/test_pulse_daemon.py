@@ -33,6 +33,8 @@ def mock_config():
     config.hapi_command = "mock_hapi"
     config.reeve_desk_path = "/tmp/test_desk"
     config.reeve_home = "/tmp/test_home"
+    config.pulse_api_port = 8765
+    config.pulse_api_token = "test_token_123"
     return config
 
 
@@ -494,25 +496,27 @@ async def test_daemon_full_lifecycle(daemon, mock_pulse):
     """Test full daemon lifecycle: start, execute pulse, shutdown."""
     daemon.queue.get_due_pulses.return_value = [mock_pulse]
 
-    # Start daemon in background
-    start_task = asyncio.create_task(daemon.start())
+    # Mock the API server (not part of this test's focus)
+    with patch.object(daemon, "_run_api_server", new_callable=AsyncMock):
+        # Start daemon in background
+        start_task = asyncio.create_task(daemon.start())
 
-    # Wait for scheduler to start
-    await asyncio.sleep(0.5)
+        # Wait for scheduler to start
+        await asyncio.sleep(0.5)
 
-    # Wait for pulse to execute
-    await asyncio.sleep(1.5)
+        # Wait for pulse to execute
+        await asyncio.sleep(1.5)
 
-    # Trigger shutdown
-    await daemon._handle_shutdown(signal.SIGTERM)
+        # Trigger shutdown
+        await daemon._handle_shutdown(signal.SIGTERM)
 
-    # Wait for daemon to stop
-    await start_task
+        # Wait for daemon to stop
+        await start_task
 
-    # Pulse should have been executed
-    daemon.queue.mark_processing.assert_called()
-    daemon.executor.execute.assert_called()
-    daemon.queue.mark_completed.assert_called()
+        # Pulse should have been executed
+        daemon.queue.mark_processing.assert_called()
+        daemon.executor.execute.assert_called()
+        daemon.queue.mark_completed.assert_called()
 
 
 @pytest.mark.asyncio

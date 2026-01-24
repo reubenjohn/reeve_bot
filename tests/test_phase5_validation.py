@@ -68,6 +68,8 @@ async def test_phase5_integration():
     mock_config.hapi_command = "mock_hapi"
     mock_config.reeve_desk_path = "/tmp/test_desk"
     mock_config.reeve_home = "/tmp/test_home"
+    mock_config.pulse_api_port = 8765
+    mock_config.pulse_api_token = "test_token"
 
     # Create daemon with real queue but mocked executor
     daemon = PulseDaemon(mock_config)
@@ -96,56 +98,58 @@ async def test_phase5_integration():
     # ========================================================================
     # Test: Start daemon and execute pulse
     # ========================================================================
-    try:
-        # Start daemon in background
-        start_task = asyncio.create_task(daemon.start())
+    # Mock the API server since this test is for Phase 5 (not Phase 6)
+    with patch.object(daemon, "_run_api_server", new_callable=AsyncMock):
+        try:
+            # Start daemon in background
+            start_task = asyncio.create_task(daemon.start())
 
-        # Wait for scheduler to start and process pulse
-        await asyncio.sleep(2.0)  # Give it time to poll and execute
+            # Wait for scheduler to start and process pulse
+            await asyncio.sleep(2.0)  # Give it time to poll and execute
 
-        # Verify executor was called
-        assert mock_executor.build_prompt.called, "Executor.build_prompt() not called"
-        assert mock_executor.execute.called, "Executor.execute() not called"
+            # Verify executor was called
+            assert mock_executor.build_prompt.called, "Executor.build_prompt() not called"
+            assert mock_executor.execute.called, "Executor.execute() not called"
 
-        # Verify prompt building with sticky notes
-        build_prompt_call = mock_executor.build_prompt.call_args
-        assert build_prompt_call[0][0] == "Test pulse for Phase 5 validation"
-        assert build_prompt_call[0][1] == ["Validation test note"]
+            # Verify prompt building with sticky notes
+            build_prompt_call = mock_executor.build_prompt.call_args
+            assert build_prompt_call[0][0] == "Test pulse for Phase 5 validation"
+            assert build_prompt_call[0][1] == ["Validation test note"]
 
-        # ========================================================================
-        # Test: Verify database updated correctly
-        # ========================================================================
-        executed_pulse = await queue.get_pulse(pulse_id)
-        assert executed_pulse is not None, "Pulse not found in database"
-        assert (
-            executed_pulse.status == PulseStatus.COMPLETED
-        ), f"Pulse status should be COMPLETED, got {executed_pulse.status}"
-        assert executed_pulse.executed_at is not None, "executed_at not set"
-        assert executed_pulse.execution_duration_ms is not None, "execution_duration_ms not set"
-        assert executed_pulse.execution_duration_ms > 0, "execution_duration_ms should be positive"
+            # ========================================================================
+            # Test: Verify database updated correctly
+            # ========================================================================
+            executed_pulse = await queue.get_pulse(pulse_id)
+            assert executed_pulse is not None, "Pulse not found in database"
+            assert (
+                executed_pulse.status == PulseStatus.COMPLETED
+            ), f"Pulse status should be COMPLETED, got {executed_pulse.status}"
+            assert executed_pulse.executed_at is not None, "executed_at not set"
+            assert executed_pulse.execution_duration_ms is not None, "execution_duration_ms not set"
+            assert executed_pulse.execution_duration_ms > 0, "execution_duration_ms should be positive"
 
-        # ========================================================================
-        # Test: Graceful shutdown
-        # ========================================================================
-        # Trigger shutdown via signal handler
-        await daemon._handle_shutdown(signal.SIGTERM)
+            # ========================================================================
+            # Test: Graceful shutdown
+            # ========================================================================
+            # Trigger shutdown via signal handler
+            await daemon._handle_shutdown(signal.SIGTERM)
 
-        # Wait for daemon to stop
-        await asyncio.wait_for(start_task, timeout=5.0)
+            # Wait for daemon to stop
+            await asyncio.wait_for(start_task, timeout=5.0)
 
-        # Verify shutdown completed
-        assert daemon.shutdown_event.is_set(), "Shutdown event not set"
-        assert daemon.running is False, "Daemon still running after shutdown"
+            # Verify shutdown completed
+            assert daemon.shutdown_event.is_set(), "Shutdown event not set"
+            assert daemon.running is False, "Daemon still running after shutdown"
 
-        # ========================================================================
-        # Test: Resources closed properly
-        # ========================================================================
-        # Queue should be closed (can't verify directly, but no errors should occur)
+            # ========================================================================
+            # Test: Resources closed properly
+            # ========================================================================
+            # Queue should be closed (can't verify directly, but no errors should occur)
 
-    finally:
-        # Cleanup
-        await queue.close()
-        await engine.dispose()
+        finally:
+            # Cleanup
+            await queue.close()
+            await engine.dispose()
 
 
 @pytest.mark.asyncio
