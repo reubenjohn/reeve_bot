@@ -108,6 +108,8 @@ Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 Before diving in, consider the [strategic questions](https://reubenjohn.github.io/reeve-bot/OpenClaw_COMPARISON/) facing the project - feedback on architectural trade-offs is especially valuable.
 
+For exploratory ideas and concepts still in development, see [IDEAS.md](docs/IDEAS.md).
+
 ## License
 
 AGPL-3.0 License - see [LICENSE](LICENSE) for details.

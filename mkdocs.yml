@@ -64,5 +64,6 @@ nav:
     - Implementation Roadmap: IMPLEMENTATION_ROADMAP.md
   - Reference:
     - OpenClaw Comparison: OpenClaw_COMPARISON.md
+    - Ideas & Future: IDEAS.md
   - Contributing: https://github.com/reubenjohn/reeve-bot/blob/master/CONTRIBUTING.md
   - Security: security.md

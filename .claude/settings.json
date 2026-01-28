@@ -3,7 +3,8 @@
     "allow": [
       "Bash(gh repo create:*)",
       "Bash(uv run alembic:*)",
-      "Bash(export PULSE_API_TOKEN=test-token-123)"
+      "Bash(export PULSE_API_TOKEN=test-token-123)",
+      "Bash(export TELEGRAM_BOT_TOKEN=test123)"
     ]
   }
 }

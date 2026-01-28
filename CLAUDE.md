@@ -527,6 +527,7 @@ All public methods must have docstrings with:
 - `docs/03_DAEMON_AND_API.md` - Daemon and API design (Phases 4-6)
 - `docs/04_DEPLOYMENT.md` - Production deployment (Phase 8)
 - `docs/IMPLEMENTATION_ROADMAP.md` - Full implementation plan
+- `docs/IDEAS.md` - Exploratory ideas and future concepts
 
 ### Implemented Files (Phases 1-7)
 - `src/reeve/pulse/enums.py` - Priority and status enums
