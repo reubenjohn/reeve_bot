@@ -678,6 +678,14 @@ git commit -m "Implement Phase N: [Title]
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 ```
 
+## Contributing
+
+For external contributors and maintainers, see [CONTRIBUTING.md](CONTRIBUTING.md) for:
+- Development environment setup
+- Pull request process
+- Issue reporting guidelines
+- Contributor recognition
+
 ## Dependencies Version Lock
 
 Current versions (from `uv.lock`):

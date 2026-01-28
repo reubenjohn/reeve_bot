@@ -281,3 +281,17 @@ The notification tool has an additional priority to control user attention:
 * **Hardware Independence:**
     * Because the architecture is just a "Terminal Wrapper," Reeve can eventually be ported to voice interfaces, wearables, or custom hardware with zero changes to the core agent logic.
 
+---
+
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on:
+
+- Setting up your development environment
+- Running tests and formatting code
+- Submitting pull requests
+- Reporting issues
+- Understanding the project architecture
+
+Whether you're fixing bugs, adding features, or improving documentation, we appreciate your help in making Reeve better.
+
