@@ -77,11 +77,13 @@ The verdict is not yet decided. This document presents the architectural trade-o
 #### Moltbot's Gateway
 A local WebSocket server (port 18789) that serves as the event hub:
 - Different adapters (Telegram, Discord, CLI) connect as WebSocket clients
-- Agent loop runs continuously, listening to the event stream
-- Proactivity is achieved via plugins (e.g., a cron skill)
-- Context is continuous across events
+- Agent awakened by scheduled heartbeats (~30min default) and cron jobs
+- **Proactivity via integrated subsystems:** Cron (precise scheduling with 5-field expressions) + Heartbeat (periodic awareness)
+- Context is continuous across events within session lifetime
 
-**Use Case:** You send a Telegram message. The adapter emits a WebSocket event, the agent immediately "hears" it and responds. Efficient and real-time.
+**Code Evidence:** `src/gateway/server-cron.ts`, `src/cron/service.ts`, `src/infra/heartbeat-wake.ts`
+
+**Use Case:** You send a Telegram message. The adapter emits a WebSocket event, the agent immediately "hears" it and responds. Efficient and real-time. For proactive tasks, the cron timer polls for due jobs and enqueues system events into the main session context.
 
 #### Reeve's Pulse Queue
 A SQLite-backed scheduler with priority-based execution:
@@ -116,10 +118,45 @@ A SQLite-backed scheduler with priority-based execution:
   - `.claude/skills/`: Workflow automation (7+ specialized skills)
 - **Optional integration:** [C.O.R.E.](https://github.com/RedPlanetHQ/core) graph memory for associative retrieval
 
-**Strength:** Human-readable "Glass Box" memory, git-versioned knowledge evolution, session isolation prevents hallucination bleed
-**Design Challenge:** Process spawning overhead (mitigated via priority-based scheduling)
+**Strength:** Human-readable "Glass Box" memory, git-versioned knowledge evolution, session isolation prevents hallucination bleed, **cost efficiency** (only loads needed context per session)
 
-### 3. The "Wrapper" Bet
+**Design Challenge:** Process spawning overhead (mitigated via priority-based scheduling), **risk of context loss** if information not properly captured in Desk or memory tools between sessions (user may need to repeat information)
+
+### 3. The Cost/Context Trade-Off
+
+The session model choice has direct implications on operational costs and user experience:
+
+#### Moltbot's Continuous Context Approach
+**Advantages:**
+- **No repetition needed**: Context accumulates naturally within session
+- **Low latency**: No process spawning overhead per interaction
+- **Implicit learning**: Agent picks up patterns without explicit memory writes
+
+**Costs:**
+- **Higher token usage**: Full context sent with each API call
+- **Context window pressure**: Requires pre-compaction flush mechanisms
+- **Compaction risks**: Summarization can lose nuanced details
+
+**Example:** After discussing project preferences once, agent remembers them for the entire session (hours/days). But session accumulates 50k+ tokens, requiring periodic summarization.
+
+#### Reeve's Session Isolation Approach
+**Advantages:**
+- **Cost efficiency**: Only loads relevant Desk files per pulse (~2-5k tokens)
+- **No context drift**: Each session starts clean
+- **Explicit knowledge**: All learning visible in git diffs
+
+**Costs:**
+- **Context loss risk**: If information not captured in Desk, user must repeat
+- **Process overhead**: Fresh Hapi session spawn per pulse (~1-3s latency)
+- **Manual curation**: Requires discipline in updating Desk files
+
+**Example:** Morning briefing pulse reads Goals.md + today's Responsibilities.md (~3k tokens). If user mentioned preference yesterday but it wasn't written to Preferences.md, they'll need to repeat it.
+
+**The Fundamental Trade-Off:**
+- **Moltbot**: Pays in tokens/compaction for seamless continuity
+- **Reeve**: Pays in latency/discipline for cost efficiency and session hygiene
+
+### 4. The "Wrapper" Bet
 
 **Moltbot's Approach:** "We are the runtime. We'll stay competitive with LLM providers."
 - Requires ongoing maintenance as APIs evolve
@@ -131,7 +168,7 @@ A SQLite-backed scheduler with priority-based execution:
 - Assumes Anthropic will keep claude-code competitive
 - Risk: If claude-code is deprecated, Reeve needs a new engine (but could swap to Copilot, Goose, etc.)
 
-### 4. Extensibility & Integration
+### 5. Extensibility & Integration
 
 #### Moltbot
 - **WebSocket Gateway architecture:** Plugins connect to central hub
@@ -192,6 +229,51 @@ Reeve's architecture is informed by systematic research documented in [agentic-i
    - **Reeve's Solution:** Executor can invoke arbitrary validation, Desk git history provides auditability
 
 See [research summary](https://github.com/reubenjohn/agentic-ide-power-user) for full analysis.
+
+---
+
+## Code-Based Validation
+
+All claims in this document have been validated against the actual Moltbot codebase (commit: `4583f8862`, 2026-01-29):
+
+### ✅ Validated Claims
+
+| Claim | Evidence |
+|-------|----------|
+| **Custom agent runtime** | `src/agents/pi-embedded-runner/run.ts` (470+ lines) - hand-written loop with retry logic, profile failover |
+| **WebSocket Gateway hub** | `src/gateway/server.impl.ts`, `ws-connection.ts` - 100+ RPC methods, broadcast coordination |
+| **Continuous context across events** | `docs/reference/session-management-compaction.md` - sessions reused until daily/idle reset, JSONL transcripts |
+| **Markdown + SQLite hybrid storage** | `src/memory/internal.ts`, `memory-schema.ts` - `.md` files indexed in SQLite with FTS5 + vector embeddings |
+| **Pre-compaction memory flush** | `src/auto-reply/reply/memory-flush.ts` - triggers at (contextWindow - reserve - 4000) tokens |
+| **Plugin ecosystem** | `src/plugins/registry.ts`, `channels/plugins/` - comprehensive adapter system, 7+ built-in channels |
+| **Proactivity: Cron + Heartbeat** | `src/cron/service.ts`, `src/infra/heartbeat-wake.ts` - core subsystems (NOT plugins) |
+
+### ❌ Corrected Claims
+
+| Original Claim | Correction | Evidence |
+|----------------|------------|----------|
+| "Proactivity via plugins (e.g., cron skill)" | Proactivity via **integrated subsystems**: Cron (precise scheduling) + Heartbeat (periodic awareness) | `src/gateway/server-cron.ts` - Cron initialized in Gateway startup, not loaded as plugin |
+| "Agent loop runs continuously" | Agent awakened by **scheduled heartbeats** (~30min) and **cron timer polls** for due jobs | `src/infra/heartbeat-wake.ts`, `src/cron/service/timer.ts` - event-responsive polling model |
+
+### Key Implementation Details
+
+**Proactivity Architecture** (from code analysis):
+- **Cron Service**: Timer-based polling (`setTimeout`) with priority-ordered job execution
+- **Heartbeat**: Coalescing event handler with 30min default cycle
+- **System Events**: In-memory queue (`src/infra/system-events.ts`) injected at agent turn start
+- **Isolated Jobs**: Cron can spawn fresh sessions (`sessionKey: "cron:<jobId>"`)
+
+**Memory Retrieval** (from code analysis):
+- **Hybrid search**: BM25 (FTS5) + vector similarity with weighted scoring
+- **Daily logs**: `memory/YYYY-MM-DD.md` (append-only, read today + yesterday)
+- **Curated memory**: `MEMORY.md` (optional, main session only)
+- **Chunk indexing**: 400-token chunks with 80-token overlap, embedding cache per provider
+
+**Plugin Architecture** (from code analysis):
+- **7 plugin types**: Channel, Provider, Tool, Service, Skill, Hook, CLI
+- **Adapter pattern**: 25+ optional adapters per channel plugin
+- **Discovery order**: Config → Workspace → Global → Bundled
+- **Examples**: Mattermost (250 lines), Voice Call (400+ lines), Telegram, Discord, Slack, WhatsApp, Signal
 
 ---
 
