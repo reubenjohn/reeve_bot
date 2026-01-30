@@ -36,82 +36,62 @@ Reeve acts as a **Productivity Coach and Task Manager**, but one that is deeply 
 
 ---
 
-## II. Detailed Use-Cases & Scenarios (The "What")
+## II. The Landscape: Reeve vs. Moltbot (The "Why This?")
 
-Reeve is not a collection of features; it is a system of behaviors. The following scenarios illustrate how the **Proxy**, **Coach**, and **Gatekeeper** identities manifest in daily life.
+**[Moltbot](https://github.com/clawdbot/clawdbot)** (formerly Clawdbot, 30k+ stars) is an outstanding all-in-one runtime implementing the agent loop directly in TypeScript. It has a thriving plugin ecosystem and real-time interaction.
 
-### 1. The Social Secretary: "The Snowboarding Trip"
+**Reeve exists** because I heard about Moltbot a couple weeks late, but also represents a fundamentally different architectural bet:
 
-* **The Context:** Reeve knows the user has a Goal: *"Snowboard at least 5 times this season."* It also knows the user's friends (The "Shred Crew") and their preferred resorts.
-* **The Trigger:** Reeve’s weather sub-agent detects a massive storm hitting Mammoth Mountain on Thursday.
-* **The Proactive Push:**
-* Instead of waiting for the user to check the weather, Reeve sends a Telegram notification: *"🔔 Powder Alert: 18 inches forecast for Mammoth this weekend. Conditions are peak."*
-* It immediately follows up with an actionable prompt: *"Shall I see if the Shred Crew is free?"*
+| | Moltbot | Reeve |
+|---|---------|-------|
+| **Paradigm** | Custom runtime | Orchestrator wrapping specialized CLIs ([Claude Code](https://claude.com/claude-code), [Goose](https://github.com/square/goose)) |
+| **Session** | Continuous context | Isolated per wake-up ([research-backed](https://github.com/reubenjohn/agentic-ide-power-user#session-hygiene)) |
+| **Memory** | Markdown files, in-session read/write during continuous execution | Git-versioned [Desk](https://github.com/reubenjohn/reeve_desk_template) (Goals/, Diary/, Preferences/), read-at-start/write-at-end |
+| **Extensibility** | WebSocket Gateway + plugins | [MCP + HTTP API + Skills](docs/MOLTBOT_COMPARISON.md#4-extensibility--integration), optional C.O.R.E. graph memory |
+| **Best For** | Real-time OS integration | Scheduled task isolation, session hygiene |
 
+**Reeve's Core Bet:** Let billion-dollar companies compete on agent loops. Focus on orchestration, proactive scheduling, and [context hygiene](https://github.com/reubenjohn/agentic-ide-power-user#context-rot).
 
-* **The Execution:**
-* Upon receiving a "Yes," Reeve (acting as the Proxy) sends a message to the group chat on WhatsApp: *"Hey everyone, snow looks epic this weekend. Anyone down for a Mammoth trip?"*
-* As replies come in ("I'm in," "Can't make it"), Reeve parses them, summarizes the headcount for the user, and offers to draft the Airbnb booking for the confirmed group.
-
-
-* **The Outcome:** A complex social event is organized with zero mental load on the user.
-
-### 2. The Deep Work Defender: "The Monday Morning Block"
-
-* **The Context:** Reeve observes that the user’s calendar is filling up with fragmented 30-minute meetings, leaving no time for coding.
-* **The Coach Intervention:**
-* During its Sunday night "Pulse," Reeve notices the danger. It proactively blocks off 9:00 AM – 1:00 PM on Monday as "Deep Work."
-* It notifies the user: *"🔔 I've secured your morning block for architecture work. I’ll hold all non-urgent notifications until 1:00 PM."*
-
-
-* **The Gatekeeper in Action:**
-* At 10:30 AM, a chaotic thread erupts in the family WhatsApp group. Reeve reads it, determines it’s just banter, and silences it (🔕).
-* At 11:00 AM, the User’s wife texts: *"Emergency, car won't start."* Reeve identifies this as 🚨 **Critical**, breaks the "Deep Work" lock, and pushes the alert to the user immediately.
-
-
-
-### 3. The Research Partner: "The Trip Planner"
-
-* **The Context:** The user mentions, *"I want to go to Japan in April."*
-* **The "Desk" Collaboration:**
-* Reeve creates a folder `Trips/Japan_April/` and spawns a sub-agent to start researching flights and cherry blossom dates.
-* It doesn't dump a wall of text in the chat. Instead, it creates a `Research_Summary.md` file on the Desk.
-
-
-* **The Iteration:**
-* Reeve pings the user: *"🔔 I've started the Japan research. I found three flight options and drafted a rough itinerary in the folder. Take a look when you have a moment."*
-* The user opens the file, deletes the "Tokyo Disneyland" suggestion (signaling a preference), and adds a note: *"More nature, less city."*
-* Reeve reads the edit, updates its internal "Preferences" file for future reference, and instructs the sub-agent to pivot the itinerary toward hiking trails in Kyoto.
-
-
-
-### 4. The Adaptive Coach: "The Burnout Prevention"
-
-* **The Context:** The user has missed their "Daily Spanish Lesson" task for three days in a row and is responding to messages with short, curt replies.
-* **The Adjustment:**
-* Reeve detects the pattern: High workload + Low completion rate = Risk of Burnout.
-* It doesn't nag the user to "Do Spanish." Instead, it proactively intervenes.
-
-
-* **The Pivot:**
-* Reeve sends a gentle prompt: *"🔔 You’ve been grinding hard this week. I’ve cleared your non-essential tasks for tonight (moved 'Spanish' and 'Budget Review' to the weekend). Why not order takeout and disconnect?"*
-* It shifts from "Taskmaster" to "Supporter," prioritizing the user's mental health over the to-do list.
+**The Strategic Question:** Should Reeve be abandoned, merged, compete, or coexist? See **[docs/MOLTBOT_COMPARISON.md](docs/MOLTBOT_COMPARISON.md)** for detailed analysis and open invitation for feedback.
 
 ---
 
-## III. The Cognitive Mechanics (The "How It Thinks")
+## III. Use Cases: Proxy, Coach, Gatekeeper in Action
+
+### The Snowboarding Trip (Social Secretary)
+**Context:** Reeve knows Goal: *"Snowboard 5+ times this season"* + user's friends ("Shred Crew").
+**Trigger:** Weather agent detects 18" forecast at Mammoth.
+**Action:** Sends Telegram alert: *"🔔 Powder Alert: 18 inches forecast for Mammoth this weekend. Shall I check if the Shred Crew is free?"*
+**Outcome:** Upon approval, messages WhatsApp group, parses replies, summarizes headcount, offers to draft Airbnb booking. **Zero mental load.**
+
+### The Deep Work Defender (Gatekeeper)
+**Context:** Calendar filling with 30-min meetings, no coding time.
+**Intervention:** Sunday pulse proactively blocks 9 AM–1 PM Monday as "Deep Work."
+**Gatekeeper Logic:**
+- 10:30 AM: Family group chat banter → 🔕 Silenced
+- 11:00 AM: Wife texts *"Emergency, car won't start"* → 🚨 **Critical**, breaks Deep Work lock, pushes alert immediately
+
+### The Adaptive Coach (Burnout Prevention)
+**Pattern:** Missed "Daily Spanish" 3 days + curt message replies = burnout risk.
+**Response:** *"🔔 You've been grinding hard. I've cleared non-essentials for tonight (moved Spanish and Budget Review to weekend). Why not order takeout and disconnect?"*
+**Adaptation:** Shifts from Taskmaster → Supporter, prioritizing mental health over to-do list.
+
+---
+
+## IV. The Cognitive Mechanics (The "How It Thinks")
 
 Reeve’s intelligence is not magic; it is a structured system of transparency, rhythm, and memory.
 
 ### 1. The Desk: A Collaborative Workspace (The Library)
 
-At the center of Reeve’s mind is **"The Desk"**—a local Git repository of Markdown files. This is not just storage; it is a shared whiteboard between the User, Reeve, and its Sub-Agents.
+At the center of Reeve's mind is **"The Desk"**—a local Git repository of Markdown files ([template](https://github.com/reubenjohn/reeve_desk_template), [example desk](https://github.com/reubenjohn/reeve-desk)). This is not just storage; it is a shared whiteboard between the User, Reeve, and its Sub-Agents.
 
-* **The Folder Structure:**
+* **The Folder Structure** (hierarchical context, [progressive disclosure](https://github.com/reubenjohn/agentic-ide-power-user#progressive-disclosure)):
 * `Goals/`: The North Star. Contains `Goals.md` and other optional markdown files defining additional high-level objectives (e.g., `Financial_Freedom.md`, `Marathon_Training.md`).
 * `Responsibilities/`: The Operational Manual. Recurring duties and active projects. Contains `Responsibilities.md` and optional supporting documents referenced from `Responsibilities.md` (e.g., `Daily_Hygiene.md`, `Project_Alpha_Specs.md`).
 * `Preferences/`: The User Manual. Explicit constraints on communication style, diet, budget, and values. Contains `Preferences.md` and other optional supporting documents referenced from `Preferences.md`.
 * `Diary/`: The Stream of Consciousness. Reeve logs its internal monologue here to maintain continuity between wake-up cycles. Reeve must find the best way to organize this and evolve the organization over time.
+* `.claude/skills/`: Workflow automation (7+ specialized skills for morning briefing, pulse scheduling, diary logging, etc.)
 
 
 * **The "Blackboard" Pattern:**
@@ -157,7 +137,7 @@ Reeve manages the trade-off between "Context Window Limits" and "Total Recall" u
 
 ---
 
-## IV. The System Architecture (The "Body")
+## V. The System Architecture (The "Body")
 
 Reeve is designed to be interface-agnostic. It does not live *inside* an app; it lives in the terminal, and the world connects to it.
 
@@ -294,4 +274,8 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for det
 - Understanding the project architecture
 
 Whether you're fixing bugs, adding features, or improving documentation, we appreciate your help in making Reeve better.
+
+### Strategic Direction Feedback
+
+Before diving into code contributions, consider reading **[docs/MOLTBOT_COMPARISON.md](docs/MOLTBOT_COMPARISON.md)** for context on Reeve's architectural philosophy and the open strategic questions facing the project. Community feedback on the "orchestrator vs. runtime" trade-offs is especially valuable and can be shared in [GitHub Discussions](https://github.com/reubenjohn/reeve_bot2/discussions).
 

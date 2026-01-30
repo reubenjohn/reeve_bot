@@ -1,0 +1,330 @@
+# Reeve vs. Moltbot: Architectural Comparison & Strategic Decision
+
+**Status:** Open Question | **Last Updated:** 2026-01-29
+
+## Executive Summary
+
+[Moltbot](https://github.com/clawdbot/clawdbot) (formerly Clawdbot) is a viral open-source project (30k+ GitHub stars) that has captured significant mindshare in the personal AI assistant space. This document provides a technical comparison between Moltbot and Reeve, and explicitly frames the strategic question facing this project:
+
+**Should Reeve be abandoned, merged with Moltbot, compete directly, or coexist as a complementary approach?**
+
+The verdict is not yet decided. This document presents the architectural trade-offs to invite community feedback.
+
+---
+
+## The Fundamental Difference: Runtime vs. Orchestrator
+
+### Moltbot: The All-in-One Runtime
+
+**Architecture:** Moltbot is a **custom agent runtime** built in TypeScript/Node.js. It directly implements the agent loop—the core "Thought → Tool → Observation" cycle that powers agentic AI.
+
+**Philosophy:** Integration over modularity. Moltbot is a complete system where the agent loop, memory management, tool execution, and communication protocols are tightly coupled in a single codebase.
+
+**Key Components:**
+- Custom WebSocket "Gateway" serving as the central nervous system
+- Native tool/skill execution engine
+- Filesystem-based memory (Markdown/JSON)
+- Multi-platform integrations (Telegram, Discord, WhatsApp, iMessage)
+- Web dashboard for monitoring and control
+- Terminal UI (TUI) for developer access
+
+**Strengths:**
+- Batteries-included experience
+- Thriving plugin ecosystem (~30k stars, active community)
+- Unified architecture where everything "just works"
+- Real-time streaming of tool outputs via WebSockets
+
+**Trade-offs:**
+- High coupling to the custom implementation
+- Breaking changes during rapid development phase
+- Context continuity can lead to "hallucination bleed" between tasks
+- Must maintain compatibility with evolving LLM APIs
+
+### Reeve: The Specialized Orchestrator
+
+**Architecture:** Reeve is a **supervisor process** that orchestrates specialized agentic IDEs (Claude Code, GitHub Copilot, Goose, Cursor) rather than reimplementing the agent loop.
+
+**Philosophy:** Specialization over integration. Bet on billion-dollar companies (Anthropic, GitHub, Microsoft) to build the best agent loops, focus on what they're NOT building—proactive scheduling and context management.
+
+**Key Components:**
+- **Pulse Queue** (Python/SQLite): Core scheduling system for wake-up events
+- **Executor**: Launches fresh agent sessions with explicit context injection
+- **Desk Pattern**: Separate repository ([reeve_desk](https://github.com/reubenjohn/reeve-desk)) for user context
+- **Session Hygiene**: Treats each wake-up as a new, isolated session
+- MCP servers for self-scheduling and notifications
+- HTTP API for external event triggers
+- Lightweight integrations (Telegram listener)
+
+**Strengths:**
+- **Decoupling from implementation churn**: Anthropic/GitHub teams optimize the agent loop while Reeve focuses on orchestration
+- **Session isolation**: Fresh context per task prevents hallucination accumulation
+- **Progressive disclosure**: Desk pattern encourages hierarchical, transparent knowledge organization
+- **Research-backed design**: Informed by [agentic IDE analysis](https://github.com/reubenjohn/agentic-ide-power-user)
+- **Model flexibility**: Desk can be optimized per-model (Claude, GPT-4, Gemini) without touching orchestration logic
+
+**Trade-offs:**
+- Depends on external CLIs remaining stable and accessible
+- No existing plugin ecosystem (starting from zero)
+- Higher per-wake-up latency (process spawning overhead)
+- Solo developer vs. large community (for now)
+
+---
+
+## Technical Deep Dive
+
+### 1. The "Gateway" vs. The "Pulse Queue"
+
+#### Moltbot's Gateway
+A local WebSocket server (port 18789) that serves as the event hub:
+- Different adapters (Telegram, Discord, CLI) connect as WebSocket clients
+- Agent loop runs continuously, listening to the event stream
+- Proactivity is achieved via plugins (e.g., a cron skill)
+- Context is continuous across events
+
+**Use Case:** You send a Telegram message. The adapter emits a WebSocket event, the agent immediately "hears" it and responds. Efficient and real-time.
+
+#### Reeve's Pulse Queue
+A SQLite-backed scheduler with priority-based execution:
+- Periodic pulses (hourly heartbeat) and aperiodic pulses (self-scheduled alarms)
+- Each pulse spawns a fresh agent session with explicit context
+- "Sticky Notes" carry forward essential context between sessions
+- Failed pulses retry with exponential backoff
+
+**Use Case:** At 6:45 AM, a pulse fires to check flight status. A new Claude Code session starts with the prompt "Check flight UA123 for delays" + sticky note "User departs at 8:00 AM". Session completes, process exits. Clean slate for next pulse.
+
+### 2. Memory & Learning Architecture
+
+**Both use Markdown files for storage—the difference is session integration:**
+
+#### Moltbot
+- Filesystem-based (Markdown/JSON) with custom retrieval logic
+- Agent maintains **continuous context**, reading/writing files during long-running session
+- Pre-compaction flush: Summarizes before context window fills
+- Memory evolves organically within session boundaries
+
+**Strength:** Continuous learning, immediate context accumulation across events
+**Design Challenge:** Context drift in long sessions (mitigated via compaction and summarization)
+
+#### Reeve (with [reeve_desk](https://github.com/reubenjohn/reeve-desk))
+- Separate Git repository holding user context ([template](https://github.com/reubenjohn/reeve_desk_template))
+- Agent reads files **at session start**, writes updates **before session exit**
+- **Structured folders:** (hierarchical [progressive disclosure](https://github.com/reubenjohn/agentic-ide-power-user))
+  - `Goals/`: Long-term objectives with success criteria
+  - `Responsibilities/`: Recurring duties (daily/weekly/monthly)
+  - `Preferences/`: User constraints and communication rules
+  - `Diary/`: Activity logs, pattern tracking, temporal context
+  - `.claude/skills/`: Workflow automation (7+ specialized skills)
+- **Optional integration:** [C.O.R.E.](https://github.com/RedPlanetHQ/core) graph memory for associative retrieval
+
+**Strength:** Human-readable "Glass Box" memory, git-versioned knowledge evolution, session isolation prevents hallucination bleed
+**Design Challenge:** Process spawning overhead (mitigated via priority-based scheduling)
+
+### 3. The "Wrapper" Bet
+
+**Moltbot's Approach:** "We are the runtime. We'll stay competitive with LLM providers."
+- Requires ongoing maintenance as APIs evolve
+- Community-driven improvements to tool execution
+- Full control over agent behavior
+
+**Reeve's Approach:** "Let the billion-dollar companies fight over agent loop optimization. We'll orchestrate."
+- Delegates complex reasoning to Claude Code (Anthropic's official CLI)
+- Assumes Anthropic will keep claude-code competitive
+- Risk: If claude-code is deprecated, Reeve needs a new engine (but could swap to Copilot, Goose, etc.)
+
+### 4. Extensibility & Integration
+
+#### Moltbot
+- **WebSocket Gateway architecture:** Plugins connect to central hub
+- **Plugin ecosystem:** ~30k GitHub stars, active community
+- **Integration model:** Tight coupling with runtime, real-time streaming
+- **Marketplace:** Established plugins for common integrations
+
+**Strength:** Batteries-included, large community contributions
+**Challenge:** Plugins must adapt to runtime API changes during rapid development
+
+#### Reeve
+- **Three-layer extension model:**
+  1. **MCP Servers** - Direct tool integration (pulse scheduling, notifications, calendar, etc.)
+  2. **HTTP REST API** - External event triggers (any system can POST to `/api/pulse/schedule`)
+  3. **Integration Listeners** - Modular connectors (Telegram, email, etc.) as separate processes
+- **Protocol-based:** Standard HTTP, MCP, asyncio patterns
+- **Process isolation:** Listener crashes don't affect daemon
+
+**Strength:** Modular, no vendor lock-in, standard protocols enable any tool to integrate
+**Challenge:** Zero existing plugins (ecosystem starting from scratch)
+
+**Example Integration:**
+```python
+# Adding a Slack listener (independent process)
+class SlackListener:
+    async def start(self):
+        while True:
+            events = await self.slack_client.poll()
+            for event in events:
+                await self.api.schedule_pulse(
+                    prompt=f"Slack message: {event.text}",
+                    priority="high",
+                    source="slack"
+                )
+```
+
+---
+
+## Research Foundation
+
+Reeve's architecture is informed by systematic research documented in [agentic-ide-power-user](https://github.com/reubenjohn/agentic-ide-power-user), which analyzes context engineering, grounding, and human-machine interaction patterns across major agentic IDEs (Claude Code, Cursor, GitHub Copilot).
+
+### Key Research Findings Applied to Reeve
+
+1. **Context Rot Prevention:** Performance degrades 20-50% at 100k+ tokens ([Burke Holland SNR Equation](https://github.com/reubenjohn/agentic-ide-power-user#context-rot))
+   - **Reeve's Solution:** Fresh sessions per pulse, bounded context windows, artifact preservation in Desk
+
+2. **Session Hygiene Best Practice:** Research-Plan-Implement loop with context resets
+   - **Reeve's Solution:** Each pulse = one phase, results written to Desk, next pulse reads artifacts
+
+3. **Progressive Disclosure:** Hierarchical information density prevents tool/instruction bloat
+   - **Reeve's Solution:** Desk structure (CLAUDE.md → Goals/ → Skills/) reveals context as needed
+
+4. **MCP Tool Overhead:** Each tool description costs 100-200 tokens, unconditionally injected
+   - **Reeve's Solution:** Minimal MCP surface (4 pulse tools + notification), Skills for workflows
+
+5. **Grounding Mechanisms:** Deterministic validation (tests, linters, hooks) prevents hallucinations
+   - **Reeve's Solution:** Executor can invoke arbitrary validation, Desk git history provides auditability
+
+See [research summary](https://github.com/reubenjohn/agentic-ide-power-user) for full analysis.
+
+---
+
+## The Strategic Question: Abandon, Merge, Compete, or Coexist?
+
+### Option A: Abandon Reeve
+**Rationale:** Moltbot has momentum, community, and plugins. Why reinvent the wheel?
+
+**Counter-argument:**
+- Reeve's session hygiene approach addresses a real problem (context drift)
+- The orchestrator pattern may prove more robust long-term
+- Specialized focus (proactivity) vs. general-purpose assistant
+
+**Verdict:** Premature. The architectures solve different problems.
+
+---
+
+### Option B: Merge/Contribute to Moltbot
+**Rationale:** Join forces. Rewrite Pulse Queue as a Moltbot extension in TypeScript.
+
+**Feasibility:** Low
+- Tech stack incompatibility (Python vs. TypeScript)
+- Architectural mismatch (supervisor vs. runtime)
+- Would lose session isolation benefits
+
+**What could be contributed:**
+- Pulse Queue scheduling concepts as a Moltbot skill
+- Desk pattern ideas for memory organization
+- Session hygiene best practices
+
+**Verdict:** Concepts can be shared, but full merge would require abandoning Reeve's core design.
+
+---
+
+### Option C: Compete Head-to-Head
+**Rationale:** Build a rival ecosystem. Aim for Moltbot's breadth of plugins.
+
+**Feasibility:** Medium-Low
+- Moltbot's 30k stars and active community are a massive advantage
+- Competing on "number of integrations" is a resource war
+
+**Winning Strategy (if competing):**
+- Don't compete on breadth (number of tools)
+- Compete on depth (reliability, session hygiene, proactive intelligence)
+- Position as "Jarvis" (task executive) vs. Moltbot's "Her" (conversational OS)
+
+**Verdict:** Only viable if focusing on differentiated niche (proactivity, enterprise reliability).
+
+---
+
+### Option D: Coexist as Complementary Systems
+**Rationale:** Reeve and Moltbot target different use cases and users.
+
+| Dimension | Moltbot | Reeve |
+|-----------|---------|-------|
+| **Use Case** | Conversational buddy, general assistant | Proactive task executive, "Chief of Staff" |
+| **Architecture** | Monolithic runtime | Modular orchestrator |
+| **Session Model** | Continuous context | Isolated, ephemeral sessions |
+| **Primary User** | Developers wanting hackable assistant | Users wanting reliable automation |
+| **Key Strength** | Plugin ecosystem, real-time interaction | Session hygiene, scheduled proactivity |
+
+**Coexistence Scenarios:**
+1. **Independent Evolution:** Different tools for different needs
+2. **Potential Integration:** Reeve's Pulse Queue could *trigger* Moltbot sessions via API
+3. **Cross-pollination:** Share design patterns and learnings
+
+**Verdict:** This is the strongest path forward. Distinct architectural philosophies can both thrive.
+
+---
+
+## What the Research Says
+
+Recent industry discussions (January 2026) highlight the architectural debates around agentic AI:
+
+- ["The Agentic Architect"](https://medium.com/the-cyber-wall/the-agentic-architect-software-in-2026-is-no-longer-written-its-negotiated-f4f9d1b993eb) - Software is negotiated with agents, not written
+- ["Keep it simple, stupid: Agentic AI tools choke on complexity"](https://www.theregister.com/2026/01/26/agentic_ai_tools_complecity) - Complexity is the enemy
+- ["Agentic AI Isn't a Feature. It's a Re-Platforming"](https://hackernoon.com/agentic-ai-isnt-a-feature-its-a-replatforming-and-it-will-decide-who-sets-the-tone-in-2026) - Fundamental shift in how we build systems
+
+**Key Takeaway:** The space is too new for there to be a "one true architecture." Multiple approaches are needed to explore the design space.
+
+---
+
+## Community Feedback Needed
+
+This is an open question. Before investing further, the project seeks input:
+
+### Questions for the Community
+
+1. **Is session isolation (Reeve's approach) worth the orchestration overhead?**
+   - Does context drift in long-running sessions (Moltbot's model) cause real problems?
+   - Or is continuous context actually better for learning user preferences?
+
+2. **Is the "wrapper" bet (orchestrating Claude Code) smart or risky?**
+   - Does delegating the agent loop to Anthropic reduce maintenance burden?
+   - Or does it create unacceptable dependency risk?
+
+3. **Is there room for a "Proactive First" assistant distinct from conversational bots?**
+   - Do users want scheduled, reliable task execution (Reeve's focus)?
+   - Or is real-time chat interaction (Moltbot's strength) sufficient?
+
+4. **Should Reeve pivot to become a Moltbot extension?**
+   - Would the Pulse Queue concepts be valuable as a TypeScript plugin?
+   - Or would the session hygiene benefits be lost in translation?
+
+### How to Provide Feedback
+
+- **GitHub Issues:** [reeve_bot/issues](https://github.com/reubenjohn/reeve_bot2/issues)
+- **Discussions:** [reeve_bot/discussions](https://github.com/reubenjohn/reeve_bot2/discussions)
+- **Twitter/X:** [@reubenjohn](https://twitter.com/reubenjohn)
+- **LinkedIn:** [Reuben John](https://www.linkedin.com/in/reubenjohn/)
+
+---
+
+## Relevant Resources
+
+- **Moltbot Project:** [github.com/clawdbot/clawdbot](https://github.com/clawdbot/clawdbot)
+- **Reeve Desk:** [github.com/reubenjohn/reeve-desk](https://github.com/reubenjohn/reeve-desk)
+- **Agentic IDE Research:** [github.com/reubenjohn/agentic-ide-power-user](https://github.com/reubenjohn/agentic-ide-power-user)
+- **Moltbot Setup Tutorial:** [YouTube - Your Own 24/7 AI Assistant](https://www.youtube.com/watch?v=VIDEO_ID)
+- **TechCrunch Coverage:** [Everything you need to know about Moltbot](https://techcrunch.com/2026/01/27/everything-you-need-to-know-about-viral-personal-ai-assistant-clawdbot-now-moltbot/)
+
+---
+
+## Conclusion: The Verdict is Out
+
+As of January 2026, the decision has **not been made**. Both architectures have merit. The agentic AI space is evolving rapidly, and premature convergence would limit experimentation.
+
+**Current Position:** Proceed with Reeve development while:
+1. Monitoring Moltbot's evolution and community feedback
+2. Explicitly acknowledging Moltbot in communications
+3. Seeking community input on the strategic direction
+4. Remaining open to pivoting if evidence suggests a clear path
+
+**The goal is not to "beat" Moltbot, but to explore whether the orchestrator + session hygiene approach solves real problems that integrated runtimes don't address.**
+
+If you have thoughts on this decision, please share them. The project is at a crossroads and values diverse perspectives.
