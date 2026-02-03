@@ -30,9 +30,9 @@ Reeve acts as a **Productivity Coach and Task Manager**, but one that is deeply 
 
 ### 4. Transparent Personalization: The "Glass Box" Principle
 
-* **No Hidden Agendas:** Most AIs are "Black Boxes"—you have no idea *why* they think you want a salad. Reeve is a **"Glass Box."** Its entire understanding of you is visible in plain text folders on the Desk. It hides nothing.
-* **The "Garden" You Can Tend (Or Ignore):** Just through all the conversation with Reeve, it proactively tends to this garden—organizing your **Goals**, tracking your **Responsibilities**, and refining your **Preferences** as it learns so you don't have to if you don't want to.
-* **The "Steering Wheel" Guarantee:** You can let Reeve run on autopilot forever. But if you ever want to change course—tweak a goal, rewrite a personality trait, or adjust its communication style—you don't need to argue with a chatbot. You just open the file and edit it. It offers the ease of a chauffeur, but you never lose the steering wheel.
+* **No Hidden State:** Most agents are "Black Boxes"—state lives in opaque vector DBs or ephemeral context windows. Reeve is a **"Glass Box."** Its entire mental state is visible in plain Markdown files on the Desk. If it's acting strange, you can literally *open its brain and read it*.
+* **Write Access to the Brain:** Agent stuck in a loop? Don't kill the process. Open the relevant file, delete the bad logic, save. Next wake-up reads the corrected state. You can edit goals, memories, even personality traits—no arguing with a chatbot required.
+* **The "Garden" You Can Tend (Or Ignore):** Through conversation, Reeve proactively tends to this garden—organizing your **Goals**, tracking your **Responsibilities**, refining your **Preferences**. Autopilot works. But you never lose the steering wheel.
 
 ---
 
@@ -47,6 +47,7 @@ Reeve acts as a **Productivity Coach and Task Manager**, but one that is deeply 
 | **Paradigm** | Custom runtime | Orchestrator wrapping specialized CLIs ([Claude Code](https://claude.com/claude-code), [Goose](https://github.com/square/goose)) |
 | **Session** | Continuous context | Isolated per wake-up ([research-backed](https://github.com/reubenjohn/agentic-ide-power-user#session-hygiene)) |
 | **Memory** | Markdown files, in-session read/write during continuous execution | Git-versioned [Desk](https://github.com/reubenjohn/reeve_desk_template) (Goals/, Diary/, Preferences/), read-at-start/write-at-end |
+| **Observability** | Hidden state (debug via logs) | [**Glass Box**](docs/OpenClaw_COMPARISON.md#safety-via-observability-the-glass-box): inspect & edit the agent's brain in real-time |
 | **Extensibility** | WebSocket Gateway + plugins | [MCP + HTTP API + Skills](docs/OpenClaw_COMPARISON.md#5-extensibility--integration), optional C.O.R.E. graph memory |
 | **Trade-offs** | Higher token costs (full context), context drift risk | Context loss risk (if not captured in Desk), process overhead |
 | **Best For** | Real-time OS integration, seamless continuity | Scheduled task isolation, cost efficiency, session hygiene |

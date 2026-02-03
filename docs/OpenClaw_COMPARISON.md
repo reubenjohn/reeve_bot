@@ -209,6 +209,28 @@ class SlackListener:
 
 ---
 
+## Safety via Observability: The "Glass Box"
+
+Most autonomous agents maintain state in opaque vector databases or ephemeral context windows. If the agent drifts or hallucinates, you have no way of knowing *why* until it executes a bad command.
+
+**Reeve externalizes its entire mental state** into readable Markdown files on your disk:
+
+| OpenClaw | Reeve |
+|----------|-------|
+| Hidden state (in-memory, WebSocket sessions) | Transparent state (`Goals.md`, `Diary/`, etc.) |
+| Debug by reading logs after the fact | Inspect the agent's "thoughts" in real-time |
+| Kill the process to stop bad behavior | Open a text file and delete the bad idea |
+
+### Why This Matters Now
+
+This isn't a firewall—it doesn't prevent sandbox escapes. But it solves the **"Black Box" problem**: you can monitor, audit, and *edit* the agent's reasoning mid-flight.
+
+**Hot-Swapping the Brain:** Agent stuck in a loop refactoring a nonexistent library? Don't kill the process. Open `Diary/current_task.md`, delete the bad logic, save. Next pulse reads the corrected state and proceeds safely.
+
+**Drift Detection:** By forcing the agent to reconcile actions against a static `Responsibilities.md` every cycle, Reeve acts as a self-correcting system—reducing the hallucination drift seen in ungrounded agents.
+
+---
+
 ## Research Foundation
 
 Reeve's architecture is informed by systematic research documented in [agentic-ide-power-user](https://github.com/reubenjohn/agentic-ide-power-user), which analyzes context engineering, grounding, and human-machine interaction patterns across major agentic IDEs (Claude Code, Cursor, GitHub Copilot).
