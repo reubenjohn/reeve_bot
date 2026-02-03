@@ -38,7 +38,7 @@ Reeve acts as a **Productivity Coach and Task Manager**, but one that is deeply 
 
 ## II. The Landscape: Reeve vs. OpenClaw (The "Why This?")
 
-**[OpenClaw](https://github.com/clawdbot/clawdbot)** (formerly Clawdbot, 30k+ stars) is an outstanding all-in-one runtime implementing the agent loop directly in TypeScript. It has a thriving plugin ecosystem and real-time interaction.
+**[OpenClaw](https://github.com/openclaw/openclaw)** 157k+ stars (formerly Clawdbot/Moltbot) is an outstanding all-in-one runtime implementing the agent loop directly in TypeScript. It has a thriving plugin ecosystem and real-time interaction.
 
 **Reeve exists** because I heard about OpenClaw a couple weeks late, but also represents a fundamentally different architectural bet:
 

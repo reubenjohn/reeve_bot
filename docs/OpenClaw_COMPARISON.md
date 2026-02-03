@@ -4,7 +4,7 @@
 
 ## Executive Summary
 
-[OpenClaw](https://github.com/clawdbot/clawdbot) (formerly Clawdbot) is a viral open-source project (30k+ GitHub stars) that has captured significant mindshare in the personal AI assistant space. This document provides a technical comparison between OpenClaw and Reeve, and explicitly frames the strategic question facing this project:
+[OpenClaw](https://github.com/openclaw/openclaw) is a viral open-source project (30k+ GitHub stars) that has captured significant mindshare in the personal AI assistant space. This document provides a technical comparison between OpenClaw and Reeve, and explicitly frames the strategic question facing this project:
 
 **Should Reeve be abandoned, merged with OpenClaw, compete directly, or coexist as a complementary approach?**
 
@@ -391,11 +391,11 @@ This is an open question. Before investing further, the project seeks input:
 
 ## Relevant Resources
 
-- **OpenClaw Project:** [github.com/clawdbot/clawdbot](https://github.com/clawdbot/clawdbot)
+- **OpenClaw Project:** [github.com/openclaw/openclaw](https://github.com/openclaw/openclaw)
 - **Reeve Desk:** [github.com/reubenjohn/reeve-desk](https://github.com/reubenjohn/reeve-desk)
 - **Agentic IDE Research:** [github.com/reubenjohn/agentic-ide-power-user](https://github.com/reubenjohn/agentic-ide-power-user)
 - **OpenClaw Setup Tutorial:** [YouTube - Your Own 24/7 AI Assistant](https://www.youtube.com/watch?v=VIDEO_ID)
-- **TechCrunch Coverage:** [Everything you need to know about OpenClaw](https://techcrunch.com/2026/01/27/everything-you-need-to-know-about-viral-personal-ai-assistant-clawdbot-now-OpenClaw/)
+- **TechCrunch Coverage:** [Everything you need to know about OpenClaw](https://techcrunch.com/2026/01/27/everything-you-need-to-know-about-viral-personal-ai-assistant-openclaw-now-OpenClaw/)
 
 ---
 
