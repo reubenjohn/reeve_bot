@@ -229,6 +229,18 @@ This isn't a firewall—it doesn't prevent sandbox escapes. But it solves the **
 
 **Drift Detection:** By forcing the agent to reconcile actions against a static `Responsibilities.md` every cycle, Reeve acts as a self-correcting system—reducing the hallucination drift seen in ungrounded agents.
 
+**Doom Loop Prevention:** Continuous-context agents can get stuck in "doom loops"—repeating the same bad error because the failed attempt pollutes the context. Reeve's session isolation means each wake-up starts clean. A bad pulse dies; the next pulse doesn't inherit its mistakes.
+
+### Git as "Undo Button"
+
+The Desk isn't just Markdown files—it's a **Git repository**. This provides transaction rollback for agentic mistakes:
+
+- Agent deletes something important? `git checkout` to restore it.
+- Agent rewrites your Goals incorrectly? `git diff` shows exactly what changed, `git revert` to undo.
+- Want to audit what the agent did last week? Full history available.
+
+In the current era of agentic security concerns, this "Undo Button" is a safety net that pure filesystem approaches lack.
+
 ---
 
 ## Research Foundation

@@ -48,6 +48,7 @@ Reeve acts as a **Productivity Coach and Task Manager**, but one that is deeply 
 | **Session** | Continuous context | Isolated per wake-up ([research-backed](https://github.com/reubenjohn/agentic-ide-power-user#session-hygiene)) |
 | **Memory** | Markdown files, in-session read/write during continuous execution | Git-versioned [Desk](https://github.com/reubenjohn/reeve_desk_template) (Goals/, Diary/, Preferences/), read-at-start/write-at-end |
 | **Observability** | Hidden state (debug via logs) | [**Glass Box**](docs/OpenClaw_COMPARISON.md#safety-via-observability-the-glass-box): inspect & edit the agent's brain in real-time |
+| **Rollback** | Filesystem writes (no undo) | Git-versioned Desk = "Undo Button" for agentic mistakes |
 | **Extensibility** | WebSocket Gateway + plugins | [MCP + HTTP API + Skills](docs/OpenClaw_COMPARISON.md#5-extensibility--integration), optional C.O.R.E. graph memory |
 | **Trade-offs** | Higher token costs (full context), context drift risk | Context loss risk (if not captured in Desk), process overhead |
 | **Best For** | Real-time OS integration, seamless continuity | Scheduled task isolation, cost efficiency, session hygiene |
