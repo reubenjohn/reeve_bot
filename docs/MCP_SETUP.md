@@ -5,7 +5,7 @@ This guide explains how to configure the Reeve MCP servers for use with Claude C
 ## Prerequisites
 
 1. **Claude Code CLI installed** and configured
-2. **Reeve Bot project** set up at `/home/reuben/workspace/reeve_bot`
+2. **Reeve Bot project** set up at `/home/reuben/workspace/reeve-bot`
 3. **Database initialized** (run `uv run alembic upgrade head`)
 4. **Environment variables** configured (see `.env.example`)
 
@@ -25,7 +25,7 @@ cp mcp_config.json.example ~/.config/claude-code/mcp_config.json
 
 Edit `~/.config/claude-code/mcp_config.json` and update the following:
 
-1. **Project path**: Replace `/home/reuben/workspace/reeve_bot` with your actual project path
+1. **Project path**: Replace `/home/reuben/workspace/reeve-bot` with your actual project path
 2. **Database path**: Replace `/home/reuben/.reeve/pulse_queue.db` with your database path
 3. **Telegram credentials**: Replace `your_bot_token_here` and `your_chat_id_here` with actual values
 
@@ -39,7 +39,7 @@ Edit `~/.config/claude-code/mcp_config.json` and update the following:
       "args": [
         "run",
         "--directory",
-        "/home/your_username/workspace/reeve_bot",
+        "/home/your_username/workspace/reeve-bot",
         "python",
         "-m",
         "reeve.mcp.pulse_server"
@@ -53,7 +53,7 @@ Edit `~/.config/claude-code/mcp_config.json` and update the following:
       "args": [
         "run",
         "--directory",
-        "/home/your_username/workspace/reeve_bot",
+        "/home/your_username/workspace/reeve-bot",
         "python",
         "-m",
         "reeve.mcp.notification_server"
@@ -129,7 +129,7 @@ You should see logs indicating the MCP servers are starting.
 
 ### Permission Denied
 
-**Error**: `Permission denied: /home/reuben/workspace/reeve_bot`
+**Error**: `Permission denied: /home/reuben/workspace/reeve-bot`
 
 **Solution**: Update the `--directory` path in the MCP config to your actual project path
 
@@ -146,7 +146,7 @@ You should see logs indicating the MCP servers are starting.
 **Solution**: Run Alembic migrations:
 
 ```bash
-cd /home/reuben/workspace/reeve_bot
+cd /home/reuben/workspace/reeve-bot
 uv run alembic upgrade head
 ```
 
@@ -163,7 +163,7 @@ You can test the MCP servers manually using stdio:
 ### Test Pulse Queue Server
 
 ```bash
-cd /home/reuben/workspace/reeve_bot
+cd /home/reuben/workspace/reeve-bot
 uv run python -m reeve.mcp.pulse_server
 ```
 
@@ -174,7 +174,7 @@ The server will start and wait for JSON-RPC input on stdin.
 ```bash
 export TELEGRAM_BOT_TOKEN="your_token"
 export TELEGRAM_CHAT_ID="your_chat_id"
-cd /home/reuben/workspace/reeve_bot
+cd /home/reuben/workspace/reeve-bot
 uv run python -m reeve.mcp.notification_server
 ```
 

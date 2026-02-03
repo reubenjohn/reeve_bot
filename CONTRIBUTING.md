@@ -45,8 +45,8 @@ Before contributing, familiarize yourself with:
 ### 1. Clone and Install
 
 ```bash
-git clone https://github.com/yourusername/reeve_bot.git
-cd reeve_bot
+git clone https://github.com/yourusername/reeve-bot.git
+cd reeve-bot
 uv sync
 ```
 

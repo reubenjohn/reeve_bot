@@ -5,7 +5,7 @@
       "args": [
         "run",
         "--directory",
-        "/home/reuben/workspace/reeve_bot",
+        "/home/reuben/workspace/reeve-bot",
         "python",
         "-m",
         "reeve.mcp.pulse_server"
@@ -19,7 +19,7 @@
       "args": [
         "run",
         "--directory",
-        "/home/reuben/workspace/reeve_bot",
+        "/home/reuben/workspace/reeve-bot",
         "python",
         "-m",
         "reeve.mcp.notification_server"

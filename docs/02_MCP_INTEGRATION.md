@@ -28,7 +28,7 @@ Usage:
       "mcpServers": {
         "pulse-queue": {
           "command": "uv",
-          "args": ["run", "--directory", "/path/to/reeve_bot", "python", "-m", "reeve.mcp.pulse_server"]
+          "args": ["run", "--directory", "/path/to/reeve-bot", "python", "-m", "reeve.mcp.pulse_server"]
         }
       }
     }
@@ -490,7 +490,7 @@ Usage:
       "mcpServers": {
         "telegram-notifier": {
           "command": "uv",
-          "args": ["run", "--directory", "/path/to/reeve_bot", "python", "-m", "reeve.mcp.notification_server"],
+          "args": ["run", "--directory", "/path/to/reeve-bot", "python", "-m", "reeve.mcp.notification_server"],
           "env": {
             "TELEGRAM_BOT_TOKEN": "your_bot_token",
             "TELEGRAM_CHAT_ID": "your_chat_id",
@@ -685,7 +685,7 @@ Add to `~/.config/claude-code/mcp_config.json`:
       "args": [
         "run",
         "--directory",
-        "/home/reuben/workspace/reeve_bot",
+        "/home/reuben/workspace/reeve-bot",
         "python",
         "-m",
         "reeve.mcp.pulse_server"
@@ -699,7 +699,7 @@ Add to `~/.config/claude-code/mcp_config.json`:
       "args": [
         "run",
         "--directory",
-        "/home/reuben/workspace/reeve_bot",
+        "/home/reuben/workspace/reeve-bot",
         "python",
         "-m",
         "reeve.mcp.notification_server"

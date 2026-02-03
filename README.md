@@ -183,7 +183,7 @@ The MVP transforms the current reactive prototype into a functional "Proactive C
 
 To ensure transparency and modularity, the system is split into two distinct repositories:
 
-* **A. The Engine: `reeve_bot/`**
+* **A. The Engine: `reeve-bot/`**
     * **Role:** The immutable logic code.
     * **Contents:**
     * Implementation of the **Pulse Queue** (Cron jobs & SQLite/File-based queue).
@@ -200,7 +200,7 @@ To ensure transparency and modularity, the system is split into two distinct rep
 
 #### 2. The Pulse System (MVP)
 
-Since Hapi/Claude Code are reactive, `reeve_bot` introduces an external "Heartbeat" mechanism.
+Since Hapi/Claude Code are reactive, `reeve-bot` introduces an external "Heartbeat" mechanism.
 
 * **The Queue:** A unified **Pulse Queue** managing triggers. Each Pulse consists of:
     * `datetime`: When to wake up.
@@ -280,5 +280,5 @@ Whether you're fixing bugs, adding features, or improving documentation, we appr
 
 ### Strategic Direction Feedback
 
-Before diving into code contributions, consider reading **[docs/OpenClaw_COMPARISON.md](docs/OpenClaw_COMPARISON.md)** for context on Reeve's architectural philosophy and the open strategic questions facing the project. Community feedback on the "orchestrator vs. runtime" trade-offs is especially valuable and can be shared in [GitHub Discussions](https://github.com/reubenjohn/reeve_bot2/discussions).
+Before diving into code contributions, consider reading **[docs/OpenClaw_COMPARISON.md](docs/OpenClaw_COMPARISON.md)** for context on Reeve's architectural philosophy and the open strategic questions facing the project. Community feedback on the "orchestrator vs. runtime" trade-offs is especially valuable and can be shared in [GitHub Discussions](https://github.com/reubenjohn/reeve-bot/discussions).
 

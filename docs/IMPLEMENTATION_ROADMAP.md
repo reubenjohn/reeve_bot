@@ -1191,7 +1191,7 @@ The Pulse Queue system is complete when:
 
 ```bash
 # Start development session
-cd ~/workspace/reeve_bot
+cd ~/workspace/reeve-bot
 uv sync
 
 # Run tests

@@ -416,8 +416,8 @@ This is an open question. Before investing further, the project seeks input:
 
 ### How to Provide Feedback
 
-- **GitHub Issues:** [reeve_bot/issues](https://github.com/reubenjohn/reeve_bot2/issues)
-- **Discussions:** [reeve_bot/discussions](https://github.com/reubenjohn/reeve_bot2/discussions)
+- **GitHub Issues:** [reeve-bot/issues](https://github.com/reubenjohn/reeve-bot/issues)
+- **Discussions:** [reeve-bot/discussions](https://github.com/reubenjohn/reeve-bot/discussions)
 - **Twitter/X:** [@reubenjohn](https://twitter.com/reubenjohn)
 - **LinkedIn:** [Reuben John](https://www.linkedin.com/in/reubenjohn/)
 

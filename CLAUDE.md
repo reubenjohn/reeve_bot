@@ -4,7 +4,7 @@
 
 **Project Reeve** is building a proactive AI assistant that operates on a **"Push" paradigm** rather than waiting passively for prompts. Reeve functions as a high-fidelity proxy between the user and the world—filtering noise (email, group chats), coordinating logistics, and anticipating needs based on time and context. It acts as a **Gatekeeper** (protecting attention), **Proxy** (handling communication), and **Coach** (adapting to the user's energy and priorities).
 
-The system uses a **Dual-Repo Architecture**: the **Engine** (`reeve_bot/`) contains immutable logic, while the **Desk** (`my_reeve/`) contains the user's personal context (Goals, Responsibilities, Preferences). Reeve "wakes up" on a **Pulse**—either periodically (hourly heartbeat) or aperiodically (self-scheduled alarms). When a pulse fires, it launches a Hapi/Claude Code session with access to the Desk, allowing it to reason about the user's life and take action. External events (Telegram messages, emails, calendar changes) can also trigger pulses via an HTTP API.
+The system uses a **Dual-Repo Architecture**: the **Engine** (`reeve-bot/`) contains immutable logic, while the **Desk** (`my_reeve/`) contains the user's personal context (Goals, Responsibilities, Preferences). Reeve "wakes up" on a **Pulse**—either periodically (hourly heartbeat) or aperiodically (self-scheduled alarms). When a pulse fires, it launches a Hapi/Claude Code session with access to the Desk, allowing it to reason about the user's life and take action. External events (Telegram messages, emails, calendar changes) can also trigger pulses via an HTTP API.
 
 The **Pulse Queue** (what we're building now) is the foundational scheduling mechanism enabling this proactivity. It manages when and why Reeve should wake up, handles retries on failure, and provides priority-based execution. Once complete, the system will include MCP servers (for Reeve to manage its own schedule), a daemon (running the pulse loop), integrations (Telegram, Email, Calendar), and an HTTP API (for external triggers). See [README.md](README.md) for the full philosophy and use cases.
 
@@ -12,7 +12,7 @@ The **Pulse Queue** (what we're building now) is the foundational scheduling mec
 
 ## Project Overview
 
-**Reeve Bot** (`reeve_bot/`) is the Engine component of Project Reeve. This repository contains the **Pulse Queue System**, which enables Reeve to schedule its own wake-ups and respond to external events.
+**Reeve Bot** (`reeve-bot/`) is the Engine component of Project Reeve. This repository contains the **Pulse Queue System**, which enables Reeve to schedule its own wake-ups and respond to external events.
 
 ### Key Concept: The Pulse Queue
 

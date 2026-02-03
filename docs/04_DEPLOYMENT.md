@@ -18,8 +18,8 @@ This guide covers production deployment of the Pulse Daemon, including systemd s
 ```bash
 # Clone repository
 cd ~
-git clone https://github.com/yourusername/reeve_bot.git
-cd reeve_bot
+git clone https://github.com/yourusername/reeve-bot.git
+cd reeve-bot
 
 # Install dependencies
 uv sync
@@ -118,13 +118,13 @@ Wants=network-online.target
 Type=simple
 User=reuben
 Group=reuben
-WorkingDirectory=/home/reuben/workspace/reeve_bot
+WorkingDirectory=/home/reuben/workspace/reeve-bot
 
 # Use uv to run the daemon
 ExecStart=/home/reuben/.local/bin/uv run python -m reeve.pulse
 
 # Environment
-EnvironmentFile=/home/reuben/workspace/reeve_bot/.env
+EnvironmentFile=/home/reuben/workspace/reeve-bot/.env
 
 # Restart policy
 Restart=always
@@ -210,13 +210,13 @@ Requires=reeve-daemon.service
 Type=simple
 User=reuben
 Group=reuben
-WorkingDirectory=/home/reuben/workspace/reeve_bot
+WorkingDirectory=/home/reuben/workspace/reeve-bot
 
 # Run Telegram listener
 ExecStart=/home/reuben/.local/bin/uv run python -m reeve.integrations.telegram
 
 # Environment
-EnvironmentFile=/home/reuben/workspace/reeve_bot/.env
+EnvironmentFile=/home/reuben/workspace/reeve-bot/.env
 
 # Restart policy
 Restart=always
@@ -401,7 +401,7 @@ sudo systemctl stop reeve-daemon
 /usr/local/bin/reeve-backup
 
 # Run migrations
-cd ~/workspace/reeve_bot
+cd ~/workspace/reeve-bot
 uv run alembic upgrade head
 
 # Start daemon
@@ -458,7 +458,7 @@ sudo journalctl -u reeve-daemon -xe
    ```
    - Solution: Reinstall dependencies
    ```bash
-   cd ~/workspace/reeve_bot
+   cd ~/workspace/reeve-bot
    uv sync
    ```
 
@@ -602,7 +602,7 @@ sudo systemctl stop reeve-telegram reeve-daemon
 /usr/local/bin/reeve-backup
 
 # 3. Pull latest code
-cd ~/workspace/reeve_bot
+cd ~/workspace/reeve-bot
 git pull origin main
 
 # 4. Update dependencies
@@ -628,7 +628,7 @@ If upgrade fails:
 sudo systemctl stop reeve-telegram reeve-daemon
 
 # 2. Revert code
-cd ~/workspace/reeve_bot
+cd ~/workspace/reeve-bot
 git checkout <previous-commit>
 
 # 3. Restore database

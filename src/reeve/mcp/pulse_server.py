@@ -11,7 +11,7 @@ Usage:
       "mcpServers": {
         "pulse-queue": {
           "command": "uv",
-          "args": ["run", "--directory", "/path/to/reeve_bot", "python", "-m", "reeve.mcp.pulse_server"]
+          "args": ["run", "--directory", "/path/to/reeve-bot", "python", "-m", "reeve.mcp.pulse_server"]
         }
       }
     }

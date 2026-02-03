@@ -2,12 +2,12 @@
 
 ## Overview
 
-The `reeve_bot` repository contains the **Engine** component of Project Reeve - the immutable logic and infrastructure that powers the proactive "Chief of Staff" system. This is separate from the user's personal context (the "Desk"), which lives in a separate `my_reeve/` repository.
+The `reeve-bot` repository contains the **Engine** component of Project Reeve - the immutable logic and infrastructure that powers the proactive "Chief of Staff" system. This is separate from the user's personal context (the "Desk"), which lives in a separate `my_reeve/` repository.
 
 ## Directory Structure
 
 ```
-reeve_bot/
+reeve-bot/
 ├── docs/                           # Architecture and implementation documentation
 │   ├── 00_PROJECT_STRUCTURE.md    # This file
 │   ├── 01_PULSE_QUEUE_DESIGN.md   # Pulse queue architecture
@@ -157,11 +157,11 @@ reeve_bot/
   "mcpServers": {
     "pulse-queue": {
       "command": "uv",
-      "args": ["run", "--directory", "/path/to/reeve_bot", "python", "-m", "reeve.mcp.pulse_server"]
+      "args": ["run", "--directory", "/path/to/reeve-bot", "python", "-m", "reeve.mcp.pulse_server"]
     },
     "telegram-notifier": {
       "command": "uv",
-      "args": ["run", "--directory", "/path/to/reeve_bot", "python", "-m", "reeve.mcp.notification_server"]
+      "args": ["run", "--directory", "/path/to/reeve-bot", "python", "-m", "reeve.mcp.notification_server"]
     }
   }
 }
@@ -281,7 +281,7 @@ src/reeve/integrations/
 ### 1. Initial Setup
 
 ```bash
-cd /path/to/reeve_bot
+cd /path/to/reeve-bot
 uv sync  # Install dependencies
 cp .env.example .env  # Configure environment
 uv run alembic upgrade head  # Initialize database
