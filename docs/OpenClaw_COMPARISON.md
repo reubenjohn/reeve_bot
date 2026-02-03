@@ -164,9 +164,11 @@ The session model choice has direct implications on operational costs and user e
 - Full control over agent behavior
 
 **Reeve's Approach:** "Let the billion-dollar companies fight over agent loop optimization. We'll orchestrate."
-- Delegates complex reasoning to Claude Code (Anthropic's official CLI)
-- Assumes Anthropic will keep claude-code competitive
-- Risk: If claude-code is deprecated, Reeve needs a new engine (but could swap to Copilot, Goose, etc.)
+- Delegates complex reasoning to an agentic IDE (Claude Code, Goose, Cursor, etc.)
+- Assumes the underlying CLI will remain competitive and accessible
+- Risk: If the chosen CLI is deprecated or restricted, Reeve needs a new engine
+
+> **⚠️ Terms of Service Note:** Programmatically invoking Claude Code or VS Code's agentic features may raise ToS concerns. Reeve is engine-agnostic—open-source alternatives like [**Goose**](https://github.com/block/goose) (Apache 2.0, by Block) or **Aider** work as drop-in replacements with no restrictions. Just set `HAPI_COMMAND=goose` to swap engines.
 
 ### 5. Extensibility & Integration
 
