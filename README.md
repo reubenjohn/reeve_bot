@@ -36,24 +36,24 @@ Reeve acts as a **Productivity Coach and Task Manager**, but one that is deeply 
 
 ---
 
-## II. The Landscape: Reeve vs. Moltbot (The "Why This?")
+## II. The Landscape: Reeve vs. OpenClaw (The "Why This?")
 
-**[Moltbot](https://github.com/clawdbot/clawdbot)** (formerly Clawdbot, 30k+ stars) is an outstanding all-in-one runtime implementing the agent loop directly in TypeScript. It has a thriving plugin ecosystem and real-time interaction.
+**[OpenClaw](https://github.com/clawdbot/clawdbot)** (formerly Clawdbot, 30k+ stars) is an outstanding all-in-one runtime implementing the agent loop directly in TypeScript. It has a thriving plugin ecosystem and real-time interaction.
 
-**Reeve exists** because I heard about Moltbot a couple weeks late, but also represents a fundamentally different architectural bet:
+**Reeve exists** because I heard about OpenClaw a couple weeks late, but also represents a fundamentally different architectural bet:
 
-| | Moltbot | Reeve |
+| | OpenClaw | Reeve |
 |---|---------|-------|
 | **Paradigm** | Custom runtime | Orchestrator wrapping specialized CLIs ([Claude Code](https://claude.com/claude-code), [Goose](https://github.com/square/goose)) |
 | **Session** | Continuous context | Isolated per wake-up ([research-backed](https://github.com/reubenjohn/agentic-ide-power-user#session-hygiene)) |
 | **Memory** | Markdown files, in-session read/write during continuous execution | Git-versioned [Desk](https://github.com/reubenjohn/reeve_desk_template) (Goals/, Diary/, Preferences/), read-at-start/write-at-end |
-| **Extensibility** | WebSocket Gateway + plugins | [MCP + HTTP API + Skills](docs/MOLTBOT_COMPARISON.md#5-extensibility--integration), optional C.O.R.E. graph memory |
+| **Extensibility** | WebSocket Gateway + plugins | [MCP + HTTP API + Skills](docs/OpenClaw_COMPARISON.md#5-extensibility--integration), optional C.O.R.E. graph memory |
 | **Trade-offs** | Higher token costs (full context), context drift risk | Context loss risk (if not captured in Desk), process overhead |
 | **Best For** | Real-time OS integration, seamless continuity | Scheduled task isolation, cost efficiency, session hygiene |
 
 **Reeve's Core Bet:** Let billion-dollar companies compete on agent loops. Focus on orchestration, proactive scheduling, and [context hygiene](https://github.com/reubenjohn/agentic-ide-power-user#context-rot).
 
-**The Strategic Question:** Should Reeve be abandoned, merged, compete, or coexist? See **[docs/MOLTBOT_COMPARISON.md](docs/MOLTBOT_COMPARISON.md)** for detailed analysis and open invitation for feedback.
+**The Strategic Question:** Should Reeve be abandoned, merged, compete, or coexist? See **[docs/OpenClaw_COMPARISON.md](docs/OpenClaw_COMPARISON.md)** for detailed analysis and open invitation for feedback.
 
 ---
 
@@ -278,5 +278,5 @@ Whether you're fixing bugs, adding features, or improving documentation, we appr
 
 ### Strategic Direction Feedback
 
-Before diving into code contributions, consider reading **[docs/MOLTBOT_COMPARISON.md](docs/MOLTBOT_COMPARISON.md)** for context on Reeve's architectural philosophy and the open strategic questions facing the project. Community feedback on the "orchestrator vs. runtime" trade-offs is especially valuable and can be shared in [GitHub Discussions](https://github.com/reubenjohn/reeve_bot2/discussions).
+Before diving into code contributions, consider reading **[docs/OpenClaw_COMPARISON.md](docs/OpenClaw_COMPARISON.md)** for context on Reeve's architectural philosophy and the open strategic questions facing the project. Community feedback on the "orchestrator vs. runtime" trade-offs is especially valuable and can be shared in [GitHub Discussions](https://github.com/reubenjohn/reeve_bot2/discussions).
 

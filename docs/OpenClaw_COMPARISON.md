@@ -1,12 +1,12 @@
-# Reeve vs. Moltbot: Architectural Comparison & Strategic Decision
+# Reeve vs. OpenClaw: Architectural Comparison & Strategic Decision
 
 **Status:** Open Question | **Last Updated:** 2026-01-29
 
 ## Executive Summary
 
-[Moltbot](https://github.com/clawdbot/clawdbot) (formerly Clawdbot) is a viral open-source project (30k+ GitHub stars) that has captured significant mindshare in the personal AI assistant space. This document provides a technical comparison between Moltbot and Reeve, and explicitly frames the strategic question facing this project:
+[OpenClaw](https://github.com/clawdbot/clawdbot) (formerly Clawdbot) is a viral open-source project (30k+ GitHub stars) that has captured significant mindshare in the personal AI assistant space. This document provides a technical comparison between OpenClaw and Reeve, and explicitly frames the strategic question facing this project:
 
-**Should Reeve be abandoned, merged with Moltbot, compete directly, or coexist as a complementary approach?**
+**Should Reeve be abandoned, merged with OpenClaw, compete directly, or coexist as a complementary approach?**
 
 The verdict is not yet decided. This document presents the architectural trade-offs to invite community feedback.
 
@@ -14,11 +14,11 @@ The verdict is not yet decided. This document presents the architectural trade-o
 
 ## The Fundamental Difference: Runtime vs. Orchestrator
 
-### Moltbot: The All-in-One Runtime
+### OpenClaw: The All-in-One Runtime
 
-**Architecture:** Moltbot is a **custom agent runtime** built in TypeScript/Node.js. It directly implements the agent loop—the core "Thought → Tool → Observation" cycle that powers agentic AI.
+**Architecture:** OpenClaw is a **custom agent runtime** built in TypeScript/Node.js. It directly implements the agent loop—the core "Thought → Tool → Observation" cycle that powers agentic AI.
 
-**Philosophy:** Integration over modularity. Moltbot is a complete system where the agent loop, memory management, tool execution, and communication protocols are tightly coupled in a single codebase.
+**Philosophy:** Integration over modularity. OpenClaw is a complete system where the agent loop, memory management, tool execution, and communication protocols are tightly coupled in a single codebase.
 
 **Key Components:**
 - Custom WebSocket "Gateway" serving as the central nervous system
@@ -74,7 +74,7 @@ The verdict is not yet decided. This document presents the architectural trade-o
 
 ### 1. The "Gateway" vs. The "Pulse Queue"
 
-#### Moltbot's Gateway
+#### OpenClaw's Gateway
 A local WebSocket server (port 18789) that serves as the event hub:
 - Different adapters (Telegram, Discord, CLI) connect as WebSocket clients
 - Agent awakened by scheduled heartbeats (~30min default) and cron jobs
@@ -98,7 +98,7 @@ A SQLite-backed scheduler with priority-based execution:
 
 **Both use Markdown files for storage—the difference is session integration:**
 
-#### Moltbot
+#### OpenClaw
 - Filesystem-based (Markdown/JSON) with custom retrieval logic
 - Agent maintains **continuous context**, reading/writing files during long-running session
 - Pre-compaction flush: Summarizes before context window fills
@@ -126,7 +126,7 @@ A SQLite-backed scheduler with priority-based execution:
 
 The session model choice has direct implications on operational costs and user experience:
 
-#### Moltbot's Continuous Context Approach
+#### OpenClaw's Continuous Context Approach
 **Advantages:**
 - **No repetition needed**: Context accumulates naturally within session
 - **Low latency**: No process spawning overhead per interaction
@@ -153,12 +153,12 @@ The session model choice has direct implications on operational costs and user e
 **Example:** Morning briefing pulse reads Goals.md + today's Responsibilities.md (~3k tokens). If user mentioned preference yesterday but it wasn't written to Preferences.md, they'll need to repeat it.
 
 **The Fundamental Trade-Off:**
-- **Moltbot**: Pays in tokens/compaction for seamless continuity
+- **OpenClaw**: Pays in tokens/compaction for seamless continuity
 - **Reeve**: Pays in latency/discipline for cost efficiency and session hygiene
 
 ### 4. The "Wrapper" Bet
 
-**Moltbot's Approach:** "We are the runtime. We'll stay competitive with LLM providers."
+**OpenClaw's Approach:** "We are the runtime. We'll stay competitive with LLM providers."
 - Requires ongoing maintenance as APIs evolve
 - Community-driven improvements to tool execution
 - Full control over agent behavior
@@ -170,7 +170,7 @@ The session model choice has direct implications on operational costs and user e
 
 ### 5. Extensibility & Integration
 
-#### Moltbot
+#### OpenClaw
 - **WebSocket Gateway architecture:** Plugins connect to central hub
 - **Plugin ecosystem:** ~30k GitHub stars, active community
 - **Integration model:** Tight coupling with runtime, real-time streaming
@@ -234,7 +234,7 @@ See [research summary](https://github.com/reubenjohn/agentic-ide-power-user) for
 
 ## Code-Based Validation
 
-All claims in this document have been validated against the actual Moltbot codebase (commit: `4583f8862`, 2026-01-29):
+All claims in this document have been validated against the actual OpenClaw codebase (commit: `4583f8862`, 2026-01-29):
 
 ### ✅ Validated Claims
 
@@ -280,7 +280,7 @@ All claims in this document have been validated against the actual Moltbot codeb
 ## The Strategic Question: Abandon, Merge, Compete, or Coexist?
 
 ### Option A: Abandon Reeve
-**Rationale:** Moltbot has momentum, community, and plugins. Why reinvent the wheel?
+**Rationale:** OpenClaw has momentum, community, and plugins. Why reinvent the wheel?
 
 **Counter-argument:**
 - Reeve's session hygiene approach addresses a real problem (context drift)
@@ -291,8 +291,8 @@ All claims in this document have been validated against the actual Moltbot codeb
 
 ---
 
-### Option B: Merge/Contribute to Moltbot
-**Rationale:** Join forces. Rewrite Pulse Queue as a Moltbot extension in TypeScript.
+### Option B: Merge/Contribute to OpenClaw
+**Rationale:** Join forces. Rewrite Pulse Queue as a OpenClaw extension in TypeScript.
 
 **Feasibility:** Low
 - Tech stack incompatibility (Python vs. TypeScript)
@@ -300,7 +300,7 @@ All claims in this document have been validated against the actual Moltbot codeb
 - Would lose session isolation benefits
 
 **What could be contributed:**
-- Pulse Queue scheduling concepts as a Moltbot skill
+- Pulse Queue scheduling concepts as a OpenClaw skill
 - Desk pattern ideas for memory organization
 - Session hygiene best practices
 
@@ -309,25 +309,25 @@ All claims in this document have been validated against the actual Moltbot codeb
 ---
 
 ### Option C: Compete Head-to-Head
-**Rationale:** Build a rival ecosystem. Aim for Moltbot's breadth of plugins.
+**Rationale:** Build a rival ecosystem. Aim for OpenClaw's breadth of plugins.
 
 **Feasibility:** Medium-Low
-- Moltbot's 30k stars and active community are a massive advantage
+- OpenClaw's 30k stars and active community are a massive advantage
 - Competing on "number of integrations" is a resource war
 
 **Winning Strategy (if competing):**
 - Don't compete on breadth (number of tools)
 - Compete on depth (reliability, session hygiene, proactive intelligence)
-- Position as "Jarvis" (task executive) vs. Moltbot's "Her" (conversational OS)
+- Position as "Jarvis" (task executive) vs. OpenClaw's "Her" (conversational OS)
 
 **Verdict:** Only viable if focusing on differentiated niche (proactivity, enterprise reliability).
 
 ---
 
 ### Option D: Coexist as Complementary Systems
-**Rationale:** Reeve and Moltbot target different use cases and users.
+**Rationale:** Reeve and OpenClaw target different use cases and users.
 
-| Dimension | Moltbot | Reeve |
+| Dimension | OpenClaw | Reeve |
 |-----------|---------|-------|
 | **Use Case** | Conversational buddy, general assistant | Proactive task executive, "Chief of Staff" |
 | **Architecture** | Monolithic runtime | Modular orchestrator |
@@ -337,7 +337,7 @@ All claims in this document have been validated against the actual Moltbot codeb
 
 **Coexistence Scenarios:**
 1. **Independent Evolution:** Different tools for different needs
-2. **Potential Integration:** Reeve's Pulse Queue could *trigger* Moltbot sessions via API
+2. **Potential Integration:** Reeve's Pulse Queue could *trigger* OpenClaw sessions via API
 3. **Cross-pollination:** Share design patterns and learnings
 
 **Verdict:** This is the strongest path forward. Distinct architectural philosophies can both thrive.
@@ -363,7 +363,7 @@ This is an open question. Before investing further, the project seeks input:
 ### Questions for the Community
 
 1. **Is session isolation (Reeve's approach) worth the orchestration overhead?**
-   - Does context drift in long-running sessions (Moltbot's model) cause real problems?
+   - Does context drift in long-running sessions (OpenClaw's model) cause real problems?
    - Or is continuous context actually better for learning user preferences?
 
 2. **Is the "wrapper" bet (orchestrating Claude Code) smart or risky?**
@@ -372,9 +372,9 @@ This is an open question. Before investing further, the project seeks input:
 
 3. **Is there room for a "Proactive First" assistant distinct from conversational bots?**
    - Do users want scheduled, reliable task execution (Reeve's focus)?
-   - Or is real-time chat interaction (Moltbot's strength) sufficient?
+   - Or is real-time chat interaction (OpenClaw's strength) sufficient?
 
-4. **Should Reeve pivot to become a Moltbot extension?**
+4. **Should Reeve pivot to become a OpenClaw extension?**
    - Would the Pulse Queue concepts be valuable as a TypeScript plugin?
    - Or would the session hygiene benefits be lost in translation?
 
@@ -389,11 +389,11 @@ This is an open question. Before investing further, the project seeks input:
 
 ## Relevant Resources
 
-- **Moltbot Project:** [github.com/clawdbot/clawdbot](https://github.com/clawdbot/clawdbot)
+- **OpenClaw Project:** [github.com/clawdbot/clawdbot](https://github.com/clawdbot/clawdbot)
 - **Reeve Desk:** [github.com/reubenjohn/reeve-desk](https://github.com/reubenjohn/reeve-desk)
 - **Agentic IDE Research:** [github.com/reubenjohn/agentic-ide-power-user](https://github.com/reubenjohn/agentic-ide-power-user)
-- **Moltbot Setup Tutorial:** [YouTube - Your Own 24/7 AI Assistant](https://www.youtube.com/watch?v=VIDEO_ID)
-- **TechCrunch Coverage:** [Everything you need to know about Moltbot](https://techcrunch.com/2026/01/27/everything-you-need-to-know-about-viral-personal-ai-assistant-clawdbot-now-moltbot/)
+- **OpenClaw Setup Tutorial:** [YouTube - Your Own 24/7 AI Assistant](https://www.youtube.com/watch?v=VIDEO_ID)
+- **TechCrunch Coverage:** [Everything you need to know about OpenClaw](https://techcrunch.com/2026/01/27/everything-you-need-to-know-about-viral-personal-ai-assistant-clawdbot-now-OpenClaw/)
 
 ---
 
@@ -402,11 +402,11 @@ This is an open question. Before investing further, the project seeks input:
 As of January 2026, the decision has **not been made**. Both architectures have merit. The agentic AI space is evolving rapidly, and premature convergence would limit experimentation.
 
 **Current Position:** Proceed with Reeve development while:
-1. Monitoring Moltbot's evolution and community feedback
-2. Explicitly acknowledging Moltbot in communications
+1. Monitoring OpenClaw's evolution and community feedback
+2. Explicitly acknowledging OpenClaw in communications
 3. Seeking community input on the strategic direction
 4. Remaining open to pivoting if evidence suggests a clear path
 
-**The goal is not to "beat" Moltbot, but to explore whether the orchestrator + session hygiene approach solves real problems that integrated runtimes don't address.**
+**The goal is not to "beat" OpenClaw, but to explore whether the orchestrator + session hygiene approach solves real problems that integrated runtimes don't address.**
 
 If you have thoughts on this decision, please share them. The project is at a crossroads and values diverse perspectives.
