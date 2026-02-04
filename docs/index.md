@@ -56,7 +56,7 @@ See [Roadmap Index](roadmap/index.md) for the full implementation guide.
 ### System Overview
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#4f8fba', 'primaryTextColor': '#fff', 'primaryBorderColor': '#3a7ca5', 'lineColor': '#5c9dc4', 'secondaryColor': '#7eb8da', 'tertiaryColor': '#e8f4f8'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'lineColor': '#888'}}}%%
 flowchart TB
     subgraph events["External Events (configurable)"]
         direction LR
@@ -65,7 +65,7 @@ flowchart TB
     end
 
     subgraph daemon["Pulse Daemon"]
-        api["HTTP API (FastAPI)"]
+        api["Pulse API (FastAPI)"]
         queue[("Pulse Queue (SQLite)")]
         executor["Executor"]
 
@@ -94,6 +94,15 @@ flowchart TB
 
     %% Self-scheduling loop
     pulse_mcp -- "schedule_pulse()" --> queue
+
+    %% Styles
+    classDef core fill:#4a90a4,stroke:#2e6b7a,color:#fff
+    classDef external fill:#6b9b76,stroke:#4a7a54,color:#fff
+    classDef database fill:#c4955a,stroke:#a67940,color:#fff
+
+    class api,executor,reeve,pulse_mcp core
+    class telegram_listener,email_listener,webhooks,more_events,other_mcp external
+    class queue database
 ```
 
 ---

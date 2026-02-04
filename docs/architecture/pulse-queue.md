@@ -88,7 +88,7 @@ class PulseStatus(str, Enum):
 - **Failed vs Cancelled**: Failed = retry possible, Cancelled = intentional stop
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#4f8fba', 'primaryTextColor': '#fff', 'primaryBorderColor': '#3a7ca5', 'lineColor': '#5c9dc4', 'secondaryColor': '#7eb8da', 'tertiaryColor': '#e8f4f8'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'lineColor': '#888'}}}%%
 flowchart TD
     create(["schedule_pulse()"]) --> pending["PENDING"]
     pending --> |"Daemon detects due pulse"| processing
@@ -104,6 +104,17 @@ flowchart TD
 
     cancel(["cancel_pulse()"]) -.-> |"At any time"| cancelled["CANCELLED"]
     pending -.-> cancelled
+
+    %% Styles
+    classDef status fill:#4a90a4,stroke:#2e6b7a,color:#fff
+    classDef success fill:#6b9b76,stroke:#4a7a54,color:#fff
+    classDef failure fill:#c4955a,stroke:#a67940,color:#fff
+    classDef action fill:#888,stroke:#666,color:#fff
+
+    class pending,processing status
+    class completed,new_pending success
+    class failed,remains,cancelled failure
+    class create,cancel,result,retry action
 ```
 
 ## Database Schema
