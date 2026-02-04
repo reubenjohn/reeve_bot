@@ -670,4 +670,4 @@ class PulseQueue:
 
 ## Next Steps
 
-See **[02_MCP_INTEGRATION.md](02_MCP_INTEGRATION.md)** for how Reeve interacts with this queue via MCP tools.
+See **[mcp-integration.md](mcp-integration.md)** for how Reeve interacts with this queue via MCP tools.

@@ -9,10 +9,12 @@ The `reeve-bot` repository contains the **Engine** component of Project Reeve - 
 ```
 reeve-bot/
 ├── docs/                           # Architecture and implementation documentation
-│   ├── 00_PROJECT_STRUCTURE.md    # This file
-│   ├── 01_PULSE_QUEUE_DESIGN.md   # Pulse queue architecture
-│   ├── 02_MCP_INTEGRATION.md      # MCP server specifications
-│   └── 04_DEPLOYMENT.md           # Deployment and operations guide
+│   ├── architecture/              # Architecture documents
+│   │   ├── project-structure.md   # This file
+│   │   ├── pulse-queue.md         # Pulse queue architecture
+│   │   ├── mcp-integration.md     # MCP server specifications
+│   │   ├── daemon-api.md          # Daemon and API design
+│   │   └── deployment.md          # Deployment and operations guide
 │
 ├── src/
 │   ├── reeve/                      # Main package
@@ -323,6 +325,6 @@ journalctl -u reeve-daemon -f
 
 See the following documentation for detailed implementation:
 
-1. **[01_PULSE_QUEUE_DESIGN.md](01_PULSE_QUEUE_DESIGN.md)**: Database schema, queue logic, priority system
-2. **[02_MCP_INTEGRATION.md](02_MCP_INTEGRATION.md)**: MCP server tools, type hints, documentation
-3. **[04_DEPLOYMENT.md](04_DEPLOYMENT.md)**: Systemd setup, monitoring, troubleshooting
+1. **[pulse-queue.md](pulse-queue.md)**: Database schema, queue logic, priority system
+2. **[mcp-integration.md](mcp-integration.md)**: MCP server tools, type hints, documentation
+3. **[deployment.md](deployment.md)**: Systemd setup, monitoring, troubleshooting
