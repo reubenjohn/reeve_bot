@@ -576,7 +576,9 @@ def test_get_pulse_detail_success(client: TestClient, auth_headers: dict, mock_q
     assert data["id"] == 123
     assert data["scheduled_at"] == "2026-01-20T09:00:00+00:00"
     # Full prompt should be returned (not truncated)
-    assert data["prompt"] == "This is the full prompt that should not be truncated in the detail view"
+    assert (
+        data["prompt"] == "This is the full prompt that should not be truncated in the detail view"
+    )
     assert data["priority"] == "high"
     assert data["status"] == "pending"
     assert data["session_id"] == "session-abc-123"
@@ -592,6 +594,7 @@ def test_get_pulse_detail_success(client: TestClient, auth_headers: dict, mock_q
 
 def test_get_pulse_detail_not_found(client: TestClient, auth_headers: dict, mock_queue: PulseQueue):
     """Test that requesting a non-existent pulse returns 404."""
+
     async def mock_get_pulse(pulse_id):
         return None
 
@@ -936,6 +939,7 @@ def test_list_pulses_truncates_long_prompts(
 
 def test_get_pulse_stats_empty(client: TestClient, auth_headers: dict, mock_queue: PulseQueue):
     """Test queue stats with an empty database returns zeros."""
+
     async def mock_get_pulse_stats():
         return {
             "pending": 0,
@@ -960,6 +964,7 @@ def test_get_pulse_stats_empty(client: TestClient, auth_headers: dict, mock_queu
 
 def test_get_pulse_stats_with_data(client: TestClient, auth_headers: dict, mock_queue: PulseQueue):
     """Test queue stats returns correct counts."""
+
     async def mock_get_pulse_stats():
         return {
             "pending": 5,
@@ -996,6 +1001,7 @@ def test_get_pulse_stats_queue_error(
     client: TestClient, auth_headers: dict, mock_queue: PulseQueue
 ):
     """Test that queue errors on stats are handled gracefully."""
+
     async def mock_get_pulse_stats_error():
         raise RuntimeError("Database query failed")
 
@@ -1016,6 +1022,7 @@ def test_get_pulse_stats_queue_error(
 
 def test_get_execution_stats_empty(client: TestClient, auth_headers: dict, mock_queue: PulseQueue):
     """Test execution stats with no data returns zeros."""
+
     async def mock_get_execution_stats():
         return {
             "total_completed": 0,
@@ -1042,6 +1049,7 @@ def test_get_execution_stats_with_data(
     client: TestClient, auth_headers: dict, mock_queue: PulseQueue
 ):
     """Test execution stats returns correct metrics."""
+
     async def mock_get_execution_stats():
         return {
             "total_completed": 80,
@@ -1091,6 +1099,7 @@ def test_get_execution_stats_queue_error(
     client: TestClient, auth_headers: dict, mock_queue: PulseQueue
 ):
     """Test that queue errors on execution stats are handled gracefully."""
+
     async def mock_get_execution_stats_error():
         raise RuntimeError("Database query failed")
 
