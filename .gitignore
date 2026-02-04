@@ -41,6 +41,12 @@ env/
 .DS_Store
 Thumbs.db
 
+# Testing
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+
 # Reeve-specific
 *.db
 *.db-journal
