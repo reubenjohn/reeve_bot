@@ -26,10 +26,11 @@ deploy/
 ├── config/
 │   └── logrotate.conf.template         # Log rotation config
 ├── cron/
-│   └── reeve.cron.template             # Health check + backup cron jobs
+│   └── reeve.cron.template             # Scheduled tasks (heartbeat, health, backup)
 └── scripts/
     ├── install.sh                      # Main installation script
     ├── uninstall.sh                    # Cleanup script
+    ├── reeve-heartbeat.sh              # Hourly heartbeat pulse
     ├── reeve-health-check.sh           # Health check helper
     └── reeve-backup.sh                 # Database backup helper
 ```
@@ -43,6 +44,7 @@ Templates use `{{VAR}}` syntax, replaced during installation:
 | `{{USER}}` | Service user |
 | `{{REEVE_BOT_PATH}}` | Repo path |
 | `{{REEVE_HOME}}` | Data directory |
+| `{{REEVE_DESK_PATH}}` | User's Desk repo |
 | `{{UV_PATH}}` | uv binary path |
 
 ### Quick Install
@@ -145,12 +147,13 @@ ls -lh /var/log/reeve/
 # Check database backup
 ls -lh ~/.reeve/backups/
 
-# Check health check cron
+# Check cron jobs
 crontab -l | grep reeve
 
 # Expected:
-# */5 * * * * /usr/local/bin/reeve-health-check.sh
-# 0 3 * * * /usr/local/bin/reeve-backup.sh
+# 0 * * * * /usr/local/bin/reeve-heartbeat ...    (hourly heartbeat)
+# */5 * * * * /usr/local/bin/reeve-health-check ... (health check)
+# 0 3 * * * /usr/local/bin/reeve-backup ...       (daily backup)
 ```
 
 ### Step 6: Graceful shutdown test

@@ -13,10 +13,11 @@ deploy/
 ├── config/
 │   └── logrotate.conf.template         # Log rotation config
 ├── cron/
-│   └── reeve.cron.template             # Health check + backup cron jobs
+│   └── reeve.cron.template             # Scheduled tasks (heartbeat, health check, backup)
 └── scripts/
     ├── install.sh                      # Main installation script
     ├── uninstall.sh                    # Cleanup script
+    ├── reeve-heartbeat.sh              # Hourly heartbeat pulse
     ├── reeve-health-check.sh           # Health check helper
     └── reeve-backup.sh                 # Database backup helper
 ```
@@ -54,6 +55,7 @@ Templates use `{{VAR}}` syntax, replaced during installation:
 | `{{USER}}` | Service user | `reuben` |
 | `{{REEVE_BOT_PATH}}` | Repo path | `/home/reuben/workspace/reeve-bot` |
 | `{{REEVE_HOME}}` | Data directory | `/home/reuben/.reeve` |
+| `{{REEVE_DESK_PATH}}` | User's Desk repo | `/home/reuben/reeve_desk` |
 | `{{UV_PATH}}` | uv binary path | `/home/reuben/.local/bin/uv` |
 
 ## Prerequisites
@@ -72,6 +74,7 @@ After installation:
 | Daemon service | `/etc/systemd/system/reeve-daemon.service` |
 | Telegram service | `/etc/systemd/system/reeve-telegram.service` |
 | Log rotation | `/etc/logrotate.d/reeve` |
+| Heartbeat script | `/usr/local/bin/reeve-heartbeat` |
 | Health check | `/usr/local/bin/reeve-health-check` |
 | Backup script | `/usr/local/bin/reeve-backup` |
 
@@ -87,11 +90,17 @@ sudo systemctl restart reeve-daemon
 sudo journalctl -u reeve-daemon -f
 sudo journalctl -u reeve-telegram -f
 
+# Trigger heartbeat pulse
+/usr/local/bin/reeve-heartbeat
+
 # Run health check
 /usr/local/bin/reeve-health-check
 
 # Manual backup
 /usr/local/bin/reeve-backup
+
+# View cron jobs
+crontab -l
 ```
 
 ## Troubleshooting
