@@ -325,6 +325,219 @@ class PulseQueue:
             await session.commit()
             return True
 
+    async def get_pulses_by_status(
+        self, status: Optional[str] = None, limit: int = 20
+    ) -> List[Pulse]:
+        """
+        Get pulses filtered by status.
+
+        Args:
+            status: Filter by status. Valid values:
+                - "pending", "failed", "completed", "cancelled", "processing" - filter by that status
+                - "overdue" - return pending pulses where scheduled_at < now
+                - None or "all" - return all recent pulses
+            limit: Maximum number of pulses to return
+
+        Returns:
+            List of Pulse objects ordered by scheduled_at DESC
+        """
+        async with self.SessionLocal() as session:
+            now = datetime.now(timezone.utc)
+
+            if status == "overdue":
+                # Pending pulses that are past their scheduled time
+                stmt = (
+                    select(Pulse)
+                    .where(and_(Pulse.status == PulseStatus.PENDING, Pulse.scheduled_at < now))
+                    .order_by(Pulse.scheduled_at.desc())
+                    .limit(limit)
+                )
+            elif status in ("pending", "failed", "completed", "cancelled", "processing"):
+                # Filter by specific status
+                pulse_status = PulseStatus(status)
+                stmt = (
+                    select(Pulse)
+                    .where(Pulse.status == pulse_status)
+                    .order_by(Pulse.scheduled_at.desc())
+                    .limit(limit)
+                )
+            else:
+                # Return all recent pulses (None or "all")
+                stmt = select(Pulse).order_by(Pulse.scheduled_at.desc()).limit(limit)
+
+            result = await session.execute(stmt)
+            return list(result.scalars().all())
+
+    async def get_pulse_stats(self) -> dict:
+        """
+        Get queue statistics.
+
+        Returns:
+            Dictionary with:
+                - pending: Count of pending pulses
+                - overdue: Count of pending pulses where scheduled_at < now
+                - failed: Count of failed pulses
+                - completed_today: Count of pulses completed in last 24 hours
+                - processing: Count of currently processing pulses
+        """
+        from sqlalchemy import func as sqlfunc
+
+        async with self.SessionLocal() as session:
+            now = datetime.now(timezone.utc)
+            twenty_four_hours_ago = now - timedelta(hours=24)
+
+            # Count pending pulses
+            pending_stmt = (
+                select(sqlfunc.count())
+                .select_from(Pulse)
+                .where(Pulse.status == PulseStatus.PENDING)
+            )
+            pending_result = await session.execute(pending_stmt)
+            pending_count = pending_result.scalar() or 0
+
+            # Count overdue pulses (pending and past scheduled time)
+            overdue_stmt = (
+                select(sqlfunc.count())
+                .select_from(Pulse)
+                .where(and_(Pulse.status == PulseStatus.PENDING, Pulse.scheduled_at < now))
+            )
+            overdue_result = await session.execute(overdue_stmt)
+            overdue_count = overdue_result.scalar() or 0
+
+            # Count failed pulses
+            failed_stmt = (
+                select(sqlfunc.count()).select_from(Pulse).where(Pulse.status == PulseStatus.FAILED)
+            )
+            failed_result = await session.execute(failed_stmt)
+            failed_count = failed_result.scalar() or 0
+
+            # Count completed in last 24 hours
+            completed_stmt = (
+                select(sqlfunc.count())
+                .select_from(Pulse)
+                .where(
+                    and_(
+                        Pulse.status == PulseStatus.COMPLETED,
+                        Pulse.executed_at >= twenty_four_hours_ago,
+                    )
+                )
+            )
+            completed_result = await session.execute(completed_stmt)
+            completed_today_count = completed_result.scalar() or 0
+
+            # Count processing pulses
+            processing_stmt = (
+                select(sqlfunc.count())
+                .select_from(Pulse)
+                .where(Pulse.status == PulseStatus.PROCESSING)
+            )
+            processing_result = await session.execute(processing_stmt)
+            processing_count = processing_result.scalar() or 0
+
+            return {
+                "pending": pending_count,
+                "overdue": overdue_count,
+                "failed": failed_count,
+                "completed_today": completed_today_count,
+                "processing": processing_count,
+            }
+
+    async def get_execution_stats(self) -> dict:
+        """
+        Get execution statistics for the last 7 days.
+
+        Returns:
+            Dictionary with:
+                - total_completed: Total completed pulses in last 7 days
+                - total_failed: Total failed pulses in last 7 days
+                - success_rate: Percentage of successful executions (0.0-100.0)
+                - avg_duration_ms: Average execution duration in milliseconds
+                - recent_failures: Last 5 failed pulses with id, prompt (truncated), error_message
+        """
+        from sqlalchemy import func as sqlfunc
+
+        async with self.SessionLocal() as session:
+            now = datetime.now(timezone.utc)
+            seven_days_ago = now - timedelta(days=7)
+
+            # Count completed in last 7 days
+            completed_stmt = (
+                select(sqlfunc.count())
+                .select_from(Pulse)
+                .where(
+                    and_(
+                        Pulse.status == PulseStatus.COMPLETED,
+                        Pulse.executed_at >= seven_days_ago,
+                    )
+                )
+            )
+            completed_result = await session.execute(completed_stmt)
+            total_completed = completed_result.scalar() or 0
+
+            # Count failed in last 7 days
+            failed_stmt = (
+                select(sqlfunc.count())
+                .select_from(Pulse)
+                .where(
+                    and_(
+                        Pulse.status == PulseStatus.FAILED,
+                        Pulse.executed_at >= seven_days_ago,
+                    )
+                )
+            )
+            failed_result = await session.execute(failed_stmt)
+            total_failed = failed_result.scalar() or 0
+
+            # Calculate success rate
+            total_executions = total_completed + total_failed
+            success_rate = (
+                (total_completed / total_executions * 100.0) if total_executions > 0 else 0.0
+            )
+
+            # Calculate average duration for completed pulses
+            avg_duration_stmt = (
+                select(sqlfunc.avg(Pulse.execution_duration_ms))
+                .select_from(Pulse)
+                .where(
+                    and_(
+                        Pulse.status == PulseStatus.COMPLETED,
+                        Pulse.executed_at >= seven_days_ago,
+                        Pulse.execution_duration_ms.isnot(None),
+                    )
+                )
+            )
+            avg_duration_result = await session.execute(avg_duration_stmt)
+            avg_duration_ms = avg_duration_result.scalar() or 0.0
+
+            # Get recent failures (last 5)
+            recent_failures_stmt = (
+                select(Pulse)
+                .where(Pulse.status == PulseStatus.FAILED)
+                .order_by(Pulse.executed_at.desc())
+                .limit(5)
+            )
+            recent_failures_result = await session.execute(recent_failures_stmt)
+            recent_failure_pulses = list(recent_failures_result.scalars().all())
+
+            recent_failures = [
+                {
+                    "id": p.id,
+                    "prompt": (
+                        str(p.prompt)[:100] + "..." if len(str(p.prompt)) > 100 else str(p.prompt)
+                    ),
+                    "error_message": p.error_message,
+                }
+                for p in recent_failure_pulses
+            ]
+
+            return {
+                "total_completed": total_completed,
+                "total_failed": total_failed,
+                "success_rate": round(success_rate, 2),
+                "avg_duration_ms": round(float(avg_duration_ms), 2),
+                "recent_failures": recent_failures,
+            }
+
     async def close(self) -> None:
         """
         Close the database connection.

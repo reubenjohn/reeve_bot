@@ -95,6 +95,73 @@ class UpcomingPulsesResponse(BaseModel):
     pulses: List[UpcomingPulseItem]
 
 
+class PulseDetailResponse(BaseModel):
+    """Full pulse details response."""
+
+    id: int
+    scheduled_at: str
+    prompt: str
+    priority: str
+    status: str
+    session_id: Optional[str] = None
+    sticky_notes: Optional[List[str]] = None
+    tags: Optional[List[str]] = None
+    executed_at: Optional[str] = None
+    execution_duration_ms: Optional[int] = None
+    error_message: Optional[str] = None
+    retry_count: int
+    max_retries: int
+    created_at: str
+    created_by: str
+
+
+class PulseListItem(BaseModel):
+    """Single pulse item in pulse list."""
+
+    id: int
+    scheduled_at: str
+    priority: str
+    prompt: str
+    status: str
+    executed_at: Optional[str] = None
+    error_message: Optional[str] = None
+
+
+class PulseListResponse(BaseModel):
+    """Response for pulse list with count."""
+
+    count: int
+    pulses: List[PulseListItem]
+
+
+class PulseStatsResponse(BaseModel):
+    """Queue statistics response."""
+
+    pending: int
+    overdue: int
+    failed: int
+    completed_today: int
+    processing: int
+
+
+class RecentFailureItem(BaseModel):
+    """Recent failure item in execution stats."""
+
+    id: int
+    prompt: str
+    error_message: Optional[str] = None
+
+
+class ExecutionStatsResponse(BaseModel):
+    """Execution statistics response."""
+
+    total_completed: int
+    total_failed: int
+    success_rate: float
+    avg_duration_ms: float
+    recent_failures: List[RecentFailureItem]
+
+
 # ========================================================================
 # Authentication
 # ========================================================================
@@ -291,5 +358,163 @@ def create_app(queue: PulseQueue, config: ReeveConfig) -> FastAPI:
             "desk_path": config.reeve_desk_path,
             "api_port": config.pulse_api_port,
         }
+
+    @app.get("/api/pulse/{pulse_id}", response_model=PulseDetailResponse)
+    async def get_pulse_detail(pulse_id: int, authorized: bool = Depends(verify_token)):
+        """
+        Get full details of a specific pulse.
+
+        Args:
+            pulse_id: The ID of the pulse to retrieve
+
+        Returns:
+            Full pulse object with all fields
+
+        Example:
+            curl -X GET http://localhost:8765/api/pulse/123 \\
+                 -H "Authorization: Bearer your_token_here"
+        """
+        try:
+            pulse = await queue.get_pulse(pulse_id)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to retrieve pulse: {str(e)}")
+
+        if not pulse:
+            raise HTTPException(status_code=404, detail=f"Pulse {pulse_id} not found")
+
+        return PulseDetailResponse(
+            id=cast(int, pulse.id),
+            scheduled_at=pulse.scheduled_at.isoformat(),
+            prompt=cast(str, pulse.prompt),
+            priority=pulse.priority.value,
+            status=pulse.status.value,
+            session_id=pulse.session_id,
+            sticky_notes=pulse.sticky_notes,
+            tags=pulse.tags,
+            executed_at=pulse.executed_at.isoformat() if pulse.executed_at else None,
+            execution_duration_ms=pulse.execution_duration_ms,
+            error_message=pulse.error_message,
+            retry_count=cast(int, pulse.retry_count),
+            max_retries=cast(int, pulse.max_retries),
+            created_at=pulse.created_at.isoformat(),
+            created_by=cast(str, pulse.created_by),
+        )
+
+    @app.get("/api/pulse/list", response_model=PulseListResponse)
+    async def list_pulses(
+        status: str = "pending",
+        limit: int = 20,
+        authorized: bool = Depends(verify_token),
+    ):
+        """
+        List pulses filtered by status.
+
+        Args:
+            status: Filter by status (pending, failed, completed, cancelled, processing, overdue, all)
+            limit: Maximum number of pulses to return (1-100, default: 20)
+
+        Returns:
+            List of pulses with count
+
+        Example:
+            curl -X GET "http://localhost:8765/api/pulse/list?status=failed&limit=10" \\
+                 -H "Authorization: Bearer your_token_here"
+        """
+        # Validate limit
+        if limit < 1 or limit > 100:
+            raise HTTPException(status_code=400, detail="Limit must be between 1 and 100")
+
+        # Validate status
+        valid_statuses = {
+            "pending",
+            "failed",
+            "completed",
+            "cancelled",
+            "processing",
+            "overdue",
+            "all",
+        }
+        if status not in valid_statuses:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid status '{status}'. Must be one of: {', '.join(sorted(valid_statuses))}",
+            )
+
+        try:
+            pulses = await queue.get_pulses_by_status(status=status, limit=limit)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to retrieve pulses: {str(e)}")
+
+        pulse_items = [
+            PulseListItem(
+                id=cast(int, p.id),
+                scheduled_at=p.scheduled_at.isoformat(),
+                priority=p.priority.value,
+                prompt=(
+                    cast(str, p.prompt)[:100] + "..."
+                    if len(cast(str, p.prompt)) > 100
+                    else cast(str, p.prompt)
+                ),
+                status=p.status.value,
+                executed_at=p.executed_at.isoformat() if p.executed_at else None,
+                error_message=p.error_message,
+            )
+            for p in pulses
+        ]
+
+        return PulseListResponse(count=len(pulse_items), pulses=pulse_items)
+
+    @app.get("/api/pulse/stats", response_model=PulseStatsResponse)
+    async def get_pulse_stats(authorized: bool = Depends(verify_token)):
+        """
+        Get queue statistics.
+
+        Returns:
+            Counts of pending, overdue, failed, completed_today, and processing pulses
+
+        Example:
+            curl -X GET http://localhost:8765/api/pulse/stats \\
+                 -H "Authorization: Bearer your_token_here"
+        """
+        try:
+            stats = await queue.get_pulse_stats()
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to retrieve stats: {str(e)}")
+
+        return PulseStatsResponse(**stats)
+
+    @app.get("/api/stats", response_model=ExecutionStatsResponse)
+    async def get_execution_stats(authorized: bool = Depends(verify_token)):
+        """
+        Get execution statistics for the last 7 days.
+
+        Returns:
+            Success rate, average duration, and recent failures
+
+        Example:
+            curl -X GET http://localhost:8765/api/stats \\
+                 -H "Authorization: Bearer your_token_here"
+        """
+        try:
+            stats = await queue.get_execution_stats()
+        except Exception as e:
+            raise HTTPException(
+                status_code=500, detail=f"Failed to retrieve execution stats: {str(e)}"
+            )
+
+        return ExecutionStatsResponse(
+            total_completed=stats["total_completed"],
+            total_failed=stats["total_failed"],
+            success_rate=stats["success_rate"],
+            avg_duration_ms=stats["avg_duration_ms"],
+            recent_failures=[
+                RecentFailureItem(
+                    id=f["id"],
+                    prompt=f["prompt"],
+                    error_message=f["error_message"],
+                )
+                for f in stats["recent_failures"]
+            ],
+        )
 
     return app
