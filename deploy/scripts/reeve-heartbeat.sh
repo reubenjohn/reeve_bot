@@ -13,8 +13,7 @@
 
 set -e
 
-TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
-HOUR=$(date '+%H')
+TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S %Z')
 
 # Source environment for API token
 # Try multiple locations for flexibility
@@ -35,20 +34,8 @@ fi
 API_URL="${PULSE_API_URL:-http://127.0.0.1:8765}"
 
 # Construct the heartbeat prompt
-# The prompt varies slightly based on time of day for context
-if [ "$HOUR" -ge 6 ] && [ "$HOUR" -lt 12 ]; then
-    TIME_CONTEXT="morning"
-    PROMPT="Hourly heartbeat (${TIME_CONTEXT}): Review today's calendar, check for urgent emails or messages, identify top priorities for the day."
-elif [ "$HOUR" -ge 12 ] && [ "$HOUR" -lt 18 ]; then
-    TIME_CONTEXT="afternoon"
-    PROMPT="Hourly heartbeat (${TIME_CONTEXT}): Check calendar for upcoming meetings, review any pending tasks, process waiting messages."
-elif [ "$HOUR" -ge 18 ] && [ "$HOUR" -lt 22 ]; then
-    TIME_CONTEXT="evening"
-    PROMPT="Hourly heartbeat (${TIME_CONTEXT}): Review remaining tasks for today, check for any urgent items, prepare end-of-day summary if needed."
-else
-    TIME_CONTEXT="night"
-    PROMPT="Hourly heartbeat (${TIME_CONTEXT}): Light check - only process critical items, defer non-urgent tasks to morning."
-fi
+# Generic prompt - the Desk governs what Reeve should do at different times
+PROMPT="Hourly heartbeat [${TIMESTAMP}]: Review your Responsibilities and Goals in the context of the current time. Take appropriate action, respecting Preferences."
 
 # Schedule the pulse via API
 RESPONSE=$(curl -sf -X POST "${API_URL}/api/pulse/schedule" \
@@ -59,7 +46,7 @@ RESPONSE=$(curl -sf -X POST "${API_URL}/api/pulse/schedule" \
         \"scheduled_at\": \"now\",
         \"priority\": \"normal\",
         \"source\": \"heartbeat_cron\",
-        \"tags\": [\"hourly\", \"heartbeat\", \"${TIME_CONTEXT}\"]
+        \"tags\": [\"hourly\", \"heartbeat\"]
     }" 2>&1) || {
     echo "[$TIMESTAMP] ERROR: Failed to schedule heartbeat pulse"
     echo "[$TIMESTAMP] Response: $RESPONSE"
@@ -69,5 +56,5 @@ RESPONSE=$(curl -sf -X POST "${API_URL}/api/pulse/schedule" \
 # Extract pulse ID from response
 PULSE_ID=$(echo "$RESPONSE" | grep -o '"pulse_id":[0-9]*' | cut -d':' -f2)
 
-echo "[$TIMESTAMP] OK: Heartbeat pulse scheduled (ID: ${PULSE_ID}, context: ${TIME_CONTEXT})"
+echo "[$TIMESTAMP] OK: Heartbeat pulse scheduled (ID: ${PULSE_ID})"
 exit 0
