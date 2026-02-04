@@ -22,7 +22,7 @@ Modern AI assistants are **passive** - they wait for prompts. Reeve is different
 ## Key Concepts
 
 ### The Push Paradigm
-Instead of waiting for commands, Reeve operates on a **Pulse** - scheduled wake-ups that let it check on your world and take action. [Learn more](https://reubenjohn.github.io/reeve-bot/#the-pulse-a-rhythm-of-existence)
+Instead of waiting for commands, Reeve operates on a **Pulse** - scheduled wake-ups that let it check on your world and take action. [Learn more](https://reubenjohn.github.io/reeve-bot/#2-the-pulse-a-rhythm-of-existence)
 
 ### Proxy & Gatekeeper
 Reeve acts as a **high-fidelity proxy** between you and the world:
