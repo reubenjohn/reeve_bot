@@ -1,15 +1,31 @@
 ---
 name: plan-with-subagents
-description: Plan multi-step implementation tasks to minimize context usage and maximize parallelism. Use when tasks have 4+ steps or touch multiple independent files.
+description: Plan multi-step implementation tasks to minimize context usage and maximize parallelism. Automatically applies whenever plan mode is active.
 user-invocable: true
 ---
 
 # Plan with Sub-Agents Skill
 
-Use this skill when planning multi-step implementation tasks to minimize context usage and maximize parallelism.
+**These guidelines apply automatically whenever plan mode is active.** Plan mode implies complexity, so always design for parallelism and minimal context.
 
-## When to Use
+## Core Principle: Use Sub-Agents Generously
 
+Sub-agents are cheap and effective. When in doubt, spawn an agent. Benefits:
+- **Parallel execution** - Multiple agents work simultaneously
+- **Reduced context** - Each agent only sees what it needs
+- **Fault isolation** - One agent's failure doesn't block others
+- **Cleaner commits** - Each agent commits its own work
+
+**Default to spawning agents** for:
+- Any exploration or research (use `Explore` agent)
+- Designing approaches (use `Plan` agent)
+- Independent file modifications (use `general-purpose` agents in parallel)
+- Error-prone steps that involve noisy logs (e.g. running tests)
+- Shell operations (use `Bash` agent)
+
+## When Sub-Agents Apply
+
+- Any task in plan mode (plan mode = complexity assumed)
 - Tasks with 4+ distinct steps
 - Work that touches multiple unrelated files
 - Tasks where exploration and execution can be separated
