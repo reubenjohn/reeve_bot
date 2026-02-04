@@ -4,7 +4,10 @@
       "Bash(gh repo create:*)",
       "Bash(uv run alembic:*)",
       "Bash(export PULSE_API_TOKEN=test-token-123)",
-      "Bash(export TELEGRAM_BOT_TOKEN=test123)"
+      "Bash(export TELEGRAM_BOT_TOKEN=test123)",
+      "Bash(source:*)",
+      "Bash(./demos/phase8_deployment_demo.sh:*)",
+      "Bash(/home/reuben/workspace/reeve_bot/deploy/scripts/reeve-heartbeat.sh:*)"
     ]
   }
 }
