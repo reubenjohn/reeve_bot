@@ -164,34 +164,31 @@ See [Roadmap Index](roadmap/index.md) for the full implementation guide.
 
 ```mermaid
 graph LR
-    P1[Phase 1<br/>Foundation<br/>✓] --> P2[Phase 2<br/>Queue Mgmt<br/>✓]
-    P2 --> P3[Phase 3<br/>MCP Tools<br/>✓]
-    P3 --> P4[Phase 4<br/>Executor<br/>✓]
-    P4 --> P5[Phase 5<br/>Daemon<br/>✓]
-    P5 --> P6[Phase 6<br/>HTTP API<br/>✓]
-    P6 --> P7[Phase 7<br/>Telegram<br/>✓]
-    P7 --> P8[Phase 8<br/>Deploy<br/>⏳]
+    P1[1 Foundation ✓] --> P2[2 Queue Mgmt ✓]
+    P2 --> P3[3 MCP Tools ✓]
+    P3 --> P4[4 Executor ✓]
+    P4 --> P5[5 Daemon ✓]
+    P5 --> P6[6 HTTP API ✓]
+    P6 --> P7[7 Telegram ✓]
+    P7 --> P8[8 Deploy ⏳]
     P8 --> MVP[🎯 MVP]
 
-    click P1 "roadmap/phase-1-foundation/" "Phase 1: Foundation"
-    click P2 "roadmap/phase-2-queue/" "Phase 2: Queue Management"
-    click P3 "roadmap/phase-3-mcp/" "Phase 3: MCP Servers"
-    click P4 "roadmap/phase-4-executor/" "Phase 4: Pulse Executor"
-    click P5 "roadmap/phase-5-daemon/" "Phase 5: Daemon"
-    click P6 "roadmap/phase-6-api/" "Phase 6: HTTP API"
-    click P7 "roadmap/phase-7-telegram/" "Phase 7: Telegram Integration"
-    click P8 "roadmap/phase-8-deployment/" "Phase 8: Deployment"
-    click MVP "roadmap/" "Implementation Roadmap"
+    click P1 "roadmap/phase-1-foundation/"
+    click P2 "roadmap/phase-2-queue/"
+    click P3 "roadmap/phase-3-mcp/"
+    click P4 "roadmap/phase-4-executor/"
+    click P5 "roadmap/phase-5-daemon/"
+    click P6 "roadmap/phase-6-api/"
+    click P7 "roadmap/phase-7-telegram/"
+    click P8 "roadmap/phase-8-deployment/"
+    click MVP "roadmap/"
 
-    style P1 fill:#90EE90
-    style P2 fill:#90EE90
-    style P3 fill:#90EE90
-    style P4 fill:#90EE90
-    style P5 fill:#90EE90
-    style P6 fill:#90EE90
-    style P7 fill:#90EE90
-    style P8 fill:#FFD700
-    style MVP fill:#87CEEB
+    classDef done fill:#90EE90
+    classDef wip fill:#FFD700
+    classDef goal fill:#87CEEB
+    class P1,P2,P3,P4,P5,P6,P7 done
+    class P8 wip
+    class MVP goal
 ```
 
 See [Implementation Roadmap](IMPLEMENTATION_ROADMAP.md) for detailed phase specifications.
