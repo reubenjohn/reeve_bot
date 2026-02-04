@@ -164,14 +164,7 @@ See [Roadmap Index](roadmap/index.md) for the full implementation guide.
 
 ```mermaid
 graph LR
-    P1[1 Foundation ✓] --> P2[2 Queue Mgmt ✓]
-    P2 --> P3[3 MCP Tools ✓]
-    P3 --> P4[4 Executor ✓]
-    P4 --> P5[5 Daemon ✓]
-    P5 --> P6[6 HTTP API ✓]
-    P6 --> P7[7 Telegram ✓]
-    P7 --> P8[8 Deploy ⏳]
-    P8 --> MVP[🎯 MVP]
+    P1[1] --> P2[2] --> P3[3] --> P4[4] --> P5[5] --> P6[6] --> P7[7] --> P8[8] --> MVP[🎯]
 
     classDef done fill:#2e7d32,stroke:#1b5e20,color:#fff
     classDef wip fill:#f9a825,stroke:#f57f17,color:#000
@@ -180,6 +173,8 @@ graph LR
     class P8 wip
     class MVP goal
 ```
+
+**Legend:** 1-Foundation, 2-Queue, 3-MCP, 4-Executor, 5-Daemon, 6-API, 7-Telegram, 8-Deploy
 
 See [Implementation Roadmap](IMPLEMENTATION_ROADMAP.md) for details.
 
