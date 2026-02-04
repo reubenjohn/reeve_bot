@@ -390,6 +390,10 @@ A **Pulse** is a scheduled wake-up event for Reeve. When a pulse fires, it launc
 - 35 Phase 7 Telegram listener unit tests (new)
 - 2 Phase 7 validation tests (new)
 
+### Repository Cleanup (Commit: 8a2526a)
+
+Migrated task tracking from inline CLAUDE.md TODOs to GitHub Issues for better visibility and organization. See `gh issue list` for current maintenance tasks.
+
 ## Architecture Decisions
 
 ### Database
@@ -677,6 +681,31 @@ git commit -m "Implement Phase N: [Title]
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 ```
+
+## Task Tracking
+
+Use GitHub Issues for tracking maintenance tasks, bugs, and feature requests:
+
+```bash
+# List open issues
+gh issue list
+
+# Create new issue
+gh issue create --title "Title" --body "Description" --label "label-name"
+
+# View issue details
+gh issue view 123
+```
+
+Available labels: `code-quality`, `testing`, `documentation`, `tech-debt`, `context-engineering`, `security`
+
+## Planning Complex Tasks
+
+For multi-step implementation tasks, use sub-agents to minimize context usage and maximize parallelism. See `.claude/skills/plan-with-subagents/SKILL.md` for detailed guidelines on:
+- Breaking tasks into parallelizable phases
+- Agent type selection (Bash, Explore, Plan, general-purpose)
+- Context minimization strategies
+- Commit strategies for parallel work
 
 ## Contributing
 
