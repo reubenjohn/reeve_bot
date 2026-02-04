@@ -123,6 +123,7 @@ When making changes to the codebase, keep documentation in sync:
 
 ### Documentation
 - [Architecture](docs/architecture/index.md) - Technical design docs
+- [Deployment](docs/architecture/deployment.md) - Production systemd deployment
 - [Roadmap](docs/roadmap/index.md) - Implementation phases
 - [MCP Setup](docs/MCP_SETUP.md) - Claude Code integration
 - [Ideas](docs/IDEAS.md) - Exploratory ideas and future concepts
@@ -162,7 +163,32 @@ uv run black src/ && uv run isort src/
 
 # Check types
 uv run mypy src/
+
+# Systemd service management (production)
+sudo systemctl status reeve-daemon reeve-telegram
+sudo journalctl -u reeve-daemon -f
 ```
+
+## Production Deployment
+
+In production, Reeve runs as two systemd services:
+
+- **reeve-daemon**: The main Pulse Daemon (scheduler + API server)
+- **reeve-telegram**: Telegram message listener that triggers pulses
+
+```bash
+# Check service status
+sudo systemctl status reeve-daemon reeve-telegram
+
+# View logs
+sudo journalctl -u reeve-daemon -f    # Daemon logs
+sudo journalctl -u reeve-telegram -f  # Telegram listener logs
+
+# Restart services
+sudo systemctl restart reeve-daemon reeve-telegram
+```
+
+Service files are installed in `/etc/systemd/system/`. See [Deployment Guide](docs/architecture/deployment.md) for full setup instructions including systemd configuration, monitoring, and troubleshooting.
 
 ## Common Queries
 
