@@ -788,4 +788,4 @@ Use the Hapi/Claude Code test environment to call tools and verify behavior.
 
 ## Next Steps
 
-See **[03_DEPLOYMENT.md](03_DEPLOYMENT.md)** for production deployment, systemd configuration, and monitoring setup.
+See **[04_DEPLOYMENT.md](04_DEPLOYMENT.md)** for production deployment, systemd configuration, and monitoring setup.

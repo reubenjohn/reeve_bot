@@ -58,10 +58,11 @@ nav:
     - MCP Integration: 02_MCP_INTEGRATION.md
     - Daemon & API: 03_DAEMON_AND_API.md
   - Guides:
+    - Documentation Overview: docs_overview.md
     - MCP Setup: MCP_SETUP.md
     - Deployment: 04_DEPLOYMENT.md
     - Implementation Roadmap: IMPLEMENTATION_ROADMAP.md
   - Reference:
     - OpenClaw Comparison: OpenClaw_COMPARISON.md
-  - Contributing: contributing.md
+  - Contributing: https://github.com/reubenjohn/reeve-bot/blob/master/CONTRIBUTING.md
   - Security: security.md

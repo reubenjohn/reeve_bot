@@ -12,7 +12,7 @@ reeve-bot/
 │   ├── 00_PROJECT_STRUCTURE.md    # This file
 │   ├── 01_PULSE_QUEUE_DESIGN.md   # Pulse queue architecture
 │   ├── 02_MCP_INTEGRATION.md      # MCP server specifications
-│   └── 03_DEPLOYMENT.md           # Deployment and operations guide
+│   └── 04_DEPLOYMENT.md           # Deployment and operations guide
 │
 ├── src/
 │   ├── reeve/                      # Main package
@@ -325,4 +325,4 @@ See the following documentation for detailed implementation:
 
 1. **[01_PULSE_QUEUE_DESIGN.md](01_PULSE_QUEUE_DESIGN.md)**: Database schema, queue logic, priority system
 2. **[02_MCP_INTEGRATION.md](02_MCP_INTEGRATION.md)**: MCP server tools, type hints, documentation
-3. **[03_DEPLOYMENT.md](03_DEPLOYMENT.md)**: Systemd setup, monitoring, troubleshooting
+3. **[04_DEPLOYMENT.md](04_DEPLOYMENT.md)**: Systemd setup, monitoring, troubleshooting
