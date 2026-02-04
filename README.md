@@ -36,8 +36,13 @@ Reeve acts as a **high-fidelity proxy** between you and the world:
 ### The Glass Box Principle
 Unlike "black box" agents with hidden state, Reeve's entire mind is visible in **plain Markdown files**. You can literally open its brain, read it, and edit it. [Learn more](https://reubenjohn.github.io/reeve-bot/#4-transparent-personalization-the-glass-box-principle)
 
-### The Desk
-A Git-versioned repository of your Goals, Responsibilities, and Preferences - the shared workspace between you and Reeve. [Learn more](https://reubenjohn.github.io/reeve-bot/#1-the-desk-a-collaborative-workspace-the-library)
+### The Desk (Dual-Repo Architecture)
+Reeve uses a **separate Git repository** for your personal context - your Goals, Responsibilities, and Preferences. This "Desk" is the shared workspace between you and Reeve, completely independent from the engine code.
+
+- **Why separate?** Your personal data stays yours. Update Reeve without touching your context. Roll back mistakes with `git revert`.
+- **Get started:** Clone the [example Desk](https://github.com/reubenjohn/reeve-desk) and customize it.
+
+[Learn more](https://reubenjohn.github.io/reeve-bot/#1-the-desk-a-collaborative-workspace-the-library)
 
 ## Use Cases
 
@@ -62,7 +67,7 @@ A Git-versioned repository of your Goals, Responsibilities, and Preferences - th
 | **Pulse Queue** | SQLite-backed scheduler for proactive wake-ups |
 | **MCP Servers** | Tools for Reeve to schedule pulses and send notifications |
 | **Telegram Integration** | User messages trigger immediate high-priority pulses |
-| **The Desk** | Git repo of Goals/, Responsibilities/, Preferences/ |
+| **[The Desk](https://github.com/reubenjohn/reeve-desk)** | Separate Git repo of Goals/, Responsibilities/, Preferences/ |
 
 Reeve wraps specialized CLIs ([Claude Code](https://claude.com/claude-code), [Hapi](https://github.com/tiann/hapi)) rather than implementing its own agent loop - letting billion-dollar companies compete on that while we focus on **orchestration** and **context hygiene**.
 

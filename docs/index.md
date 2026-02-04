@@ -247,7 +247,9 @@ Reeve's intelligence is not magic; it is a structured system of transparency, rh
 
 ### 1. The Desk: A Collaborative Workspace (The Library)
 
-At the center of Reeve's mind is **"The Desk"**—a local Git repository of Markdown files ([example desk](https://github.com/reubenjohn/reeve-desk)). This is not just storage; it is a shared whiteboard between the User, Reeve, and its Sub-Agents.
+At the center of Reeve's mind is **"The Desk"**—a **separate Git repository** of Markdown files ([example desk](https://github.com/reubenjohn/reeve-desk)). This **Dual-Repo Architecture** is a core design principle: the Engine (`reeve-bot/`) and your personal context (`your-desk/`) are completely independent. Your data stays yours—update Reeve without touching your context, roll back mistakes with `git revert`.
+
+The Desk is not just storage; it is a shared whiteboard between the User, Reeve, and its Sub-Agents.
 
 * **The Folder Structure** (hierarchical context, [progressive disclosure](https://github.com/reubenjohn/agentic-ide-power-user#progressive-disclosure)):
 * `Goals/`: The North Star. Contains `Goals.md` and other optional markdown files defining additional high-level objectives (e.g., `Financial_Freedom.md`, `Marathon_Training.md`).
