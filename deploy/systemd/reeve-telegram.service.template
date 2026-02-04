@@ -1,0 +1,38 @@
+[Unit]
+Description=Reeve Telegram Listener
+After=network.target reeve-daemon.service
+Wants=network-online.target
+Requires=reeve-daemon.service
+
+[Service]
+Type=simple
+User={{USER}}
+Group={{USER}}
+WorkingDirectory={{REEVE_BOT_PATH}}
+
+# Run Telegram listener
+ExecStart={{UV_PATH}} run python -m reeve.integrations.telegram
+
+# Environment
+EnvironmentFile={{REEVE_BOT_PATH}}/.env
+
+# Restart policy
+Restart=always
+RestartSec=10
+StartLimitInterval=200
+StartLimitBurst=5
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=reeve-telegram
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths={{REEVE_HOME}}
+
+[Install]
+WantedBy=multi-user.target

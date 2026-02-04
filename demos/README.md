@@ -151,9 +151,43 @@ Builds prompt → POSTs to Pulse API → Pulse created → Reeve wakes up
    ```
 4. Run listener: `uv run python -m reeve.integrations.telegram`
 
-### Phase 8: Future Demos
+### Phase 8: Production Deployment
+```bash
+# Mock mode (no sudo required, simulates installation)
+./demos/phase8_deployment_demo.sh --mock
 
-Demo scripts for Phase 8 (Production Deployment) will be created as that phase is implemented.
+# Real mode (requires sudo, actually installs services)
+sudo ./demos/phase8_deployment_demo.sh
+```
+
+Demonstrates:
+- Template variable substitution (`{{USER}}`, `{{REEVE_BOT_PATH}}`, etc.)
+- Systemd service file generation
+- Logrotate and cron configuration
+- Helper script installation (health-check, backup)
+- Service enable and start sequence
+- Post-installation verification
+
+**Mock mode** creates a temporary filesystem and shows:
+- Generated service files with substituted variables
+- Logrotate configuration
+- Cron job definitions
+- Final filesystem structure
+
+**Real mode** runs the full install script:
+- Creates data directories (`~/.reeve/{logs,backups}`)
+- Installs systemd services to `/etc/systemd/system/`
+- Installs helper scripts to `/usr/local/bin/`
+- Enables and starts services
+- Verifies API health
+
+**Verification commands:**
+```bash
+sudo systemctl status reeve-daemon
+sudo systemctl status reeve-telegram
+curl http://localhost:8765/api/health
+sudo journalctl -u reeve-daemon -n 20
+```
 
 ## Running All Demos
 
@@ -180,6 +214,9 @@ done
 
 # Phase 7 (mock mode, no daemon or Telegram credentials required)
 uv run python demos/phase7_telegram_demo.py
+
+# Phase 8 (mock mode, no sudo required)
+./demos/phase8_deployment_demo.sh --mock
 ```
 
 ## Demo Data Cleanup

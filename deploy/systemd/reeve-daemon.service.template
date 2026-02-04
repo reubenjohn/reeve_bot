@@ -1,0 +1,41 @@
+[Unit]
+Description=Reeve Pulse Daemon
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User={{USER}}
+Group={{USER}}
+WorkingDirectory={{REEVE_BOT_PATH}}
+
+# Use uv to run the daemon
+ExecStart={{UV_PATH}} run python -m reeve.pulse
+
+# Environment
+EnvironmentFile={{REEVE_BOT_PATH}}/.env
+
+# Restart policy
+Restart=always
+RestartSec=10
+StartLimitInterval=200
+StartLimitBurst=5
+
+# Logging (stdout/stderr -> journald)
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=reeve-daemon
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths={{REEVE_HOME}}
+
+# Resource limits
+MemoryMax=512M
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target

@@ -27,7 +27,7 @@ A **Pulse** is a scheduled wake-up event for Reeve. When a pulse fires, it launc
 | 5 | Pulse Daemon | Completed |
 | 6 | HTTP API | Completed |
 | 7 | Telegram Integration | Completed |
-| 8 | Production Deployment | Pending |
+| 8 | Production Deployment | Completed |
 
 **Test Status**: 191/191 tests passing
 
@@ -241,11 +241,14 @@ Available labels: `code-quality`, `testing`, `documentation`, `tech-debt`, `cont
 
 ## Planning Complex Tasks
 
-For multi-step implementation tasks, use sub-agents to minimize context usage and maximize parallelism. See `.claude/skills/plan-with-subagents/SKILL.md` for detailed guidelines on:
-- Breaking tasks into parallelizable phases
-- Agent type selection (Bash, Explore, Plan, general-purpose)
-- Context minimization strategies
-- Commit strategies for parallel work
+**Whenever plan mode is active**, follow the guidelines in `.claude/skills/plan-with-subagents/SKILL.md`. Plan mode implies complexity, so these principles always apply:
+
+- Break tasks into parallelizable phases by file independence
+- Use sub-agents generously (Explore, Plan, Bash, general-purpose)
+- Minimize context per agent - pass only what's needed
+- Commit incrementally per phase for easy rollback
+
+See the skill file for detailed guidelines on agent type selection and execution templates.
 
 ## Contributing
 

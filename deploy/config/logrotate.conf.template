@@ -1,0 +1,13 @@
+{{REEVE_HOME}}/logs/*.log {
+    daily
+    rotate 14
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 {{USER}} {{USER}}
+    sharedscripts
+    postrotate
+        systemctl reload reeve-daemon > /dev/null 2>&1 || true
+    endscript
+}

@@ -1,39 +1,61 @@
 ← [Back to Roadmap Index](index.md)
 
-# Phase 8: Deployment ⏳ PENDING
+# Phase 8: Deployment ✅ COMPLETED
 
 **Goal**: Production deployment with systemd.
 
-**Status**: ⏳ Pending
-
-## Tasks
-
-1. **Systemd Service Files**
-   - Create `reeve-daemon.service`
-   - Create `reeve-telegram.service`
-   - See [Deployment](../architecture/deployment.md) for templates
-
-2. **Install Services**
-   - Copy to `/etc/systemd/system/`
-   - Enable and start services
-   - Verify with `systemctl status`
-
-3. **Monitoring Setup**
-   - Configure log rotation
-   - Setup health check cron
-   - Setup database backups
-
-4. **Documentation**
-   - Update `.env.example` with all variables
-   - Write deployment checklist
-   - Document troubleshooting steps
+**Status**: ✅ Completed
 
 ## Deliverables
 
-- ⏳ Daemon running as systemd service
-- ⏳ Telegram listener as systemd service
-- ⏳ Monitoring and backups configured
-- ⏳ Complete deployment documentation
+- ✅ Daemon running as systemd service
+- ✅ Telegram listener as systemd service
+- ✅ Monitoring and backups configured
+- ✅ Complete deployment documentation
+
+## Implementation Summary
+
+### Deploy Directory Structure
+
+```
+deploy/
+├── README.md                           # Quick-reference guide
+├── systemd/
+│   ├── reeve-daemon.service.template   # Pulse daemon service
+│   └── reeve-telegram.service.template # Telegram listener service
+├── config/
+│   └── logrotate.conf.template         # Log rotation config
+├── cron/
+│   └── reeve.cron.template             # Health check + backup cron jobs
+└── scripts/
+    ├── install.sh                      # Main installation script
+    ├── uninstall.sh                    # Cleanup script
+    ├── reeve-health-check.sh           # Health check helper
+    └── reeve-backup.sh                 # Database backup helper
+```
+
+### Template Variables
+
+Templates use `{{VAR}}` syntax, replaced during installation:
+
+| Variable | Description |
+|----------|-------------|
+| `{{USER}}` | Service user |
+| `{{REEVE_BOT_PATH}}` | Repo path |
+| `{{REEVE_HOME}}` | Data directory |
+| `{{UV_PATH}}` | uv binary path |
+
+### Quick Install
+
+```bash
+sudo ./deploy/scripts/install.sh
+```
+
+### Quick Uninstall
+
+```bash
+sudo ./deploy/scripts/uninstall.sh
+```
 
 ## Validation
 
@@ -145,31 +167,6 @@ sudo journalctl -u reeve-daemon -n 10
 # Jan 19 10:40:00 hostname python[12345]: INFO | Received shutdown signal
 # Jan 19 10:40:00 hostname python[12345]: INFO | Waiting for running pulses...
 # Jan 19 10:40:02 hostname python[12345]: INFO | Daemon shut down gracefully
-```
-
----
-
-## Next Session Prompt
-
-When starting Phase 8, use this prompt:
-
-```
-I'm ready to implement Phase 8 (Production Deployment) for the Pulse Queue system.
-
-Please implement:
-1. Systemd service files for:
-   - Pulse daemon (reeve-daemon.service)
-   - Telegram listener (reeve-telegram.service)
-2. Installation script with:
-   - Virtual environment setup
-   - Dependency installation
-   - Service registration
-   - Log directory creation
-3. Configuration validation script
-4. Update documentation with deployment guides
-5. Create production best practices guide
-
-Refer to docs/roadmap/phase-8-deployment.md for Phase 8 specifications.
 ```
 
 ---

@@ -1,0 +1,8 @@
+# Reeve scheduled tasks
+# Install with: crontab < /path/to/reeve.cron
+
+# Health check every 5 minutes
+*/5 * * * * /usr/local/bin/reeve-health-check >> {{REEVE_HOME}}/logs/health-check.log 2>&1
+
+# Database backup daily at 3 AM
+0 3 * * * /usr/local/bin/reeve-backup >> {{REEVE_HOME}}/logs/backup.log 2>&1
