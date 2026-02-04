@@ -88,11 +88,17 @@ When making changes to the codebase, keep documentation in sync:
 
 | File | Purpose | Sync With |
 |------|---------|-----------|
-| `README.md` | Public-facing overview, quick start | `docs/index.md` (shared content) |
-| `docs/index.md` | Full documentation homepage | `README.md` (shared content) |
+| `README.md` | **Teaser** - brief intro, links to full docs | Links only, no repeated content |
+| `docs/index.md` | Full documentation homepage | Canonical source for detailed content |
 | `docs/architecture/*.md` | Technical design docs | Code changes in relevant areas |
 | `docs/roadmap/*.md` | Implementation phases | Progress updates |
 | `CLAUDE.md` | AI assistant context | Implementation status, file references |
+
+### Documentation Style Guidelines
+- **Minimal redundancy**: Don't repeat content across files. Use references/links instead.
+- **README as teaser**: README should make users aware of key concepts and link to full docs. Keep descriptions to 1-2 sentences max.
+- **docs/ as canonical source**: Detailed explanations belong in `docs/`, not README.
+- **Links over content**: Prefer `[Learn more](url)` over duplicating paragraphs.
 
 **Note:** `docs/IDEAS.md` is exploratory and doesn't need to match implementation.
 

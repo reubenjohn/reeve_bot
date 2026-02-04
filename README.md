@@ -37,12 +37,7 @@ Reeve acts as a **high-fidelity proxy** between you and the world:
 Unlike "black box" agents with hidden state, Reeve's entire mind is visible in **plain Markdown files**. You can literally open its brain, read it, and edit it. [Learn more](https://reubenjohn.github.io/reeve-bot/#4-transparent-personalization-the-glass-box-principle)
 
 ### The Desk (Dual-Repo Architecture)
-Reeve uses a **separate Git repository** for your personal context - your Goals, Responsibilities, and Preferences. This "Desk" is the shared workspace between you and Reeve, completely independent from the engine code.
-
-- **Why separate?** Your personal data stays yours. Update Reeve without touching your context. Roll back mistakes with `git revert`.
-- **Get started:** Clone the [example Desk](https://github.com/reubenjohn/reeve-desk) and customize it.
-
-[Learn more](https://reubenjohn.github.io/reeve-bot/#1-the-desk-a-collaborative-workspace-the-library)
+Your personal context lives in a **separate Git repository** ([example Desk](https://github.com/reubenjohn/reeve-desk)) - completely independent from the engine. [Learn more](https://reubenjohn.github.io/reeve-bot/#1-the-desk-a-collaborative-workspace-the-library)
 
 ## Use Cases
 
