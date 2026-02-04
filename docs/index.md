@@ -56,7 +56,7 @@ Reeve acts as a **Productivity Coach and Task Manager**, but one that is deeply 
 |---|---------|-------|
 | **Paradigm** | Custom runtime | Orchestrator wrapping specialized CLIs ([Claude Code](https://claude.com/claude-code), [Goose](https://github.com/square/goose)) |
 | **Session** | Continuous context | Isolated per wake-up ([research-backed](https://github.com/reubenjohn/agentic-ide-power-user#session-hygiene)) |
-| **Memory** | Markdown files, in-session read/write during continuous execution | Git-versioned [Desk](https://github.com/reubenjohn/reeve_desk_template) (Goals/, Diary/, Preferences/), read-at-start/write-at-end |
+| **Memory** | Markdown files, in-session read/write during continuous execution | Git-versioned [Desk](https://github.com/reubenjohn/reeve-desk) (Goals/, Diary/, Preferences/), read-at-start/write-at-end |
 | **Observability** | Hidden state (debug via logs) | [**Glass Box**](OpenClaw_COMPARISON.md#safety-via-observability-the-glass-box): inspect & edit the agent's brain in real-time |
 | **Rollback** | Filesystem writes (no undo) | Git-versioned Desk = "Undo Button" for agentic mistakes |
 | **Extensibility** | WebSocket Gateway + plugins | [MCP + HTTP API + Skills](OpenClaw_COMPARISON.md#5-extensibility-integration), optional C.O.R.E. graph memory |
@@ -97,7 +97,7 @@ Reeve's intelligence is not magic; it is a structured system of transparency, rh
 
 ### 1. The Desk: A Collaborative Workspace (The Library)
 
-At the center of Reeve's mind is **"The Desk"**—a local Git repository of Markdown files ([template](https://github.com/reubenjohn/reeve_desk_template), [example desk](https://github.com/reubenjohn/reeve-desk)). This is not just storage; it is a shared whiteboard between the User, Reeve, and its Sub-Agents.
+At the center of Reeve's mind is **"The Desk"**—a local Git repository of Markdown files ([example desk](https://github.com/reubenjohn/reeve-desk)). This is not just storage; it is a shared whiteboard between the User, Reeve, and its Sub-Agents.
 
 * **The Folder Structure** (hierarchical context, [progressive disclosure](https://github.com/reubenjohn/agentic-ide-power-user#progressive-disclosure)):
 * `Goals/`: The North Star. Contains `Goals.md` and other optional markdown files defining additional high-level objectives (e.g., `Financial_Freedom.md`, `Marathon_Training.md`).

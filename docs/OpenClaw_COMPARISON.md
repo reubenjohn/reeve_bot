@@ -108,7 +108,7 @@ A SQLite-backed scheduler with priority-based execution:
 **Design Challenge:** Context drift in long sessions (mitigated via compaction and summarization)
 
 #### Reeve (with [reeve_desk](https://github.com/reubenjohn/reeve-desk))
-- Separate Git repository holding user context ([template](https://github.com/reubenjohn/reeve_desk_template))
+- Separate Git repository holding user context ([example](https://github.com/reubenjohn/reeve-desk))
 - Agent reads files **at session start**, writes updates **before session exit**
 - **Structured folders:** (hierarchical [progressive disclosure](https://github.com/reubenjohn/agentic-ide-power-user))
   - `Goals/`: Long-term objectives with success criteria
