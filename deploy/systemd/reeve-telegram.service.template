@@ -32,7 +32,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths={{REEVE_HOME}} /home/{{USER}}/.cache/uv
+ReadWritePaths={{REEVE_HOME}} /home/{{USER}}/.cache/uv /home/{{USER}}/.hapi /home/{{USER}}/.claude
 
 [Install]
 WantedBy=multi-user.target

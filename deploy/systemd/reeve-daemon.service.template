@@ -14,6 +14,9 @@ ExecStart={{UV_PATH}} run python -m reeve.pulse
 
 # Environment
 EnvironmentFile={{REEVE_BOT_PATH}}/.env
+# PATH must include node (for hapi) and claude CLI locations
+# NOTE: Adjust the nvm path for your node version
+Environment="PATH=/home/{{USER}}/.local/bin:/home/{{USER}}/.nvm/versions/node/v18.20.7/bin:/usr/local/bin:/usr/bin:/bin"
 
 # Restart policy
 Restart=always
@@ -31,11 +34,11 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths={{REEVE_HOME}} /home/{{USER}}/.cache/uv
+ReadWritePaths={{REEVE_HOME}} /home/{{USER}}/.cache/uv /home/{{USER}}/.hapi /home/{{USER}}/.claude
 
-# Resource limits
-MemoryMax=512M
-CPUQuota=50%
+# Resource limits (Claude sessions need significant memory)
+MemoryMax=2G
+CPUQuota=100%
 
 [Install]
 WantedBy=multi-user.target
