@@ -87,6 +87,25 @@ class PulseStatus(str, Enum):
 - **Processing state**: Prevents duplicate execution (idempotency)
 - **Failed vs Cancelled**: Failed = retry possible, Cancelled = intentional stop
 
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#4f8fba', 'primaryTextColor': '#fff', 'primaryBorderColor': '#3a7ca5', 'lineColor': '#5c9dc4', 'secondaryColor': '#7eb8da', 'tertiaryColor': '#e8f4f8'}}}%%
+flowchart TD
+    create(["schedule_pulse()"]) --> pending["PENDING"]
+    pending --> |"Daemon detects due pulse"| processing
+    processing["PROCESSING"]
+    processing --> |"Executor runs"| result{Result?}
+
+    result --> |Success| completed["COMPLETED"]
+    result --> |Failure| failed["FAILED"]
+
+    failed --> retry{"retry_count < max?"}
+    retry --> |Yes| new_pending["New PENDING<br/>(exponential backoff)"]
+    retry --> |No| remains["Remains FAILED"]
+
+    cancel(["cancel_pulse()"]) -.-> |"At any time"| cancelled["CANCELLED"]
+    pending -.-> cancelled
+```
+
 ## Database Schema
 
 ### Pulse Model

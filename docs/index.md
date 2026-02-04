@@ -56,10 +56,11 @@ See [Roadmap Index](roadmap/index.md) for the full implementation guide.
 ### System Overview
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#4f8fba', 'primaryTextColor': '#fff', 'primaryBorderColor': '#3a7ca5', 'lineColor': '#5c9dc4', 'secondaryColor': '#7eb8da', 'tertiaryColor': '#e8f4f8'}}}%%
 flowchart TB
     subgraph events["External Events (configurable)"]
         direction LR
-        telegram_listener["Telegram"] ~~~ email_listener["Email (future)"] 
+        telegram_listener["Telegram"] ~~~ email_listener["Email (future)"]
         webhooks["Webhooks (future)"] ~~~ more_events["..."]
     end
 
@@ -93,27 +94,6 @@ flowchart TB
 
     %% Self-scheduling loop
     pulse_mcp -- "schedule_pulse()" --> queue
-```
-
-### Pulse Lifecycle
-
-```mermaid
-%%{init: {'theme': 'neutral'}}%%
-flowchart TD
-    create(["schedule_pulse()"]) --> pending["PENDING"]
-    pending --> |"Daemon scheduler_loop()<br/>detects due pulse"| processing
-    processing["PROCESSING<br/><small>mark_processing()</small>"]
-    processing --> |"PulseExecutor.execute()"| result{Result?}
-
-    result --> |Success| completed["COMPLETED"]
-    result --> |Failure| failed["FAILED"]
-
-    failed --> retry{"retry_count<br/>< max_retries?"}
-    retry --> |Yes| new_pending["New PENDING pulse<br/><small>(exponential backoff)</small>"]
-    retry --> |No| remains["Remains FAILED<br/><small>(manual intervention)</small>"]
-
-    cancel(["cancel_pulse()"]) -.-> |"At any time"| cancelled["CANCELLED"]
-    pending -.-> cancelled
 ```
 
 ---
