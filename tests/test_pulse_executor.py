@@ -428,9 +428,7 @@ async def test_session_id_extraction_with_prefix_text(executor, mock_desk):
         "Starting HAPI hub in background...\n"
         "HAPI hub started\n"
     )
-    json_output = json.dumps(
-        {"session_id": "abc-123-def", "result": "Done", "type": "result"}
-    )
+    json_output = json.dumps({"session_id": "abc-123-def", "result": "Done", "type": "result"})
     full_output = prefix_text + json_output
 
     mock_process = AsyncMock()
