@@ -96,9 +96,17 @@ When making changes to the codebase, keep documentation in sync:
 
 ### Documentation Style Guidelines
 - **Minimal redundancy**: Don't repeat content across files. Use references/links instead.
-- **README as teaser**: README should make users aware of key concepts and link to full docs. Keep descriptions to 1-2 sentences max.
+- **README as engaging teaser**: Spark curiosity by hinting at *why it matters*, not just what it is. Keep users interested and engaged.
+  - Pattern: "Brief description. This is important/core because X. [Learn more](url)"
+  - Goal: Make the reader want to click "Learn more"
 - **docs/ as canonical source**: Detailed explanations belong in `docs/`, not README.
 - **Links over content**: Prefer `[Learn more](url)` over duplicating paragraphs.
+
+**Example teaser (good):**
+> Your context lives in a **separate Git repo**. This separation is a core design philosophy that enables data ownership and rollback. [Learn more](url)
+
+**Not (too much detail for README):**
+> Your context lives in a separate repo with Goals/, Responsibilities/, Preferences/. You can update Reeve without touching your context. Roll back mistakes with git revert...
 
 **Note:** `docs/IDEAS.md` is exploratory and doesn't need to match implementation.
 
