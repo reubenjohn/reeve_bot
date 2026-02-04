@@ -109,4 +109,4 @@ Before diving in, consider the [strategic questions](https://reubenjohn.github.i
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+AGPL-3.0 License - see [LICENSE](LICENSE) for details.
