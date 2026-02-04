@@ -111,9 +111,49 @@ export PULSE_API_TOKEN=test-token
 uv run python -m reeve.pulse
 ```
 
-### Phase 7+: Future Demos
+### Phase 7: Telegram Integration
+```bash
+uv run python demos/phase7_telegram_demo.py
+```
 
-Demo scripts for Phases 7-8 will be created as those phases are implemented.
+Demonstrates:
+- Mock Telegram API server (getMe, getUpdates endpoints)
+- Mock Pulse API server (POST /api/pulse/schedule)
+- Incoming message simulation (Update JSON format)
+- Listener polling flow (long polling with offset)
+- Pulse triggering via HTTP API (with auth, priority, tags)
+- Offset persistence (atomic write to disk)
+
+**Key technical details:**
+- Long polling (100s timeout) for efficiency
+- Chat ID filtering (only authorized user)
+- Priority: `CRITICAL` for user messages
+- Source tracking: `telegram`
+- Tags: `["telegram", "user_message"]`
+- Offset file: `~/.reeve/telegram_offset.txt`
+- Exponential backoff on errors (up to 5 minutes)
+- Graceful shutdown via SIGTERM/SIGINT
+
+**Real-world flow:**
+```
+User sends message → Telegram API → Listener polls → Filters by chat_id →
+Builds prompt → POSTs to Pulse API → Pulse created → Reeve wakes up
+```
+
+**To run with real Telegram:**
+1. Create bot via @BotFather
+2. Get your chat ID (send message to bot, check `/getUpdates`)
+3. Configure environment:
+   ```bash
+   export TELEGRAM_BOT_TOKEN=your_bot_token
+   export TELEGRAM_CHAT_ID=your_chat_id
+   export PULSE_API_TOKEN=your_api_token
+   ```
+4. Run listener: `uv run python -m reeve.integrations.telegram`
+
+### Phase 8: Future Demos
+
+Demo scripts for Phase 8 (Production Deployment) will be created as that phase is implemented.
 
 ## Running All Demos
 
@@ -137,6 +177,9 @@ done
 # Phase 6 (requires daemon running in another terminal)
 # Start daemon: export PULSE_API_TOKEN=test-token && uv run python -m reeve.pulse
 # Then run: export PULSE_API_TOKEN=test-token && uv run python demos/phase6_api_demo.py
+
+# Phase 7 (mock mode, no daemon or Telegram credentials required)
+uv run python demos/phase7_telegram_demo.py
 ```
 
 ## Demo Data Cleanup
