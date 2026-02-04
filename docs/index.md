@@ -55,107 +55,65 @@ See [Roadmap Index](roadmap/index.md) for the full implementation guide.
 
 ### System Overview
 
+```mermaid
+flowchart TB
+    subgraph ecosystem["Reeve Ecosystem"]
+        reeve["Reeve<br/>(e.g. Claude Code)"]
+        pulse_mcp["Pulse Queue<br/>MCP Server"]
+        notifier["Notifier<br/>(e.g. Telegram)"]
+        telegram_mcp["Telegram<br/>Notifier MCP"]
+
+        pulse_mcp -- "MCP stdio" --> reeve
+        reeve -- "schedule_pulse()" --> pulse_mcp
+        telegram_mcp -- "MCP stdio" --> notifier
+    end
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                         Reeve Ecosystem                     │
-│                                                             │
-│  ┌──────────────┐                    ┌──────────────┐      │
-│  │   Reeve      │◄──── MCP stdio ────┤ Pulse Queue  │      │
-│  │ (e.g. Claude Code)│               │  MCP Server  │      │
-│  └──────┬───────┘                    └──────┬───────┘      │
-│         │                                   │              │
-│         │ Calls schedule_pulse()            │              │
-│         │                                   ▼              │
-│  ┌──────▼───────┐                    ┌─────────────┐      │
-│  │              │◄──── MCP stdio ────┤  Telegram   │      │
-│  │  Notifier    │                    │ Notifier MCP│      │
-│  │e.g. Telegram │                    └─────────────┘      │
-│  └──────────────┘                                         │
-│                                                            │
-└────────────────────────────────────────────────────────────┘
 
-┌─────────────────────────────────────────────────────────────┐
-│                      Pulse Daemon Process                    │
-│                                                             │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │  Scheduler   │  │   HTTP API   │  │  Executor    │     │
-│  │   Loop       │  │  (FastAPI)   │  │  (Hapi)      │     │
-│  │              │  │              │  │              │     │
-│  │  Every 1s:   │  │  POST /pulse │  │  Launches    │     │
-│  │  - Get due   │  │  GET /status │  │  Hapi        │     │
-│  │  - Execute   │  │  GET /health │  │  sessions    │     │
-│  └──────┬───────┘  └──────┬───────┘  └──────▲───────┘     │
-│         │                 │                  │             │
-│         │                 │                  │             │
-│         └─────────────────┴──────────────────┘             │
-│                           ▼                                │
-│                    ┌──────────────┐                        │
-│                    │ PulseQueue   │                        │
-│                    │ (Business    │                        │
-│                    │  Logic)      │                        │
-│                    └──────┬───────┘                        │
-│                           ▼                                │
-│                    ┌──────────────┐                        │
-│                    │  SQLite DB   │                        │
-│                    │  (pulses)    │                        │
-│                    └──────────────┘                        │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph daemon["Pulse Daemon Process"]
+        scheduler["Scheduler Loop<br/>─────────<br/>Every 1s:<br/>• Get due<br/>• Execute"]
+        api["HTTP API<br/>(FastAPI)<br/>─────────<br/>POST /pulse<br/>GET /status<br/>GET /health"]
+        executor["Executor<br/>(Hapi)<br/>─────────<br/>Launches<br/>Hapi sessions"]
+        queue["PulseQueue<br/>(Business Logic)"]
+        db[("SQLite DB<br/>(pulses)")]
 
-┌─────────────────────────────────────────────────────────────┐
-│                    External Integrations                     │
-│                                                             │
-│  ┌──────────────┐     ┌──────────────┐     ┌─────────────┐ │
-│  │  Telegram    │     │    Email     │     │   Other     │ │
-│  │  Listener    │     │   Listener   │     │  Webhooks   │ │
-│  │              │     │   (future)   │     │  (future)   │ │
-│  └──────┬───────┘     └──────┬───────┘     └──────┬──────┘ │
-│         │                    │                     │        │
-│         └────────────────────┴─────────────────────┘        │
-│                              │                              │
-│                    POST to HTTP API                         │
-│                              │                              │
-│                              ▼                              │
-│                    Pulse Daemon (above)                     │
-└─────────────────────────────────────────────────────────────┘
+        scheduler --> queue
+        api --> queue
+        queue --> executor
+        queue --> db
+    end
+
+    subgraph integrations["External Integrations"]
+        telegram_listener["Telegram<br/>Listener"]
+        email_listener["Email Listener<br/>(future)"]
+        webhooks["Other Webhooks<br/>(future)"]
+    end
+
+    telegram_listener -- "POST to HTTP API" --> api
+    email_listener -- "POST to HTTP API" --> api
+    webhooks -- "POST to HTTP API" --> api
 ```
 
 ### Pulse Lifecycle
 
-```
-                    ┌─────────────┐
-                    │   PENDING   │ ◄─── schedule_pulse() creates pulse
-                    └──────┬──────┘
-                           │
-           Daemon scheduler_loop() detects due pulse
-                           │
-                           ▼
-                    ┌─────────────┐
-                    │ PROCESSING  │ ◄─── mark_processing()
-                    └──────┬──────┘
-                           │
-                   PulseExecutor.execute()
-                           │
-                ┌──────────┴──────────┐
-                │                     │
-           Success                 Failure
-                │                     │
-                ▼                     ▼
-        ┌─────────────┐       ┌─────────────┐
-        │  COMPLETED  │       │   FAILED    │
-        └─────────────┘       └──────┬──────┘
-                                     │
-                              retry_count < max_retries?
-                                     │
-                        ┌────────────┴────────────┐
-                        │                         │
-                       Yes                       No
-                        │                         │
-                        ▼                         ▼
-            Create new PENDING pulse      Remains FAILED
-            (exponential backoff)         (manual intervention)
+```mermaid
+%%{init: {'theme': 'neutral'}}%%
+flowchart TD
+    create(["schedule_pulse()"]) --> pending["PENDING"]
+    pending --> |"Daemon scheduler_loop()<br/>detects due pulse"| processing
+    processing["PROCESSING<br/><small>mark_processing()</small>"]
+    processing --> |"PulseExecutor.execute()"| result{Result?}
 
-        User can call cancel_pulse() at any time:
-        PENDING → CANCELLED
+    result --> |Success| completed["COMPLETED"]
+    result --> |Failure| failed["FAILED"]
+
+    failed --> retry{"retry_count<br/>< max_retries?"}
+    retry --> |Yes| new_pending["New PENDING pulse<br/><small>(exponential backoff)</small>"]
+    retry --> |No| remains["Remains FAILED<br/><small>(manual intervention)</small>"]
+
+    cancel(["cancel_pulse()"]) -.-> |"At any time"| cancelled["CANCELLED"]
+    pending -.-> cancelled
 ```
 
 ---
