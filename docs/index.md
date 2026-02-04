@@ -173,9 +173,9 @@ graph LR
     P7 --> P8[8 Deploy ⏳]
     P8 --> MVP[🎯 MVP]
 
-    classDef done fill:#90EE90
-    classDef wip fill:#FFD700
-    classDef goal fill:#87CEEB
+    classDef done fill:#2e7d32,stroke:#1b5e20,color:#fff
+    classDef wip fill:#f9a825,stroke:#f57f17,color:#000
+    classDef goal fill:#1976d2,stroke:#0d47a1,color:#fff
     class P1,P2,P3,P4,P5,P6,P7 done
     class P8 wip
     class MVP goal
