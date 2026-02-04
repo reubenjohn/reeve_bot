@@ -5,12 +5,12 @@ Tests for debug tools: TimingBreakdown and trigger_pulse.
 import asyncio
 import logging
 import time
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from reeve.debug.timing import TimingBreakdown, timed_section
-from reeve.pulse.executor import PulseExecutor, ExecutionResult
+from reeve.pulse.executor import ExecutionResult, PulseExecutor
 
 
 class TestTimingBreakdown:
