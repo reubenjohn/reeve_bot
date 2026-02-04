@@ -243,6 +243,8 @@ pulse = Pulse(
 
 ## Git Workflow
 
+- **Avoid `-C` flag**: Don't use `git -C <path>` as it triggers unnecessary permission dialogs. Use absolute paths or run commands from the repo directory instead.
+
 ```bash
 # Phase commits should be atomic
 git add -A
