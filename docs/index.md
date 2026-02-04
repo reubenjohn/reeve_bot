@@ -6,7 +6,157 @@
 
 > A proactive AI assistant that operates on a "Push" paradigm - anticipating needs and taking action rather than waiting for prompts.
 
-**Quick Links:** [GitHub](https://github.com/reubenjohn/reeve-bot) | [Installation](#quick-start) | [Architecture](01_PULSE_QUEUE_DESIGN.md) | [MCP Setup](MCP_SETUP.md) | [Ideas & Future](IDEAS.md) | [Discussions](https://github.com/reubenjohn/reeve-bot/discussions) | [Contributing](https://github.com/reubenjohn/reeve-bot/blob/master/CONTRIBUTING.md)
+**Quick Links:** [GitHub](https://github.com/reubenjohn/reeve-bot) | [Installation](#quick-start) | [Architecture](architecture/index.md) | [Roadmap](roadmap/index.md) | [MCP Setup](MCP_SETUP.md) | [Ideas & Future](IDEAS.md) | [Discussions](https://github.com/reubenjohn/reeve-bot/discussions) | [Contributing](https://github.com/reubenjohn/reeve-bot/blob/master/CONTRIBUTING.md)
+
+---
+
+## Documentation Overview
+
+### Architecture
+
+Technical documentation for the pulse queue system:
+
+| Document | Description |
+|----------|-------------|
+| [Architecture Index](architecture/index.md) | Overview of all architecture docs |
+| [Project Structure](architecture/project-structure.md) | Directory layout and file organization |
+| [Pulse Queue Design](architecture/pulse-queue.md) | Database schema, models, queue logic |
+| [MCP Integration](architecture/mcp-integration.md) | MCP server specifications |
+| [Daemon & API](architecture/daemon-api.md) | Daemon orchestration and HTTP API |
+| [Deployment](architecture/deployment.md) | Production deployment guide |
+
+### Implementation Roadmap
+
+Phase-by-phase implementation guide:
+
+| Phase | Document | Status |
+|-------|----------|--------|
+| 1 | [Foundation](roadmap/phase-1-foundation.md) | Completed |
+| 2 | [Queue Management](roadmap/phase-2-queue.md) | Completed |
+| 3 | [MCP Servers](roadmap/phase-3-mcp.md) | Completed |
+| 4 | [Pulse Executor](roadmap/phase-4-executor.md) | Completed |
+| 5 | [Daemon](roadmap/phase-5-daemon.md) | Completed |
+| 6 | [HTTP API](roadmap/phase-6-api.md) | Completed |
+| 7 | [Telegram Integration](roadmap/phase-7-telegram.md) | Completed |
+| 8 | [Deployment](roadmap/phase-8-deployment.md) | Pending |
+| 9 | [Testing & Polish](roadmap/phase-9-testing.md) | Pending |
+
+See [Roadmap Index](roadmap/index.md) for the full implementation guide.
+
+### Other Resources
+
+- [MCP Setup Guide](MCP_SETUP.md) - Configuring MCP servers for Claude Code
+- [OpenClaw Comparison](OpenClaw_COMPARISON.md) - Architectural comparison with OpenClaw
+- [Ideas & Future](IDEAS.md) - Exploratory ideas and future concepts
+
+---
+
+## Architecture Diagrams
+
+### System Overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                         Reeve Ecosystem                     │
+│                                                             │
+│  ┌──────────────┐                    ┌──────────────┐      │
+│  │   Reeve      │◄──── MCP stdio ────┤ Pulse Queue  │      │
+│  │ (Claude Code)│                    │  MCP Server  │      │
+│  └──────┬───────┘                    └──────┬───────┘      │
+│         │                                   │              │
+│         │ Calls schedule_pulse()            │              │
+│         │                                   ▼              │
+│  ┌──────▼───────┐                    ┌─────────────┐      │
+│  │  Telegram    │◄──── MCP stdio ────┤  Telegram   │      │
+│  │  Notifier    │                    │ Notifier MCP│      │
+│  │              │                    └─────────────┘      │
+│  └──────────────┘                                         │
+│                                                            │
+└────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│                      Pulse Daemon Process                    │
+│                                                             │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
+│  │  Scheduler   │  │   HTTP API   │  │  Executor    │     │
+│  │   Loop       │  │  (FastAPI)   │  │  (Hapi)      │     │
+│  │              │  │              │  │              │     │
+│  │  Every 1s:   │  │  POST /pulse │  │  Launches    │     │
+│  │  - Get due   │  │  GET /status │  │  Hapi        │     │
+│  │  - Execute   │  │  GET /health │  │  sessions    │     │
+│  └──────┬───────┘  └──────┬───────┘  └──────▲───────┘     │
+│         │                 │                  │             │
+│         │                 │                  │             │
+│         └─────────────────┴──────────────────┘             │
+│                           ▼                                │
+│                    ┌──────────────┐                        │
+│                    │ PulseQueue   │                        │
+│                    │ (Business    │                        │
+│                    │  Logic)      │                        │
+│                    └──────┬───────┘                        │
+│                           ▼                                │
+│                    ┌──────────────┐                        │
+│                    │  SQLite DB   │                        │
+│                    │  (pulses)    │                        │
+│                    └──────────────┘                        │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│                    External Integrations                     │
+│                                                             │
+│  ┌──────────────┐     ┌──────────────┐     ┌─────────────┐ │
+│  │  Telegram    │     │    Email     │     │   Other     │ │
+│  │  Listener    │     │   Listener   │     │  Webhooks   │ │
+│  │              │     │   (future)   │     │  (future)   │ │
+│  └──────┬───────┘     └──────┬───────┘     └──────┬──────┘ │
+│         │                    │                     │        │
+│         └────────────────────┴─────────────────────┘        │
+│                              │                              │
+│                    POST to HTTP API                         │
+│                              │                              │
+│                              ▼                              │
+│                    Pulse Daemon (above)                     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Pulse Lifecycle
+
+```
+                    ┌─────────────┐
+                    │   PENDING   │ ◄─── schedule_pulse() creates pulse
+                    └──────┬──────┘
+                           │
+           Daemon scheduler_loop() detects due pulse
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │ PROCESSING  │ ◄─── mark_processing()
+                    └──────┬──────┘
+                           │
+                   PulseExecutor.execute()
+                           │
+                ┌──────────┴──────────┐
+                │                     │
+           Success                 Failure
+                │                     │
+                ▼                     ▼
+        ┌─────────────┐       ┌─────────────┐
+        │  COMPLETED  │       │   FAILED    │
+        └─────────────┘       └──────┬──────┘
+                                     │
+                              retry_count < max_retries?
+                                     │
+                        ┌────────────┴────────────┐
+                        │                         │
+                       Yes                       No
+                        │                         │
+                        ▼                         ▼
+            Create new PENDING pulse      Remains FAILED
+            (exponential backoff)         (manual intervention)
+
+        User can call cancel_pulse() at any time:
+        PENDING → CANCELLED
+```
 
 ---
 
@@ -74,19 +224,19 @@ Reeve acts as a **Productivity Coach and Task Manager**, but one that is deeply 
 ### The Snowboarding Trip (Social Secretary)
 **Context:** Reeve knows Goal: *"Snowboard 5+ times this season"* + user's friends ("Shred Crew").
 **Trigger:** Weather agent detects 18" forecast at Mammoth.
-**Action:** Sends Telegram alert: *"🔔 Powder Alert: 18 inches forecast for Mammoth this weekend. Shall I check if the Shred Crew is free?"*
+**Action:** Sends Telegram alert: *"Powder Alert: 18 inches forecast for Mammoth this weekend. Shall I check if the Shred Crew is free?"*
 **Outcome:** Upon approval, messages WhatsApp group, parses replies, summarizes headcount, offers to draft Airbnb booking. **Zero mental load.**
 
 ### The Deep Work Defender (Gatekeeper)
 **Context:** Calendar filling with 30-min meetings, no coding time.
-**Intervention:** Sunday pulse proactively blocks 9 AM–1 PM Monday as "Deep Work."
+**Intervention:** Sunday pulse proactively blocks 9 AM-1 PM Monday as "Deep Work."
 **Gatekeeper Logic:**
-- 10:30 AM: Family group chat banter → 🔕 Silenced
-- 11:00 AM: Wife texts *"Emergency, car won't start"* → 🚨 **Critical**, breaks Deep Work lock, pushes alert immediately
+- 10:30 AM: Family group chat banter → Silenced
+- 11:00 AM: Wife texts *"Emergency, car won't start"* → **Critical**, breaks Deep Work lock, pushes alert immediately
 
 ### The Adaptive Coach (Burnout Prevention)
 **Pattern:** Missed "Daily Spanish" 3 days + curt message replies = burnout risk.
-**Response:** *"🔔 You've been grinding hard. I've cleared non-essentials for tonight (moved Spanish and Budget Review to weekend). Why not order takeout and disconnect?"*
+**Response:** *"You've been grinding hard. I've cleared non-essentials for tonight (moved Spanish and Budget Review to weekend). Why not order takeout and disconnect?"*
 **Adaptation:** Shifts from Taskmaster → Supporter, prioritizing mental health over to-do list.
 
 ---
@@ -125,7 +275,7 @@ Reeve rejects the "Always On" model (which breeds distraction) and the "On Deman
 
 
 * **The Queue System (Noise Control):**
-* **Pulse Queue:** High-urgency events (Alarms, 🚨 Critical Emails, messages from the user, wife, etc). These wake Reeve up *immediately*.
+* **Pulse Queue:** High-urgency events (Alarms, Critical Emails, messages from the user, wife, etc). These wake Reeve up *immediately*.
 * **Activity Queue:** Low-urgency events (Newsletters, server logs). These sit silently. When Reeve next wakes up, it sees a "Ticker" (e.g., *"4 new items in Activity Queue"*) and decides whether to process them.
 
 
@@ -235,7 +385,7 @@ Since Hapi/Claude Code are reactive, `reeve-bot` introduces an external "Heartbe
 * **The Problem:** Hapi's native push notifications are empty ("New output").
 * **The Solution:** A dedicated `send_user_notification` tool.
 * Reeve bypasses Hapi's native alerts for content.
-* It sends a rich message via **Telegram**: *"🔔 Found a slot for your Deep Work."*
+* It sends a rich message via **Telegram**: *"Found a slot for your Deep Work."*
 * **The Deep Link:** The message includes a URL to the specific Hapi session, allowing the user to click and immediately jump into the relevant context/chat thread on their device.
 
 
@@ -262,9 +412,9 @@ Since Hapi/Claude Code are reactive, `reeve-bot` introduces an external "Heartbe
 
 * **Custom notification priorities:**
 The notification tool has an additional priority to control user attention:
-  * 🔕 **Silent:** Logged to history but triggers *no notification* (e.g., "Updated the library," "Sub-agent finished research").
-  * 🔔 **Normal:** Standard push notification to Telegram.
-  * 🚨 **Critical:** High-priority alert that overrides DND settings (via the Wrapper's API privileges).
+  * **Silent:** Logged to history but triggers *no notification* (e.g., "Updated the library," "Sub-agent finished research").
+  * **Normal:** Standard push notification to Telegram.
+  * **Critical:** High-priority alert that overrides DND settings (via the Wrapper's API privileges).
 
 
 * **Full "World" Proxy (WhatsApp/Email):**
@@ -295,7 +445,7 @@ export PULSE_API_TOKEN=your-secret-token
 uv run python -m reeve.pulse
 ```
 
-For full installation and configuration details, see the [Implementation Roadmap](IMPLEMENTATION_ROADMAP.md).
+For full installation and configuration details, see the [Implementation Roadmap](roadmap/index.md).
 
 ---
 
