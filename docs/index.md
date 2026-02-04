@@ -173,16 +173,6 @@ graph LR
     P7 --> P8[8 Deploy ⏳]
     P8 --> MVP[🎯 MVP]
 
-    click P1 "roadmap/phase-1-foundation/"
-    click P2 "roadmap/phase-2-queue/"
-    click P3 "roadmap/phase-3-mcp/"
-    click P4 "roadmap/phase-4-executor/"
-    click P5 "roadmap/phase-5-daemon/"
-    click P6 "roadmap/phase-6-api/"
-    click P7 "roadmap/phase-7-telegram/"
-    click P8 "roadmap/phase-8-deployment/"
-    click MVP "roadmap/"
-
     classDef done fill:#90EE90
     classDef wip fill:#FFD700
     classDef goal fill:#87CEEB
@@ -191,7 +181,7 @@ graph LR
     class MVP goal
 ```
 
-See [Implementation Roadmap](IMPLEMENTATION_ROADMAP.md) for detailed phase specifications.
+See [Implementation Roadmap](IMPLEMENTATION_ROADMAP.md) for details.
 
 ---
 
