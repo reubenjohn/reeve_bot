@@ -8,7 +8,7 @@
 
 > A proactive AI assistant that operates on a "Push" paradigm - anticipating needs and taking action rather than waiting for prompts.
 
-**[Full Documentation](https://reubenjohn.github.io/reeve-bot/)** | [Architecture](https://reubenjohn.github.io/reeve-bot/01_PULSE_QUEUE_DESIGN/) | [MCP Setup](https://reubenjohn.github.io/reeve-bot/MCP_SETUP/) | [Contributing](CONTRIBUTING.md)
+**[Full Documentation](https://reubenjohn.github.io/reeve-bot/)** | [Architecture](https://reubenjohn.github.io/reeve-bot/01_PULSE_QUEUE_DESIGN/) | [MCP Setup](https://reubenjohn.github.io/reeve-bot/MCP_SETUP/) | [Discussions](https://github.com/reubenjohn/reeve-bot/discussions) | [Contributing](CONTRIBUTING.md)
 
 ---
 
@@ -106,7 +106,7 @@ uv run python -m reeve.pulse
 
 Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-Before diving in, consider the [strategic questions](https://reubenjohn.github.io/reeve-bot/OpenClaw_COMPARISON/) facing the project - feedback on architectural trade-offs is especially valuable.
+Before diving in, consider the [strategic questions](https://reubenjohn.github.io/reeve-bot/OpenClaw_COMPARISON/) facing the project - feedback on architectural trade-offs is especially valuable. Join the [Discussions](https://github.com/reubenjohn/reeve-bot/discussions) to share ideas or ask questions.
 
 For exploratory ideas and concepts still in development, see [IDEAS.md](docs/IDEAS.md).
 

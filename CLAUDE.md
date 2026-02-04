@@ -518,6 +518,29 @@ All public methods must have docstrings with:
    - Log errors for debugging
    - Never expose internal stack traces to MCP calls
 
+## Documentation Responsibilities
+
+When making changes to the codebase, keep documentation in sync:
+
+### Key Documentation Files
+| File | Purpose | Sync With |
+|------|---------|-----------|
+| `README.md` | Public-facing overview, quick start, links | `docs/index.md` (shared content) |
+| `CONTRIBUTING.md` | Contributor guidelines | Referenced from both README and docs |
+| `docs/index.md` | Full documentation homepage (GitHub Pages) | `README.md` (shared content) |
+| `docs/*.md` | Detailed technical docs | Code changes in relevant areas |
+| `CLAUDE.md` | AI assistant context | Implementation status, file references |
+
+### Sync Rules
+1. **README.md ↔ docs/index.md**: These share overlapping content (Quick Links, badges, comparison table). When updating one, check if the other needs the same update.
+2. **External links**: Both files link to GitHub Discussions, Contributing, etc. Keep URLs consistent.
+3. **Feature additions**: When adding features, update relevant `docs/*.md` files and the "Current Status" section in `CLAUDE.md`.
+4. **File references**: When adding/removing files, update the "File References" section below.
+
+### What NOT to Sync
+- `CLAUDE.md` is internal context for AI assistants, not public docs
+- `docs/IDEAS.md` is exploratory and doesn't need to match implementation
+
 ## File References
 
 ### Documentation
