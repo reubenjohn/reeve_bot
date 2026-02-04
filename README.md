@@ -5,7 +5,6 @@
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://reubenjohn.github.io/reeve-bot/)
-[![Phase](https://img.shields.io/badge/phase-7%2F8%20complete-blue)](https://reubenjohn.github.io/reeve-bot/#project-status)
 
 > A proactive AI assistant that operates on a "Push" paradigm - anticipating needs and taking action rather than waiting for prompts.
 

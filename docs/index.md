@@ -61,15 +61,15 @@ See [Roadmap Index](roadmap/index.md) for the full implementation guide.
 │                                                             │
 │  ┌──────────────┐                    ┌──────────────┐      │
 │  │   Reeve      │◄──── MCP stdio ────┤ Pulse Queue  │      │
-│  │ (Claude Code)│                    │  MCP Server  │      │
+│  │ (e.g. Claude Code)│               │  MCP Server  │      │
 │  └──────┬───────┘                    └──────┬───────┘      │
 │         │                                   │              │
 │         │ Calls schedule_pulse()            │              │
 │         │                                   ▼              │
 │  ┌──────▼───────┐                    ┌─────────────┐      │
-│  │  Telegram    │◄──── MCP stdio ────┤  Telegram   │      │
+│  │              │◄──── MCP stdio ────┤  Telegram   │      │
 │  │  Notifier    │                    │ Notifier MCP│      │
-│  │              │                    └─────────────┘      │
+│  │e.g. Telegram │                    └─────────────┘      │
 │  └──────────────┘                                         │
 │                                                            │
 └────────────────────────────────────────────────────────────┘
@@ -157,26 +157,6 @@ See [Roadmap Index](roadmap/index.md) for the full implementation guide.
         User can call cancel_pulse() at any time:
         PENDING → CANCELLED
 ```
-
----
-
-## Project Status
-
-```mermaid
-graph LR
-    P1[1] --> P2[2] --> P3[3] --> P4[4] --> P5[5] --> P6[6] --> P7[7] --> P8[8] --> MVP[🎯]
-
-    classDef done fill:#2e7d32,stroke:#1b5e20,color:#fff
-    classDef wip fill:#f9a825,stroke:#f57f17,color:#000
-    classDef goal fill:#1976d2,stroke:#0d47a1,color:#fff
-    class P1,P2,P3,P4,P5,P6,P7 done
-    class P8 wip
-    class MVP goal
-```
-
-**Legend:** 1-Foundation, 2-Queue, 3-MCP, 4-Executor, 5-Daemon, 6-API, 7-Telegram, 8-Deploy
-
-See [Implementation Roadmap](IMPLEMENTATION_ROADMAP.md) for details.
 
 ---
 
