@@ -7,15 +7,20 @@ SQLAlchemy ORM models for the pulse queue system.
 from datetime import datetime, timezone
 from typing import List, Optional
 
-from sqlalchemy import JSON, Column, DateTime
+from sqlalchemy import DateTime
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import Index, Integer, String, Text, TypeDecorator
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.dialects.sqlite import JSON
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.sql import func
 
 from .enums import PulsePriority, PulseStatus
 
-Base = declarative_base()
+
+class Base(DeclarativeBase):
+    """Base class for all SQLAlchemy models."""
+
+    pass
 
 
 class TZDateTime(TypeDecorator):
@@ -65,10 +70,10 @@ class Pulse(Base):
     __tablename__ = "pulses"
 
     # Primary Key
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
     # Scheduling Information
-    scheduled_at = Column(
+    scheduled_at: Mapped[datetime] = mapped_column(
         TZDateTime,
         nullable=False,
         index=True,
@@ -76,14 +81,14 @@ class Pulse(Base):
     )
 
     # Execution Context
-    prompt = Column(
+    prompt: Mapped[str] = mapped_column(
         Text,
         nullable=False,
         comment="The instruction/context for Reeve when this pulse fires. "
         "This becomes the initial message in the Hapi session.",
     )
 
-    priority = Column(
+    priority: Mapped[PulsePriority] = mapped_column(
         SQLEnum(PulsePriority),
         nullable=False,
         default=PulsePriority.NORMAL,
@@ -92,14 +97,14 @@ class Pulse(Base):
     )
 
     # Session Continuity (Optional)
-    session_id = Column(
+    session_id: Mapped[Optional[str]] = mapped_column(
         String(500),
         nullable=True,
         comment="Optional Hapi session ID to resume existing context. "
         "If None, a new session is created.",
     )
 
-    sticky_notes = Column(
+    sticky_notes: Mapped[Optional[List[str]]] = mapped_column(
         JSON,
         nullable=True,
         comment="Optional list of reminder strings to inject into the prompt. "
@@ -107,7 +112,7 @@ class Pulse(Base):
     )
 
     # Execution State
-    status = Column(
+    status: Mapped[PulseStatus] = mapped_column(
         SQLEnum(PulseStatus),
         nullable=False,
         default=PulseStatus.PENDING,
@@ -116,33 +121,33 @@ class Pulse(Base):
     )
 
     # Execution Results (populated after execution)
-    executed_at = Column(
+    executed_at: Mapped[Optional[datetime]] = mapped_column(
         TZDateTime,
         nullable=True,
         comment="When this pulse actually executed (may differ from scheduled_at)",
     )
 
-    execution_duration_ms = Column(
+    execution_duration_ms: Mapped[Optional[int]] = mapped_column(
         Integer,
         nullable=True,
         comment="How long the Hapi session took to complete (milliseconds)",
     )
 
-    error_message = Column(
+    error_message: Mapped[Optional[str]] = mapped_column(
         Text,
         nullable=True,
         comment="Error message if status=FAILED. Used for debugging and retry logic.",
     )
 
     # Retry Logic
-    retry_count = Column(
+    retry_count: Mapped[int] = mapped_column(
         Integer,
         nullable=False,
         default=0,
         comment="Number of times this pulse has been retried after failure",
     )
 
-    max_retries = Column(
+    max_retries: Mapped[int] = mapped_column(
         Integer,
         nullable=False,
         default=3,
@@ -150,21 +155,21 @@ class Pulse(Base):
     )
 
     # Metadata
-    created_at = Column(
+    created_at: Mapped[datetime] = mapped_column(
         TZDateTime,
         nullable=False,
         server_default=func.now(),
         comment="When this pulse was created (for auditing)",
     )
 
-    created_by = Column(
+    created_by: Mapped[str] = mapped_column(
         String(100),
         nullable=False,
         default="system",
         comment="Who/what created this pulse. Examples: 'reeve', 'telegram_listener', 'user_cli'",
     )
 
-    tags = Column(
+    tags: Mapped[Optional[List[str]]] = mapped_column(
         JSON,
         nullable=True,
         comment="Optional tags for categorization/filtering. "

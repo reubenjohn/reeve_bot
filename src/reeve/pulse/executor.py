@@ -131,7 +131,10 @@ class PulseExecutor:
 
             stdout_str = stdout.decode("utf-8", errors="replace")
             stderr_str = stderr.decode("utf-8", errors="replace")
-            return_code = process.returncode if not timed_out else -1
+            # After communicate()/wait(), returncode is always set, but mypy doesn't know this
+            return_code = (
+                -1 if timed_out else (process.returncode if process.returncode is not None else -1)
+            )
 
             # Parse JSON output to extract session_id (if available)
             extracted_session_id = None

@@ -153,8 +153,9 @@ async def send_notification(
         # Auto-generate Hapi URL from session ID
         session_link_url = None
         try:
-            session_id = ctx.session_id
-            session_link_url = f"{HAPI_BASE_URL}/sessions/{session_id}"
+            session_id = getattr(ctx, "session_id", None)
+            if session_id:
+                session_link_url = f"{HAPI_BASE_URL}/sessions/{session_id}"
         except (RuntimeError, AttributeError):
             # Session ID not available - no link button
             pass
@@ -175,7 +176,7 @@ async def send_notification(
             reply_markup = {
                 "inline_keyboard": [[{"text": "View in Claude Code", "url": session_link_url}]]
             }
-            payload["reply_markup"] = reply_markup
+            payload["reply_markup"] = reply_markup  # type: ignore[assignment]
 
         async with httpx.AsyncClient() as client:
             response = await client.post(url, json=payload, timeout=10)

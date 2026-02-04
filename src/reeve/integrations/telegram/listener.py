@@ -30,7 +30,7 @@ import logging
 import os
 import signal
 from pathlib import Path
-from typing import Optional
+from typing import Any, Callable, Optional
 
 import aiohttp
 
@@ -158,6 +158,7 @@ class TelegramListener:
         url = f"https://api.telegram.org/bot{self.bot_token}/getMe"
 
         try:
+            assert self.telegram_session is not None
             async with self.telegram_session.get(url) as response:
                 data = await response.json()
 
@@ -212,7 +213,7 @@ class TelegramListener:
                             # Continue to next update even if one fails
 
                     # Save offset after successful batch
-                    if updates:
+                    if updates and self.last_update_id is not None:
                         self._save_offset(self.last_update_id)
                         self.logger.debug(f"Processed {len(updates)} updates")
 
@@ -233,7 +234,7 @@ class TelegramListener:
 
         self.logger.info("Polling loop stopped")
 
-    async def _get_updates(self) -> Optional[dict]:
+    async def _get_updates(self) -> Optional[dict[str, Any]]:
         """
         Poll Telegram Bot API for new updates.
 
@@ -270,6 +271,7 @@ class TelegramListener:
             params["offset"] = self.last_update_id
 
         try:
+            assert self.telegram_session is not None
             async with self.telegram_session.get(url, params=params) as response:
                 # Handle HTTP errors
                 if response.status == 401:
@@ -281,7 +283,8 @@ class TelegramListener:
                     return None
 
                 # Parse JSON response
-                return await response.json()
+                result: dict[str, Any] = await response.json()
+                return result
 
         except aiohttp.ClientError as e:
             self.logger.warning(f"Network error polling Telegram: {e}")
@@ -404,6 +407,7 @@ class TelegramListener:
         }
 
         try:
+            assert self.api_session is not None
             async with self.api_session.post(url, headers=headers, json=payload) as response:
                 # Handle authentication errors
                 if response.status == 401:
@@ -417,8 +421,9 @@ class TelegramListener:
                     return None
 
                 # Parse response
-                data = await response.json()
-                return data.get("pulse_id")
+                data: dict[str, Any] = await response.json()
+                pulse_id = data.get("pulse_id")
+                return int(pulse_id) if pulse_id is not None else None
 
         except aiohttp.ClientError as e:
             self.logger.error(f"Network error triggering pulse: {e}")
@@ -554,10 +559,14 @@ class TelegramListener:
         """
         loop = asyncio.get_event_loop()
 
+        def create_handler(s: signal.Signals) -> "Callable[[], None]":
+            def handler() -> None:
+                asyncio.create_task(self._handle_shutdown(s))
+
+            return handler
+
         for sig in (signal.SIGTERM, signal.SIGINT):
-            loop.add_signal_handler(
-                sig, lambda s=sig: asyncio.create_task(self._handle_shutdown(s))
-            )
+            loop.add_signal_handler(sig, create_handler(sig))
 
         self.logger.info("Signal handlers registered (SIGTERM, SIGINT)")
 

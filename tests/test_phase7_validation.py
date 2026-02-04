@@ -150,9 +150,7 @@ async def test_telegram_to_pulse_integration(pulse_queue, mock_api_url, mock_con
 
             # Verify tags
             expected_tags = ["telegram", "user_message"]
-            assert (
-                pulse.tags == expected_tags
-            ), f"Expected tags {expected_tags}, got {pulse.tags}"
+            assert pulse.tags == expected_tags, f"Expected tags {expected_tags}, got {pulse.tags}"
 
             # Verify status is pending
             assert (

@@ -179,7 +179,7 @@ async def schedule_pulse(
         session_id = None
         if resume_in_current_session:
             try:
-                session_id = ctx.session_id
+                session_id = getattr(ctx, "session_id", None)
             except (RuntimeError, AttributeError):
                 # Session ID not available - fall back to new session
                 pass

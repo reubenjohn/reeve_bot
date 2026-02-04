@@ -78,12 +78,12 @@ class PulseDaemon:
 
         try:
             # Build full prompt with sticky notes appended
-            full_prompt = self.executor.build_prompt(pulse.prompt, pulse.sticky_notes)
+            full_prompt = self.executor.build_prompt(pulse.prompt, pulse.sticky_notes)  # type: ignore[arg-type]
 
             # Execute via PulseExecutor
             result = await self.executor.execute(
                 prompt=full_prompt,
-                session_id=pulse.session_id,
+                session_id=pulse.session_id,  # type: ignore[arg-type]
                 working_dir=self.config.reeve_desk_path,
             )
 
@@ -91,7 +91,7 @@ class PulseDaemon:
             duration_ms = int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)
 
             # Mark as completed
-            await self.queue.mark_completed(pulse_id, duration_ms)
+            await self.queue.mark_completed(pulse_id, duration_ms)  # type: ignore[arg-type]
 
             self.logger.info(
                 f"Pulse {pulse_id} completed successfully in {duration_ms}ms "
@@ -104,7 +104,7 @@ class PulseDaemon:
 
             # Mark as failed (will auto-retry if retries remaining)
             retry_pulse_id = await self.queue.mark_failed(
-                pulse_id,
+                pulse_id,  # type: ignore[arg-type]
                 error_message=str(e),
                 should_retry=True,
             )
@@ -135,7 +135,7 @@ class PulseDaemon:
                 # Spawn execution task for each pulse
                 for pulse in pulses:
                     # Mark as processing (atomic, prevents duplicate execution)
-                    success = await self.queue.mark_processing(pulse.id)
+                    success = await self.queue.mark_processing(pulse.id)  # type: ignore[arg-type]
                     if not success:
                         # Pulse already processing or completed, skip
                         self.logger.warning(
@@ -222,9 +222,14 @@ class PulseDaemon:
         """
         loop = asyncio.get_event_loop()
 
+        def create_shutdown_task(s: signal.Signals) -> asyncio.Task[None]:
+            return asyncio.create_task(self._handle_shutdown(s))
+
         for sig in (signal.SIGTERM, signal.SIGINT):
             loop.add_signal_handler(
-                sig, lambda s=sig: asyncio.create_task(self._handle_shutdown(s))
+                sig,
+                create_shutdown_task,
+                sig,
             )
 
         self.logger.info("Signal handlers registered (SIGTERM, SIGINT)")

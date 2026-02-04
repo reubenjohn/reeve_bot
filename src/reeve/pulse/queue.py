@@ -101,7 +101,7 @@ class PulseQueue:
             session.add(pulse)
             await session.commit()
             await session.refresh(pulse)
-            return pulse.id
+            return pulse.id  # type: ignore[return-value]
 
     async def get_due_pulses(self, limit: int = 10) -> List[Pulse]:
         """
@@ -209,7 +209,7 @@ class PulseQueue:
             if not pulse or pulse.status != PulseStatus.PENDING:
                 return False
 
-            pulse.status = PulseStatus.PROCESSING
+            pulse.status = PulseStatus.PROCESSING  # type: ignore[assignment]
             await session.commit()
             return True
 
@@ -225,9 +225,9 @@ class PulseQueue:
             pulse = await session.get(Pulse, pulse_id)
 
             if pulse:
-                pulse.status = PulseStatus.COMPLETED
-                pulse.executed_at = datetime.now(timezone.utc)
-                pulse.execution_duration_ms = execution_duration_ms
+                pulse.status = PulseStatus.COMPLETED  # type: ignore[assignment]
+                pulse.executed_at = datetime.now(timezone.utc)  # type: ignore[assignment]
+                pulse.execution_duration_ms = execution_duration_ms  # type: ignore[assignment]
                 await session.commit()
 
     async def mark_failed(
@@ -253,15 +253,15 @@ class PulseQueue:
             if not pulse:
                 return None
 
-            pulse.status = PulseStatus.FAILED
-            pulse.error_message = error_message
-            pulse.executed_at = datetime.now(timezone.utc)
+            pulse.status = PulseStatus.FAILED  # type: ignore[assignment]
+            pulse.error_message = error_message  # type: ignore[assignment]
+            pulse.executed_at = datetime.now(timezone.utc)  # type: ignore[assignment]
 
             # Retry logic with exponential backoff
             new_pulse_id = None
             if should_retry and pulse.retry_count < pulse.max_retries:
                 # Schedule retry with exponential backoff: 2^retry_count minutes
-                retry_delay_minutes = 2**pulse.retry_count
+                retry_delay_minutes = 2**pulse.retry_count  # type: ignore[operator]
                 retry_at = datetime.now(timezone.utc) + timedelta(minutes=retry_delay_minutes)
 
                 retry_pulse = Pulse(
@@ -279,7 +279,7 @@ class PulseQueue:
 
                 session.add(retry_pulse)
                 await session.flush()
-                new_pulse_id = retry_pulse.id
+                new_pulse_id = retry_pulse.id  # type: ignore[assignment]
 
             await session.commit()
             return new_pulse_id
@@ -300,7 +300,7 @@ class PulseQueue:
             if not pulse or pulse.status != PulseStatus.PENDING:
                 return False
 
-            pulse.status = PulseStatus.CANCELLED
+            pulse.status = PulseStatus.CANCELLED  # type: ignore[assignment]
             await session.commit()
             return True
 
@@ -321,7 +321,7 @@ class PulseQueue:
             if not pulse or pulse.status != PulseStatus.PENDING:
                 return False
 
-            pulse.scheduled_at = new_scheduled_at
+            pulse.scheduled_at = new_scheduled_at  # type: ignore[assignment]
             await session.commit()
             return True
 
