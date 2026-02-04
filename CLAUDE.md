@@ -124,6 +124,7 @@ When making changes to the codebase, keep documentation in sync:
 ### Documentation
 - [Architecture](docs/architecture/index.md) - Technical design docs
 - [Deployment](docs/architecture/deployment.md) - Production systemd deployment
+- [Debugging](docs/debugging.md) - Debug tools and troubleshooting
 - [Roadmap](docs/roadmap/index.md) - Implementation phases
 - [MCP Setup](docs/MCP_SETUP.md) - Claude Code integration
 - [Ideas](docs/IDEAS.md) - Exploratory ideas and future concepts
@@ -168,6 +169,34 @@ uv run mypy src/
 sudo systemctl status reeve-daemon reeve-telegram
 sudo journalctl -u reeve-daemon -f
 ```
+
+## Debug & Diagnostics
+
+Quick commands for monitoring and troubleshooting:
+
+```bash
+# System health
+reeve-status              # Overview with exit code 0/1
+
+# View logs
+reeve-logs                # Follow daemon logs
+reeve-logs telegram       # Follow telegram listener
+reeve-logs -n 50          # Last 50 lines
+
+# Inspect queue
+reeve-queue               # Show pending pulses
+reeve-queue failed        # Show failed pulses
+reeve-queue 123           # Show pulse details
+
+# Pre-flight checks
+uv run python -m reeve.doctor   # Validate full configuration
+
+# Manual testing
+uv run python -m reeve.debug.trigger_pulse "Test prompt"
+uv run python -m reeve.debug.trigger_pulse --dry-run "Test"
+```
+
+See [Debugging Guide](docs/debugging.md) for full documentation.
 
 ## Production Deployment
 

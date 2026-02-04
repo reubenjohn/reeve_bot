@@ -19,7 +19,10 @@ deploy/
     ├── uninstall.sh                    # Cleanup script
     ├── reeve-heartbeat.sh              # Hourly heartbeat pulse
     ├── reeve-health-check.sh           # Health check helper
-    └── reeve-backup.sh                 # Database backup helper
+    ├── reeve-backup.sh                 # Database backup helper
+    ├── reeve-status.sh                 # System health overview
+    ├── reeve-logs.sh                   # Unified log viewer
+    └── reeve-queue.sh                  # Pulse queue inspector
 ```
 
 ## Quick Install
@@ -77,6 +80,9 @@ After installation:
 | Heartbeat script | `/usr/local/bin/reeve-heartbeat` |
 | Health check | `/usr/local/bin/reeve-health-check` |
 | Backup script | `/usr/local/bin/reeve-backup` |
+| Status script | `/usr/local/bin/reeve-status` |
+| Logs script | `/usr/local/bin/reeve-logs` |
+| Queue script | `/usr/local/bin/reeve-queue` |
 
 ## Common Commands
 
@@ -101,8 +107,17 @@ sudo journalctl -u reeve-telegram -f
 
 # View cron jobs
 crontab -l
+
+# Debug tools
+reeve-status              # System health overview
+reeve-logs                # Follow daemon logs
+reeve-logs telegram       # Follow telegram logs
+reeve-queue               # Show pending pulses
+reeve-queue failed        # Show failed pulses
 ```
 
 ## Troubleshooting
 
-See [Deployment Guide](../docs/architecture/deployment.md) for detailed troubleshooting.
+See [Debugging Guide](../docs/debugging.md) for debug tools and troubleshooting.
+
+See [Deployment Guide](../docs/architecture/deployment.md) for systemd configuration details.
