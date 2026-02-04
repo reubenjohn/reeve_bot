@@ -173,6 +173,16 @@ graph LR
     P7 --> P8[Phase 8<br/>Deploy<br/>⏳]
     P8 --> MVP[🎯 MVP]
 
+    click P1 "roadmap/phase-1-foundation/" "Phase 1: Foundation"
+    click P2 "roadmap/phase-2-queue/" "Phase 2: Queue Management"
+    click P3 "roadmap/phase-3-mcp/" "Phase 3: MCP Servers"
+    click P4 "roadmap/phase-4-executor/" "Phase 4: Pulse Executor"
+    click P5 "roadmap/phase-5-daemon/" "Phase 5: Daemon"
+    click P6 "roadmap/phase-6-api/" "Phase 6: HTTP API"
+    click P7 "roadmap/phase-7-telegram/" "Phase 7: Telegram Integration"
+    click P8 "roadmap/phase-8-deployment/" "Phase 8: Deployment"
+    click MVP "roadmap/" "Implementation Roadmap"
+
     style P1 fill:#90EE90
     style P2 fill:#90EE90
     style P3 fill:#90EE90
