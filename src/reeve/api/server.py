@@ -359,47 +359,6 @@ def create_app(queue: PulseQueue, config: ReeveConfig) -> FastAPI:
             "api_port": config.pulse_api_port,
         }
 
-    @app.get("/api/pulse/{pulse_id}", response_model=PulseDetailResponse)
-    async def get_pulse_detail(pulse_id: int, authorized: bool = Depends(verify_token)):
-        """
-        Get full details of a specific pulse.
-
-        Args:
-            pulse_id: The ID of the pulse to retrieve
-
-        Returns:
-            Full pulse object with all fields
-
-        Example:
-            curl -X GET http://localhost:8765/api/pulse/123 \\
-                 -H "Authorization: Bearer your_token_here"
-        """
-        try:
-            pulse = await queue.get_pulse(pulse_id)
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to retrieve pulse: {str(e)}")
-
-        if not pulse:
-            raise HTTPException(status_code=404, detail=f"Pulse {pulse_id} not found")
-
-        return PulseDetailResponse(
-            id=cast(int, pulse.id),
-            scheduled_at=pulse.scheduled_at.isoformat(),
-            prompt=cast(str, pulse.prompt),
-            priority=pulse.priority.value,
-            status=pulse.status.value,
-            session_id=pulse.session_id,
-            sticky_notes=pulse.sticky_notes,
-            tags=pulse.tags,
-            executed_at=pulse.executed_at.isoformat() if pulse.executed_at else None,
-            execution_duration_ms=pulse.execution_duration_ms,
-            error_message=pulse.error_message,
-            retry_count=cast(int, pulse.retry_count),
-            max_retries=cast(int, pulse.max_retries),
-            created_at=pulse.created_at.isoformat(),
-            created_by=cast(str, pulse.created_by),
-        )
-
     @app.get("/api/pulse/list", response_model=PulseListResponse)
     async def list_pulses(
         status: str = "pending",
@@ -482,6 +441,47 @@ def create_app(queue: PulseQueue, config: ReeveConfig) -> FastAPI:
             raise HTTPException(status_code=500, detail=f"Failed to retrieve stats: {str(e)}")
 
         return PulseStatsResponse(**stats)
+
+    @app.get("/api/pulse/{pulse_id}", response_model=PulseDetailResponse)
+    async def get_pulse_detail(pulse_id: int, authorized: bool = Depends(verify_token)):
+        """
+        Get full details of a specific pulse.
+
+        Args:
+            pulse_id: The ID of the pulse to retrieve
+
+        Returns:
+            Full pulse object with all fields
+
+        Example:
+            curl -X GET http://localhost:8765/api/pulse/123 \\
+                 -H "Authorization: Bearer your_token_here"
+        """
+        try:
+            pulse = await queue.get_pulse(pulse_id)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to retrieve pulse: {str(e)}")
+
+        if not pulse:
+            raise HTTPException(status_code=404, detail=f"Pulse {pulse_id} not found")
+
+        return PulseDetailResponse(
+            id=cast(int, pulse.id),
+            scheduled_at=pulse.scheduled_at.isoformat(),
+            prompt=cast(str, pulse.prompt),
+            priority=pulse.priority.value,
+            status=pulse.status.value,
+            session_id=pulse.session_id,
+            sticky_notes=pulse.sticky_notes,
+            tags=pulse.tags,
+            executed_at=pulse.executed_at.isoformat() if pulse.executed_at else None,
+            execution_duration_ms=pulse.execution_duration_ms,
+            error_message=pulse.error_message,
+            retry_count=cast(int, pulse.retry_count),
+            max_retries=cast(int, pulse.max_retries),
+            created_at=pulse.created_at.isoformat(),
+            created_by=cast(str, pulse.created_by),
+        )
 
     @app.get("/api/stats", response_model=ExecutionStatsResponse)
     async def get_execution_stats(authorized: bool = Depends(verify_token)):
