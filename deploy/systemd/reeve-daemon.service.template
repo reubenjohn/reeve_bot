@@ -31,7 +31,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths={{REEVE_HOME}}
+ReadWritePaths={{REEVE_HOME}} /home/{{USER}}/.cache/uv
 
 # Resource limits
 MemoryMax=512M
