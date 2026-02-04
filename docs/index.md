@@ -160,6 +160,34 @@ See [Roadmap Index](roadmap/index.md) for the full implementation guide.
 
 ---
 
+## Project Status
+
+```mermaid
+graph LR
+    P1[Phase 1<br/>Foundation<br/>✓] --> P2[Phase 2<br/>Queue Mgmt<br/>✓]
+    P2 --> P3[Phase 3<br/>MCP Tools<br/>✓]
+    P3 --> P4[Phase 4<br/>Executor<br/>✓]
+    P4 --> P5[Phase 5<br/>Daemon<br/>✓]
+    P5 --> P6[Phase 6<br/>HTTP API<br/>✓]
+    P6 --> P7[Phase 7<br/>Telegram<br/>✓]
+    P7 --> P8[Phase 8<br/>Deploy<br/>⏳]
+    P8 --> MVP[🎯 MVP]
+
+    style P1 fill:#90EE90
+    style P2 fill:#90EE90
+    style P3 fill:#90EE90
+    style P4 fill:#90EE90
+    style P5 fill:#90EE90
+    style P6 fill:#90EE90
+    style P7 fill:#90EE90
+    style P8 fill:#FFD700
+    style MVP fill:#87CEEB
+```
+
+See [Implementation Roadmap](IMPLEMENTATION_ROADMAP.md) for detailed phase specifications.
+
+---
+
 ## I. The Core Philosophy (The "Why")
 
 ### 1. Beyond the Chatbot: The "Push" Paradigm
