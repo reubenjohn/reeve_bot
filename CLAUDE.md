@@ -124,6 +124,7 @@ When making changes to the codebase, keep documentation in sync:
 ### Documentation
 - [Architecture](docs/architecture/index.md) - Technical design docs
 - [Deployment](docs/architecture/deployment.md) - Production systemd deployment
+- [Stream Parser](docs/architecture/stream-parser.md) - JSONL parser for hapi output
 - [Debugging](docs/debugging.md) - Debug tools and troubleshooting
 - [Roadmap](docs/roadmap/index.md) - Implementation phases
 - [MCP Setup](docs/MCP_SETUP.md) - Claude Code integration
@@ -131,6 +132,7 @@ When making changes to the codebase, keep documentation in sync:
 
 ### Source Code
 - `src/reeve/pulse/` - Core pulse queue (models, queue, executor, daemon)
+  - `stream_parser.py` - JSONL parser for hapi stream-json output
 - `src/reeve/mcp/` - MCP servers (pulse_server, notification_server)
 - `src/reeve/api/` - HTTP REST API (FastAPI)
 - `src/reeve/integrations/` - External listeners (Telegram)
