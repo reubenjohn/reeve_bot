@@ -227,6 +227,11 @@ pulse = Pulse(
 5. **Documented**: Code should be self-explanatory with good docstrings.
 6. **Fail gracefully**: Check preconditions, return None/False on errors.
 7. **Idempotent**: Operations should be safe to retry.
+8. **Validate assumptions first**: Before implementing changes to CLI/executor integration, test actual behavior manually:
+   ```bash
+   # Example: Check Claude Code output format before assuming streaming helps
+   cd ~/reeve_desk && claude --print --output-format json "Test prompt"
+   ```
 
 ## Code Style
 
