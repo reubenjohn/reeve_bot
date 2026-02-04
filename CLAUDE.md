@@ -110,6 +110,15 @@ When making changes to the codebase, keep documentation in sync:
 
 **Note:** `docs/IDEAS.md` is exploratory and doesn't need to match implementation.
 
+### Mermaid Diagram Conventions
+- Use `base` theme with `classDef` for component color differentiation
+- Color scheme:
+  - **Core** (`#4a90a4` blue): Pulse API, Executor, Reeve, Pulse Queue MCP
+  - **External** (`#6b9b76` green): Event listeners, external MCPs
+  - **Database** (`#c4955a` amber): Storage components
+- Prefer vertical (`TB`) layout to reduce horizontal scrolling
+- Use `direction LR` inside subgraphs for horizontal arrangement
+
 ## File References
 
 ### Documentation
