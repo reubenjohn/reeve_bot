@@ -141,11 +141,18 @@ class PulseExecutor:
             if not timed_out and return_code == 0:
                 try:
                     # Claude Code --output-format json outputs JSON with session_id
-                    json_output = json.loads(stdout_str)
-                    extracted_session_id = json_output.get("session_id")
-                except (json.JSONDecodeError, KeyError):
+                    # But stdout may contain prefix text (terminal sequences, status messages)
+                    # Find the JSON object by looking for the opening brace
+                    json_start = stdout_str.find("{")
+                    if json_start != -1:
+                        json_str = stdout_str[json_start:]
+                        json_output = json.loads(json_str)
+                        extracted_session_id = json_output.get("session_id")
+                    else:
+                        self.logger.debug("No JSON object found in stdout")
+                except (json.JSONDecodeError, KeyError) as e:
                     # If JSON parsing fails, we'll proceed without session_id
-                    self.logger.debug("Could not parse session_id from JSON output")
+                    self.logger.debug(f"Could not parse session_id from JSON output: {e}")
 
             result = ExecutionResult(
                 stdout=stdout_str,

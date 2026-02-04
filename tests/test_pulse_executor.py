@@ -420,6 +420,35 @@ async def test_session_id_extraction_from_json(executor, mock_desk):
 
 
 @pytest.mark.asyncio
+async def test_session_id_extraction_with_prefix_text(executor, mock_desk):
+    """Test that session_id is extracted even when JSON has prefix text (real hapi output)."""
+    # Real hapi output has terminal sequences and status messages before JSON
+    prefix_text = (
+        ']9;9;"\\\\wsl.localhost\\Ubuntu\\home\\user\\desk"\n'
+        "Starting HAPI hub in background...\n"
+        "HAPI hub started\n"
+    )
+    json_output = json.dumps(
+        {"session_id": "abc-123-def", "result": "Done", "type": "result"}
+    )
+    full_output = prefix_text + json_output
+
+    mock_process = AsyncMock()
+    mock_process.communicate = AsyncMock(return_value=(full_output.encode(), b""))
+    mock_process.returncode = 0
+
+    with patch("asyncio.create_subprocess_exec", return_value=mock_process):
+        result = await executor.execute(
+            prompt="Test prompt",
+            working_dir=str(mock_desk),
+        )
+
+    # session_id should be extracted despite prefix text
+    assert result.session_id == "abc-123-def"
+    assert result.return_code == 0
+
+
+@pytest.mark.asyncio
 async def test_session_id_none_on_invalid_json(executor, mock_desk):
     """Test that session_id is None when JSON parsing fails."""
     mock_process = AsyncMock()
