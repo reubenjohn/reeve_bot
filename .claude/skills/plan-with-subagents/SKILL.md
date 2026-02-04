@@ -1,3 +1,9 @@
+---
+name: plan-with-subagents
+description: Plan multi-step implementation tasks to minimize context usage and maximize parallelism. Use when tasks have 4+ steps or touch multiple independent files.
+user-invocable: true
+---
+
 # Plan with Sub-Agents Skill
 
 Use this skill when planning multi-step implementation tasks to minimize context usage and maximize parallelism.
