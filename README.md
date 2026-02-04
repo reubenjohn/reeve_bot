@@ -1,5 +1,15 @@
 # Project Reeve: The "Chief of Staff" Protocol
 
+[![CI](https://github.com/reubenjohn/reeve-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/reubenjohn/reeve-bot/actions/workflows/ci.yml)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+> A proactive AI assistant that operates on a "Push" paradigm - anticipating needs and taking action rather than waiting for prompts.
+
+**Quick Links:** [Installation](docs/IMPLEMENTATION_ROADMAP.md#quick-start) | [Architecture](docs/01_PULSE_QUEUE_DESIGN.md) | [MCP Setup](docs/MCP_SETUP.md) | [Contributing](CONTRIBUTING.md)
+
+---
+
 ## I. The Core Philosophy (The "Why")
 
 ### 1. Beyond the Chatbot: The "Push" Paradigm
