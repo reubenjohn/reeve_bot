@@ -62,8 +62,6 @@ class TelegramListener:
         Raises:
             ValueError: If required environment variables are missing
         """
-        import os
-
         # Load configuration from environment
         self.bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
         self.chat_id = os.getenv("TELEGRAM_CHAT_ID")

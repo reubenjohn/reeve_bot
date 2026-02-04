@@ -29,7 +29,7 @@ Usage:
 import os
 from typing import Annotated, Literal, Optional
 
-import requests
+import httpx
 from mcp.server.fastmcp import Context, FastMCP
 from pydantic import Field
 
@@ -177,13 +177,14 @@ async def send_notification(
             }
             payload["reply_markup"] = reply_markup
 
-        response = requests.post(url, json=payload, timeout=10)
-        response.raise_for_status()
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, json=payload, timeout=10)
+            response.raise_for_status()
 
         link_info = " with link" if session_link_url else ""
         return f"✓ Notification{link_info} sent successfully ({priority})"
 
-    except requests.exceptions.RequestException as e:
+    except httpx.HTTPError as e:
         return f"✗ Failed to send notification: {str(e)}"
 
 

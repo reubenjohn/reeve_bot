@@ -12,7 +12,7 @@ Endpoints:
 """
 
 from datetime import datetime
-from typing import List, Literal, Optional
+from typing import List, Literal, Optional, cast
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -245,12 +245,14 @@ def create_app(queue: PulseQueue, config: ReeveConfig) -> FastAPI:
 
         pulse_items = [
             UpcomingPulseItem(
-                id=int(p.id),  # type: ignore[arg-type]
+                id=cast(int, p.id),
                 scheduled_at=p.scheduled_at.isoformat(),
                 priority=p.priority.value,
                 prompt=(
-                    str(p.prompt[:100]) + "..." if len(p.prompt) > 100 else str(p.prompt)
-                ),  # type: ignore[arg-type]
+                    cast(str, p.prompt)[:100] + "..."
+                    if len(cast(str, p.prompt)) > 100
+                    else cast(str, p.prompt)
+                ),
                 status=p.status.value,
             )
             for p in pulses
