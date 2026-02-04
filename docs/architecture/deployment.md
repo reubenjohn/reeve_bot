@@ -332,7 +332,33 @@ crontab -e
 */5 * * * * /usr/local/bin/reeve-health-check || echo "Reeve health check failed" | mail -s "Reeve Alert" your@email.com
 ```
 
-### 4. Metrics (Optional)
+### 4. Hourly Heartbeat
+
+The **hourly heartbeat** is the core of Reeve's proactive behavior. Every hour, a cron job schedules a pulse that wakes Reeve to check calendar, tasks, and messages - without waiting to be asked.
+
+**Heartbeat script** (`/usr/local/bin/reeve-heartbeat`):
+
+The script varies the prompt based on time of day:
+- **Morning (6-12)**: Focus on daily priorities, calendar review
+- **Afternoon (12-18)**: Upcoming meetings, pending tasks
+- **Evening (18-22)**: End-of-day wrap-up, remaining tasks
+- **Night (22-6)**: Light check, defer non-urgent items
+
+**Add to cron** (every hour on the hour):
+
+```bash
+crontab -e
+
+# Add:
+0 * * * * /usr/local/bin/reeve-heartbeat >> ~/.reeve/logs/heartbeat.log 2>&1
+```
+
+**Manual trigger**:
+```bash
+/usr/local/bin/reeve-heartbeat
+```
+
+### 5. Metrics (Optional)
 
 For production monitoring, consider:
 

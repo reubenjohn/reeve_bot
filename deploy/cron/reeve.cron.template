@@ -1,6 +1,10 @@
 # Reeve scheduled tasks
 # Install with: crontab < /path/to/reeve.cron
 
+# Hourly heartbeat pulse - wakes Reeve to check calendar, tasks, messages
+# This is the core "proactive" behavior - Reeve doesn't wait to be asked
+0 * * * * /usr/local/bin/reeve-heartbeat >> {{REEVE_HOME}}/logs/heartbeat.log 2>&1
+
 # Health check every 5 minutes
 */5 * * * * /usr/local/bin/reeve-health-check >> {{REEVE_HOME}}/logs/health-check.log 2>&1
 

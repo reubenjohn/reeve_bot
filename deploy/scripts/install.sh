@@ -44,11 +44,18 @@ if [[ -z "$UV_PATH" ]]; then
     done
 fi
 
+# Read REEVE_DESK_PATH from .env (expand ~ to home directory)
+REEVE_DESK_PATH=$(grep -E "^REEVE_DESK_PATH=" "$REEVE_BOT_PATH/.env" | cut -d'=' -f2 | sed "s|~|/home/$REEVE_USER|g")
+if [[ -z "$REEVE_DESK_PATH" ]]; then
+    REEVE_DESK_PATH="/home/$REEVE_USER/reeve_desk"
+fi
+
 # Display configuration
 echo "Configuration:"
 echo "  User:           $REEVE_USER"
 echo "  Repo path:      $REEVE_BOT_PATH"
 echo "  Data directory: $REEVE_HOME"
+echo "  Desk path:      $REEVE_DESK_PATH"
 echo "  uv path:        $UV_PATH"
 echo ""
 
@@ -83,6 +90,7 @@ substitute_template() {
     sed -e "s|{{USER}}|${REEVE_USER}|g" \
         -e "s|{{REEVE_BOT_PATH}}|${REEVE_BOT_PATH}|g" \
         -e "s|{{REEVE_HOME}}|${REEVE_HOME}|g" \
+        -e "s|{{REEVE_DESK_PATH}}|${REEVE_DESK_PATH}|g" \
         -e "s|{{UV_PATH}}|${UV_PATH}|g" \
         "$template" > "$output"
 }
@@ -116,6 +124,10 @@ chmod +x /usr/local/bin/reeve-backup
 # Set REEVE_HOME in the backup script
 sed -i "s|REEVE_HOME=\"\${REEVE_HOME:-\$HOME/.reeve}\"|REEVE_HOME=\"${REEVE_HOME}\"|" /usr/local/bin/reeve-backup
 echo "  Installed /usr/local/bin/reeve-backup"
+
+cp "$DEPLOY_DIR/scripts/reeve-heartbeat.sh" /usr/local/bin/reeve-heartbeat
+chmod +x /usr/local/bin/reeve-heartbeat
+echo "  Installed /usr/local/bin/reeve-heartbeat"
 
 # Install logrotate config
 echo ""
@@ -171,6 +183,34 @@ else
     echo "  The daemon may still be starting up. Try again in a few seconds."
 fi
 
+# Install cron jobs
+echo ""
+echo "Installing cron jobs..."
+
+# Generate substituted cron file
+CRON_TMP=$(mktemp)
+sed -e "s|{{REEVE_HOME}}|${REEVE_HOME}|g" \
+    "$DEPLOY_DIR/cron/reeve.cron.template" > "$CRON_TMP"
+
+# Install cron jobs for the user (merge with existing crontab)
+# First remove any existing reeve cron entries, then add new ones
+EXISTING_CRON=$(su - "$REEVE_USER" -c "crontab -l 2>/dev/null" | grep -v "reeve-" | grep -v "# Reeve" || true)
+{
+    echo "$EXISTING_CRON"
+    echo ""
+    echo "# Reeve scheduled tasks (installed by install.sh)"
+    cat "$CRON_TMP"
+} | su - "$REEVE_USER" -c "crontab -"
+
+rm -f "$CRON_TMP"
+echo "  Installed cron jobs for user $REEVE_USER"
+
+# Show installed cron jobs
+echo "  Cron entries:"
+su - "$REEVE_USER" -c "crontab -l" | grep "reeve-" | while read line; do
+    echo "    $line"
+done
+
 echo ""
 echo "=== Installation Complete ==="
 echo ""
@@ -180,7 +220,5 @@ echo "  systemctl status reeve-telegram     # Check telegram status"
 echo "  journalctl -u reeve-daemon -f       # Follow daemon logs"
 echo "  /usr/local/bin/reeve-health-check   # Run health check"
 echo "  /usr/local/bin/reeve-backup         # Run manual backup"
-echo ""
-echo "To set up cron jobs (optional):"
-echo "  crontab -e"
-echo "  # Add lines from: $DEPLOY_DIR/cron/reeve.cron.template"
+echo "  /usr/local/bin/reeve-heartbeat      # Trigger heartbeat pulse"
+echo "  crontab -l                          # View scheduled tasks"
