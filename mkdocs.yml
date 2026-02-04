@@ -1,0 +1,67 @@
+site_name: Project Reeve
+site_description: A proactive AI Chief of Staff
+site_url: https://reubenjohn.github.io/reeve-bot
+repo_url: https://github.com/reubenjohn/reeve-bot
+repo_name: reubenjohn/reeve-bot
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - minify:
+      minify_html: true
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.snippets:
+      base_path: ['.']
+  - admonition
+  - pymdownx.details
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Architecture:
+    - Project Structure: 00_PROJECT_STRUCTURE.md
+    - Pulse Queue Design: 01_PULSE_QUEUE_DESIGN.md
+    - MCP Integration: 02_MCP_INTEGRATION.md
+    - Daemon & API: 03_DAEMON_AND_API.md
+  - Guides:
+    - MCP Setup: MCP_SETUP.md
+    - Deployment: 04_DEPLOYMENT.md
+    - Implementation Roadmap: IMPLEMENTATION_ROADMAP.md
+  - Reference:
+    - OpenClaw Comparison: OpenClaw_COMPARISON.md
+  - Contributing: contributing.md
+  - Security: security.md
