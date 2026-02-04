@@ -1,6 +1,7 @@
 # Project Reeve: The "Chief of Staff" Protocol
 
 [![CI](https://github.com/reubenjohn/reeve-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/reubenjohn/reeve-bot/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/reubenjohn/reeve-bot/graph/badge.svg)](https://codecov.io/gh/reubenjohn/reeve-bot)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://reubenjohn.github.io/reeve-bot/)

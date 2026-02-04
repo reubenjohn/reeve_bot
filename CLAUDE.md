@@ -585,6 +585,9 @@ uv run alembic upgrade head
 # Run tests
 uv run pytest tests/ -v
 
+# Run tests with coverage
+uv run pytest tests/ --cov=src/reeve --cov-report=term-missing
+
 # Run daemon (Phase 5+)
 uv run python -m reeve.pulse
 
