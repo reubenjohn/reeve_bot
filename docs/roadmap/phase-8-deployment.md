@@ -11,7 +11,7 @@
 1. **Systemd Service Files**
    - Create `reeve-daemon.service`
    - Create `reeve-telegram.service`
-   - See [04_DEPLOYMENT.md](../04_DEPLOYMENT.md) for templates
+   - See [Deployment](../architecture/deployment.md) for templates
 
 2. **Install Services**
    - Copy to `/etc/systemd/system/`

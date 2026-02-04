@@ -9,7 +9,7 @@
 ## Tasks
 
 1. **Project Structure** ✅
-   - Create directory structure as per [00_PROJECT_STRUCTURE.md](../00_PROJECT_STRUCTURE.md)
+   - Create directory structure as per [Project Structure](../architecture/project-structure.md)
    - Initialize `src/reeve/` package with `__init__.py` files
 
 2. **Dependencies** ✅
@@ -36,7 +36,7 @@
 3. **Enums** ✅ (`src/reeve/pulse/enums.py`)
    - Implement `PulsePriority(str, Enum)` with 5 levels
    - Implement `PulseStatus(str, Enum)` with 5 states
-   - See [01_PULSE_QUEUE_DESIGN.md](../01_PULSE_QUEUE_DESIGN.md) for full definitions
+   - See [Pulse Queue Design](../architecture/pulse-queue.md) for full definitions
 
 4. **Database Models** ✅ (`src/reeve/pulse/models.py`)
    - Implement `Pulse` SQLAlchemy model

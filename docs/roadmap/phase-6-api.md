@@ -18,7 +18,7 @@
    - Bearer token authentication with custom dependency ✅
    - Pydantic models for request/response validation ✅
    - Flexible time parsing via `parse_time_string()` utility ✅
-   - See [03_DAEMON_AND_API.md](../03_DAEMON_AND_API.md)
+   - See [Daemon & API](../architecture/daemon-api.md)
 
 2. **Integrate with Daemon** ✅
    - Integrated API server in `__main__.py` ✅

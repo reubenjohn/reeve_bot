@@ -60,17 +60,26 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Architecture:
-    - Project Structure: 00_PROJECT_STRUCTURE.md
-    - Pulse Queue Design: 01_PULSE_QUEUE_DESIGN.md
-    - MCP Integration: 02_MCP_INTEGRATION.md
-    - Daemon & API: 03_DAEMON_AND_API.md
+    - Overview: architecture/index.md
+    - Project Structure: architecture/project-structure.md
+    - Pulse Queue Design: architecture/pulse-queue.md
+    - MCP Integration: architecture/mcp-integration.md
+    - Daemon & API: architecture/daemon-api.md
+    - Deployment: architecture/deployment.md
+  - Roadmap:
+    - Overview: roadmap/index.md
+    - Phase 1 - Foundation: roadmap/phase-1-foundation.md
+    - Phase 2 - Queue: roadmap/phase-2-queue.md
+    - Phase 3 - MCP: roadmap/phase-3-mcp.md
+    - Phase 4 - Executor: roadmap/phase-4-executor.md
+    - Phase 5 - Daemon: roadmap/phase-5-daemon.md
+    - Phase 6 - API: roadmap/phase-6-api.md
+    - Phase 7 - Telegram: roadmap/phase-7-telegram.md
+    - Phase 8 - Deployment: roadmap/phase-8-deployment.md
+    - Phase 9 - Testing: roadmap/phase-9-testing.md
   - Guides:
-    - Documentation Overview: docs_overview.md
     - MCP Setup: MCP_SETUP.md
-    - Deployment: 04_DEPLOYMENT.md
-    - Implementation Roadmap: IMPLEMENTATION_ROADMAP.md
   - Reference:
     - OpenClaw Comparison: OpenClaw_COMPARISON.md
     - Ideas & Future: IDEAS.md
   - Contributing: https://github.com/reubenjohn/reeve-bot/blob/master/CONTRIBUTING.md
-  - Security: security.md

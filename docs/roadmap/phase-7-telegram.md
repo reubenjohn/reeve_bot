@@ -15,7 +15,7 @@
    - Offset persistence to prevent duplicate message processing
    - Chat ID filtering (only processes authorized user)
    - Exponential backoff error handling (up to 5 minutes)
-   - See [03_DAEMON_AND_API.md](../03_DAEMON_AND_API.md)
+   - See [Daemon & API](../architecture/daemon-api.md)
 
 2. **Testing** ✅
    - 35 comprehensive unit tests (`tests/test_telegram_listener.py`)

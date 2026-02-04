@@ -14,7 +14,7 @@
    - Implemented `_execute_pulse()` - async pulse execution with error handling
    - Handles prompt building with sticky notes via PulseExecutor
    - Graceful shutdown (SIGTERM/SIGINT) with 30-second grace period
-   - See [03_DAEMON_AND_API.md](../03_DAEMON_AND_API.md)
+   - See [Daemon & API](../architecture/daemon-api.md)
 
 2. **Logging** (`src/reeve/utils/logging.py`) ✅
    - Implemented `setup_logging()` function (72 lines)

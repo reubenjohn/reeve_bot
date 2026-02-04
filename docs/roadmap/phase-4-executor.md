@@ -15,7 +15,7 @@
    - Captures stdout/stderr with UTF-8 error handling
    - Reports success/failure with detailed error messages
    - Includes timeout handling with configurable defaults
-   - See [03_DAEMON_AND_API.md](../03_DAEMON_AND_API.md)
+   - See [Daemon & API](../architecture/daemon-api.md)
 
 2. **Testing** ✅
    - 18 comprehensive unit tests with mocked Hapi command
