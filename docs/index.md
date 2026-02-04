@@ -57,42 +57,42 @@ See [Roadmap Index](roadmap/index.md) for the full implementation guide.
 
 ```mermaid
 flowchart TB
-    subgraph ecosystem["Reeve Ecosystem"]
-        reeve["Reeve<br/>(e.g. Claude Code)"]
-        pulse_mcp["Pulse Queue<br/>MCP Server"]
-        notifier["Notifier<br/>(e.g. Telegram)"]
-        telegram_mcp["Telegram<br/>Notifier MCP"]
-
-        pulse_mcp -- "MCP stdio" --> reeve
-        reeve -- "schedule_pulse()" --> pulse_mcp
-        telegram_mcp -- "MCP stdio" --> notifier
+    subgraph events["External Events (configurable)"]
+        direction LR
+        telegram_listener["Telegram"] ~~~ email_listener["Email (future)"] 
+        webhooks["Webhooks (future)"] ~~~ more_events["..."]
     end
-```
 
-```mermaid
-flowchart TB
-    subgraph daemon["Pulse Daemon Process"]
-        scheduler["Scheduler Loop<br/>─────────<br/>Every 1s:<br/>• Get due<br/>• Execute"]
-        api["HTTP API<br/>(FastAPI)<br/>─────────<br/>POST /pulse<br/>GET /status<br/>GET /health"]
-        executor["Executor<br/>(Hapi)<br/>─────────<br/>Launches<br/>Hapi sessions"]
-        queue["PulseQueue<br/>(Business Logic)"]
-        db[("SQLite DB<br/>(pulses)")]
+    subgraph daemon["Pulse Daemon"]
+        api["HTTP API (FastAPI)"]
+        queue[("Pulse Queue (SQLite)")]
+        executor["Executor"]
 
-        scheduler --> queue
         api --> queue
         queue --> executor
-        queue --> db
     end
 
-    subgraph integrations["External Integrations"]
-        telegram_listener["Telegram<br/>Listener"]
-        email_listener["Email Listener<br/>(future)"]
-        webhooks["Other Webhooks<br/>(future)"]
+    subgraph session["Reeve Session"]
+        reeve["Reeve<br/>(Hapi/Goose/Claude Code/...)"]
     end
 
-    telegram_listener -- "POST to HTTP API" --> api
-    email_listener -- "POST to HTTP API" --> api
-    webhooks -- "POST to HTTP API" --> api
+    subgraph mcps["MCP Servers (extensible)"]
+        direction LR
+        pulse_mcp["Pulse Queue MCP"]
+        other_mcp["Telegram, Calendar, ..."]
+    end
+
+    %% External events feed into daemon
+    events --> api
+
+    %% Executor spawns Reeve session
+    executor -- "spawns" --> reeve
+
+    %% Reeve connects to MCP servers
+    reeve <-- "MCP stdio" --> mcps
+
+    %% Self-scheduling loop
+    pulse_mcp -- "schedule_pulse()" --> queue
 ```
 
 ### Pulse Lifecycle
