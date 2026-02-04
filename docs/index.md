@@ -6,7 +6,7 @@
 
 > A proactive AI assistant that operates on a "Push" paradigm - anticipating needs and taking action rather than waiting for prompts.
 
-**Quick Links:** [GitHub](https://github.com/reubenjohn/reeve-bot) | [Installation](#quick-start) | [Architecture](01_PULSE_QUEUE_DESIGN.md) | [MCP Setup](MCP_SETUP.md) | [Contributing](https://github.com/reubenjohn/reeve-bot/blob/master/CONTRIBUTING.md)
+**Quick Links:** [GitHub](https://github.com/reubenjohn/reeve-bot) | [Installation](#quick-start) | [Architecture](01_PULSE_QUEUE_DESIGN.md) | [MCP Setup](MCP_SETUP.md) | [Ideas & Future](IDEAS.md) | [Contributing](https://github.com/reubenjohn/reeve-bot/blob/master/CONTRIBUTING.md)
 
 ---
 
@@ -313,4 +313,4 @@ Whether you're fixing bugs, adding features, or improving documentation, we appr
 
 ### Strategic Direction Feedback
 
-Before diving into code contributions, consider reading **[OpenClaw Comparison](OpenClaw_COMPARISON.md)** for context on Reeve's architectural philosophy and the open strategic questions facing the project. Community feedback on the "orchestrator vs. runtime" trade-offs is especially valuable and can be shared in [GitHub Discussions](https://github.com/reubenjohn/reeve-bot/discussions).
+Before diving into code contributions, consider reading **[OpenClaw Comparison](OpenClaw_COMPARISON.md)** for context on Reeve's architectural philosophy and the open strategic questions facing the project. For exploratory concepts still in development, see **[Ideas & Future](IDEAS.md)**. Community feedback on the "orchestrator vs. runtime" trade-offs is especially valuable and can be shared in [GitHub Discussions](https://github.com/reubenjohn/reeve-bot/discussions).
