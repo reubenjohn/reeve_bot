@@ -96,7 +96,15 @@ class PulseExecutor:
         # Build Hapi command
         # Use --print for non-interactive execution (automated pulse execution)
         # Use --output-format json to get structured output with session_id
-        cmd = [self.hapi_command, "--print", "--output-format", "json"]
+        # Use --permission-mode acceptEdits to enable edit mode (auto-accepts file modifications)
+        cmd = [
+            self.hapi_command,
+            "--print",
+            "--output-format",
+            "json",
+            "--permission-mode",
+            "acceptEdits",
+        ]
 
         # Add session resume flag if provided
         if session_id:
@@ -116,9 +124,55 @@ class PulseExecutor:
                 stderr=asyncio.subprocess.PIPE,
             )
 
+            # Stream output to capture session_id as early as possible
+            stdout_chunks: list[bytes] = []
+            stderr_chunks: list[bytes] = []
+            extracted_session_id: Optional[str] = None
+            session_id_logged = False
+
+            async def read_stream(
+                stream: asyncio.StreamReader, chunks: list[bytes], is_stdout: bool
+            ) -> None:
+                """Read from stream, accumulate chunks, and watch for session_id."""
+                nonlocal extracted_session_id, session_id_logged
+                while True:
+                    chunk = await stream.read(4096)
+                    if not chunk:
+                        break
+                    chunks.append(chunk)
+
+                    # Try to extract session_id from accumulated stdout as early as possible
+                    if is_stdout and not session_id_logged:
+                        accumulated = b"".join(chunks).decode("utf-8", errors="replace")
+                        # Look for session_id in JSON-like pattern
+                        if '"session_id"' in accumulated:
+                            try:
+                                json_start = accumulated.find("{")
+                                if json_start != -1:
+                                    # Try to parse partial JSON - may fail if incomplete
+                                    json_str = accumulated[json_start:]
+                                    json_output = json.loads(json_str)
+                                    sid = json_output.get("session_id")
+                                    if sid:
+                                        extracted_session_id = sid
+                                        session_id_logged = True
+                                        self.logger.info(f"Hapi session started: {sid}")
+                            except json.JSONDecodeError:
+                                # JSON not complete yet, will try again on next chunk
+                                pass
+
             # Wait for completion with timeout
             try:
-                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=timeout)
+                assert process.stdout is not None
+                assert process.stderr is not None
+                await asyncio.wait_for(
+                    asyncio.gather(
+                        read_stream(process.stdout, stdout_chunks, is_stdout=True),
+                        read_stream(process.stderr, stderr_chunks, is_stdout=False),
+                    ),
+                    timeout=timeout,
+                )
+                await process.wait()
                 timed_out = False
             except asyncio.TimeoutError:
                 self.logger.warning(f"Hapi execution timed out after {timeout}s")
@@ -126,19 +180,20 @@ class PulseExecutor:
                 process.kill()
                 await process.wait()
                 timed_out = True
-                stdout = b""
-                stderr = b"Execution timed out"
 
-            stdout_str = stdout.decode("utf-8", errors="replace")
-            stderr_str = stderr.decode("utf-8", errors="replace")
-            # After communicate()/wait(), returncode is always set, but mypy doesn't know this
+            stdout_str = b"".join(stdout_chunks).decode("utf-8", errors="replace")
+            stderr_str = (
+                b"".join(stderr_chunks).decode("utf-8", errors="replace")
+                if not timed_out
+                else "Execution timed out"
+            )
+            # After wait(), returncode is always set, but mypy doesn't know this
             return_code = (
                 -1 if timed_out else (process.returncode if process.returncode is not None else -1)
             )
 
-            # Parse JSON output to extract session_id (if available)
-            extracted_session_id = None
-            if not timed_out and return_code == 0:
+            # Final attempt to extract session_id if not found during streaming
+            if not extracted_session_id and not timed_out and return_code == 0:
                 try:
                     # Claude Code --output-format json outputs JSON with session_id
                     # But stdout may contain prefix text (terminal sequences, status messages)
@@ -148,6 +203,8 @@ class PulseExecutor:
                         json_str = stdout_str[json_start:]
                         json_output = json.loads(json_str)
                         extracted_session_id = json_output.get("session_id")
+                        if extracted_session_id and not session_id_logged:
+                            self.logger.info(f"Hapi session started: {extracted_session_id}")
                     else:
                         self.logger.debug("No JSON object found in stdout")
                 except (json.JSONDecodeError, KeyError) as e:
@@ -171,9 +228,7 @@ class PulseExecutor:
                     f"Hapi execution failed (exit code {process.returncode}): " f"{result.stderr}"
                 )
 
-            self.logger.info(
-                f"Hapi execution completed successfully (session_id: {extracted_session_id})"
-            )
+            self.logger.info(f"Hapi execution completed successfully (session: {extracted_session_id})")
             return result
 
         except FileNotFoundError:

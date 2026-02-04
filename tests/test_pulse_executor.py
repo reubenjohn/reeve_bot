@@ -18,6 +18,53 @@ import pytest
 from reeve.pulse.executor import ExecutionResult, PulseExecutor
 
 
+def create_mock_process(stdout_data: bytes, stderr_data: bytes, returncode: int = 0):
+    """Create a mock process with streaming stdout/stderr support."""
+    mock_process = AsyncMock()
+    mock_process.returncode = returncode
+
+    # Create mock streams that return data once then empty
+    async def make_stream(data: bytes):
+        """Create a mock stream reader."""
+        reader = AsyncMock()
+        reader._data_returned = False
+
+        async def read_chunk(size):
+            if not reader._data_returned:
+                reader._data_returned = True
+                return data
+            return b""
+
+        reader.read = read_chunk
+        return reader
+
+    # We need to set up stdout/stderr as async generators
+    mock_process.stdout = AsyncMock()
+    mock_process.stderr = AsyncMock()
+
+    # Track if data has been returned
+    stdout_returned = [False]
+    stderr_returned = [False]
+
+    async def stdout_read(size=4096):
+        if not stdout_returned[0]:
+            stdout_returned[0] = True
+            return stdout_data
+        return b""
+
+    async def stderr_read(size=4096):
+        if not stderr_returned[0]:
+            stderr_returned[0] = True
+            return stderr_data
+        return b""
+
+    mock_process.stdout.read = stdout_read
+    mock_process.stderr.read = stderr_read
+    mock_process.wait = AsyncMock()
+
+    return mock_process
+
+
 @pytest.fixture
 def executor():
     """Create a PulseExecutor instance for testing."""
@@ -94,10 +141,7 @@ async def test_execute_basic_success(executor, mock_desk):
     """Test successful Hapi execution."""
     # Mock JSON output with session_id
     json_output = json.dumps({"session_id": "test-session-123", "output": "Hapi output"})
-
-    mock_process = AsyncMock()
-    mock_process.communicate = AsyncMock(return_value=(json_output.encode(), b""))
-    mock_process.returncode = 0
+    mock_process = create_mock_process(json_output.encode(), b"", returncode=0)
 
     with patch("asyncio.create_subprocess_exec", return_value=mock_process):
         result = await executor.execute(
@@ -116,10 +160,7 @@ async def test_execute_basic_success(executor, mock_desk):
 async def test_execute_with_session_id(executor, mock_desk):
     """Test execution with session resume."""
     json_output = json.dumps({"session_id": "session-123", "output": "Resumed session"})
-
-    mock_process = AsyncMock()
-    mock_process.communicate = AsyncMock(return_value=(json_output.encode(), b""))
-    mock_process.returncode = 0
+    mock_process = create_mock_process(json_output.encode(), b"", returncode=0)
 
     with patch("asyncio.create_subprocess_exec", return_value=mock_process) as mock_exec:
         result = await executor.execute(
@@ -142,12 +183,9 @@ async def test_execute_with_session_id(executor, mock_desk):
 async def test_execute_with_stderr(executor, mock_desk):
     """Test execution with stderr output but success."""
     json_output = json.dumps({"session_id": "test-session", "output": "Success"})
-
-    mock_process = AsyncMock()
-    mock_process.communicate = AsyncMock(
-        return_value=(json_output.encode(), b"Warning: deprecated API")
+    mock_process = create_mock_process(
+        json_output.encode(), b"Warning: deprecated API", returncode=0
     )
-    mock_process.returncode = 0
 
     with patch("asyncio.create_subprocess_exec", return_value=mock_process):
         result = await executor.execute(
@@ -164,10 +202,7 @@ async def test_execute_with_stderr(executor, mock_desk):
 async def test_execute_uses_desk_path_by_default(executor):
     """Test that executor uses desk_path as default working directory."""
     json_output = json.dumps({"session_id": "test-session", "output": "Output"})
-
-    mock_process = AsyncMock()
-    mock_process.communicate = AsyncMock(return_value=(json_output.encode(), b""))
-    mock_process.returncode = 0
+    mock_process = create_mock_process(json_output.encode(), b"", returncode=0)
 
     # Create the default desk path
     desk_path = Path("/tmp/test_desk")
@@ -192,9 +227,7 @@ async def test_execute_uses_desk_path_by_default(executor):
 @pytest.mark.asyncio
 async def test_execute_nonzero_exit_code(executor, mock_desk):
     """Test execution failure with non-zero exit code."""
-    mock_process = AsyncMock()
-    mock_process.communicate = AsyncMock(return_value=(b"", b"Error: command failed"))
-    mock_process.returncode = 1
+    mock_process = create_mock_process(b"", b"Error: command failed", returncode=1)
 
     with patch("asyncio.create_subprocess_exec", return_value=mock_process):
         with pytest.raises(RuntimeError, match="Hapi execution failed.*exit code 1"):
@@ -233,14 +266,18 @@ async def test_execute_timeout(executor, mock_desk):
     """Test execution timeout handling."""
     mock_process = AsyncMock()
 
-    # Simulate timeout by having communicate never return
-    async def never_completes():
+    # Simulate timeout by having read never return
+    async def never_completes(size=4096):
         await asyncio.sleep(100)  # Sleep longer than timeout
-        return (b"", b"")
+        return b""
 
-    mock_process.communicate = never_completes
+    mock_process.stdout = AsyncMock()
+    mock_process.stdout.read = never_completes
+    mock_process.stderr = AsyncMock()
+    mock_process.stderr.read = never_completes
     mock_process.kill = MagicMock()
     mock_process.wait = AsyncMock()
+    mock_process.returncode = -1
 
     with patch("asyncio.create_subprocess_exec", return_value=mock_process):
         # Use a very short timeout for testing
@@ -258,10 +295,8 @@ async def test_execute_timeout(executor, mock_desk):
 @pytest.mark.asyncio
 async def test_execute_handles_utf8_errors(executor, mock_desk):
     """Test execution handles invalid UTF-8 in output."""
-    mock_process = AsyncMock()
     # Invalid UTF-8 bytes (not valid JSON)
-    mock_process.communicate = AsyncMock(return_value=(b"\xff\xfe Invalid UTF-8", b""))
-    mock_process.returncode = 0
+    mock_process = create_mock_process(b"\xff\xfe Invalid UTF-8", b"", returncode=0)
 
     with patch("asyncio.create_subprocess_exec", return_value=mock_process):
         result = await executor.execute(
@@ -322,10 +357,7 @@ async def test_full_execution_flow(executor, mock_desk):
     json_output = json.dumps(
         {"session_id": "session-abc", "output": "Briefing completed successfully"}
     )
-
-    mock_process = AsyncMock()
-    mock_process.communicate = AsyncMock(return_value=(json_output.encode(), b""))
-    mock_process.returncode = 0
+    mock_process = create_mock_process(json_output.encode(), b"", returncode=0)
 
     with patch("asyncio.create_subprocess_exec", return_value=mock_process) as mock_exec:
         result = await executor.execute(
@@ -355,14 +387,18 @@ async def test_timeout_override_works(executor, mock_desk):
     """Test that timeout_override parameter works."""
     mock_process = AsyncMock()
 
-    # Simulate a slow operation
-    async def slow_communicate():
+    # Simulate a slow read operation
+    async def slow_read(size=4096):
         await asyncio.sleep(0.5)
-        return (b"Output", b"")
+        return b""
 
-    mock_process.communicate = slow_communicate
+    mock_process.stdout = AsyncMock()
+    mock_process.stdout.read = slow_read
+    mock_process.stderr = AsyncMock()
+    mock_process.stderr.read = slow_read
     mock_process.kill = MagicMock()
     mock_process.wait = AsyncMock()
+    mock_process.returncode = -1
 
     with patch("asyncio.create_subprocess_exec", return_value=mock_process):
         # Should timeout with override of 0.1s
@@ -381,10 +417,7 @@ async def test_working_dir_override(executor, tmp_path):
     custom_dir.mkdir()
 
     json_output = json.dumps({"session_id": "test-session", "output": "Output"})
-
-    mock_process = AsyncMock()
-    mock_process.communicate = AsyncMock(return_value=(json_output.encode(), b""))
-    mock_process.returncode = 0
+    mock_process = create_mock_process(json_output.encode(), b"", returncode=0)
 
     with patch("asyncio.create_subprocess_exec", return_value=mock_process) as mock_exec:
         await executor.execute(
@@ -403,10 +436,7 @@ async def test_session_id_extraction_from_json(executor, mock_desk):
     json_output = json.dumps(
         {"session_id": "new-session-xyz", "output": "Task completed", "status": "success"}
     )
-
-    mock_process = AsyncMock()
-    mock_process.communicate = AsyncMock(return_value=(json_output.encode(), b""))
-    mock_process.returncode = 0
+    mock_process = create_mock_process(json_output.encode(), b"", returncode=0)
 
     with patch("asyncio.create_subprocess_exec", return_value=mock_process):
         result = await executor.execute(
@@ -432,10 +462,7 @@ async def test_session_id_extraction_with_prefix_text(executor, mock_desk):
         {"session_id": "abc-123-def", "result": "Done", "type": "result"}
     )
     full_output = prefix_text + json_output
-
-    mock_process = AsyncMock()
-    mock_process.communicate = AsyncMock(return_value=(full_output.encode(), b""))
-    mock_process.returncode = 0
+    mock_process = create_mock_process(full_output.encode(), b"", returncode=0)
 
     with patch("asyncio.create_subprocess_exec", return_value=mock_process):
         result = await executor.execute(
@@ -451,10 +478,8 @@ async def test_session_id_extraction_with_prefix_text(executor, mock_desk):
 @pytest.mark.asyncio
 async def test_session_id_none_on_invalid_json(executor, mock_desk):
     """Test that session_id is None when JSON parsing fails."""
-    mock_process = AsyncMock()
     # Return non-JSON output
-    mock_process.communicate = AsyncMock(return_value=(b"Plain text output", b""))
-    mock_process.returncode = 0
+    mock_process = create_mock_process(b"Plain text output", b"", returncode=0)
 
     with patch("asyncio.create_subprocess_exec", return_value=mock_process):
         result = await executor.execute(
