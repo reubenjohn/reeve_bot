@@ -70,6 +70,7 @@ class PulseExecutor:
         session_id: Optional[str] = None,
         working_dir: Optional[str] = None,
         timeout_override: Optional[int] = None,
+        dry_run: bool = False,
     ) -> ExecutionResult:
         """
         Execute a pulse by launching a Hapi session.
@@ -79,6 +80,7 @@ class PulseExecutor:
             session_id: Optional session ID to resume
             working_dir: Override working directory (defaults to desk_path)
             timeout_override: Override timeout for this specific execution
+            dry_run: If True, log the command but don't actually run Hapi
 
         Returns:
             ExecutionResult with stdout, stderr, return_code, timed_out, and session_id
@@ -106,6 +108,18 @@ class PulseExecutor:
         cmd.append(prompt)
 
         self.logger.debug(f"Executing: {' '.join(cmd)} (cwd: {cwd}, timeout: {timeout}s)")
+
+        # Handle dry run mode - log command without executing
+        if dry_run:
+            self.logger.info(f"[DRY RUN] Would execute: {' '.join(cmd)}")
+            self.logger.info(f"[DRY RUN] Working directory: {cwd}")
+            return ExecutionResult(
+                stdout="[DRY RUN] Execution skipped",
+                stderr="",
+                return_code=0,
+                timed_out=False,
+                session_id=None,
+            )
 
         # Execute Hapi as subprocess
         try:
