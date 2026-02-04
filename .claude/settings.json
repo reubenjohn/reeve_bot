@@ -7,7 +7,9 @@
       "Bash(export TELEGRAM_BOT_TOKEN=test123)",
       "Bash(source:*)",
       "Bash(./demos/phase8_deployment_demo.sh:*)",
-      "Bash(/home/reuben/workspace/reeve_bot/deploy/scripts/reeve-heartbeat.sh:*)"
+      "Bash(/home/reuben/workspace/reeve_bot/deploy/scripts/reeve-heartbeat.sh:*)",
+      "Bash(PULSE_API_PORT=9999 uv run python:*)",
+      "Bash(PULSE_API_TOKEN= REEVE_DESK_PATH= PULSE_DB_URL= uv run python:*)"
     ]
   }
 }
