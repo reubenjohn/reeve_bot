@@ -4,10 +4,10 @@ Tests for Telegram Notifier MCP Server
 Tests the MCP tools provided by the Telegram Notifier MCP server.
 """
 
-from unittest.mock import MagicMock, PropertyMock, patch
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
+import httpx
 import pytest
-import requests
 
 
 class TestTelegramNotifierMCPTools:
@@ -34,11 +34,16 @@ class TestTelegramNotifierMCPTools:
         mock_ctx = MagicMock()
         mock_ctx.session_id = "test-session-123"
 
-        with patch("requests.post") as mock_post:
-            mock_response = MagicMock()
-            mock_response.raise_for_status = MagicMock()
-            mock_post.return_value = mock_response
+        # Mock httpx.AsyncClient
+        mock_response = MagicMock()
+        mock_response.raise_for_status = MagicMock()
 
+        mock_client = AsyncMock()
+        mock_client.post = AsyncMock(return_value=mock_response)
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock(return_value=None)
+
+        with patch("httpx.AsyncClient", return_value=mock_client):
             result = await send_notification(
                 ctx=mock_ctx,
                 message="Test notification",
@@ -46,8 +51,8 @@ class TestTelegramNotifierMCPTools:
             )
 
             # Verify the request was made
-            mock_post.assert_called_once()
-            call_args = mock_post.call_args
+            mock_client.post.assert_called_once()
+            call_args = mock_client.post.call_args
 
             assert "sendMessage" in call_args[0][0]
             assert call_args.kwargs["json"]["text"] == "Test notification"
@@ -79,10 +84,13 @@ class TestTelegramNotifierMCPTools:
         mock_ctx = MagicMock()
         mock_ctx.session_id = "test-session-123"
 
-        with patch("reeve.mcp.notification_server.requests.post") as mock_post:
-            # Use requests.exceptions.RequestException which is what the function catches
-            mock_post.side_effect = requests.exceptions.RequestException("Network error")
+        # Mock httpx.AsyncClient to raise HTTPError
+        mock_client = AsyncMock()
+        mock_client.post = AsyncMock(side_effect=httpx.HTTPError("Network error"))
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock(return_value=None)
 
+        with patch("httpx.AsyncClient", return_value=mock_client):
             result = await send_notification(
                 ctx=mock_ctx,
                 message="Test notification",
@@ -105,11 +113,16 @@ class TestTelegramNotifierMCPTools:
         mock_ctx = MagicMock()
         mock_ctx.session_id = "test-session-123"
 
-        with patch("requests.post") as mock_post:
-            mock_response = MagicMock()
-            mock_response.raise_for_status = MagicMock()
-            mock_post.return_value = mock_response
+        # Mock httpx.AsyncClient
+        mock_response = MagicMock()
+        mock_response.raise_for_status = MagicMock()
 
+        mock_client = AsyncMock()
+        mock_client.post = AsyncMock(return_value=mock_response)
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock(return_value=None)
+
+        with patch("httpx.AsyncClient", return_value=mock_client):
             result = await send_notification(
                 ctx=mock_ctx,
                 message="Silent notification",
@@ -117,7 +130,7 @@ class TestTelegramNotifierMCPTools:
             )
 
             # Verify disable_notification is True for silent priority
-            call_args = mock_post.call_args
+            call_args = mock_client.post.call_args
             assert call_args.kwargs["json"]["disable_notification"] is True
             assert "✓ Notification with link sent successfully (silent)" in result
 
@@ -135,17 +148,22 @@ class TestTelegramNotifierMCPTools:
         mock_ctx = MagicMock()
         type(mock_ctx).session_id = PropertyMock(side_effect=RuntimeError("No session"))
 
-        with patch("requests.post") as mock_post:
-            mock_response = MagicMock()
-            mock_response.raise_for_status = MagicMock()
-            mock_post.return_value = mock_response
+        # Mock httpx.AsyncClient
+        mock_response = MagicMock()
+        mock_response.raise_for_status = MagicMock()
 
+        mock_client = AsyncMock()
+        mock_client.post = AsyncMock(return_value=mock_response)
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock(return_value=None)
+
+        with patch("httpx.AsyncClient", return_value=mock_client):
             result = await send_notification(
                 ctx=mock_ctx,
                 message="Test notification",
             )
 
             # Verify no link button is present
-            call_args = mock_post.call_args
+            call_args = mock_client.post.call_args
             assert "reply_markup" not in call_args.kwargs["json"]
             assert "✓ Notification sent successfully" in result
