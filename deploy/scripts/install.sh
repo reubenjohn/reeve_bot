@@ -129,6 +129,21 @@ cp "$DEPLOY_DIR/scripts/reeve-heartbeat.sh" /usr/local/bin/reeve-heartbeat
 chmod +x /usr/local/bin/reeve-heartbeat
 echo "  Installed /usr/local/bin/reeve-heartbeat"
 
+# Install debug helper scripts
+echo ""
+echo "Installing debug helper scripts..."
+cp "$DEPLOY_DIR/scripts/reeve-status.sh" /usr/local/bin/reeve-status
+chmod +x /usr/local/bin/reeve-status
+echo "  Installed /usr/local/bin/reeve-status"
+
+cp "$DEPLOY_DIR/scripts/reeve-logs.sh" /usr/local/bin/reeve-logs
+chmod +x /usr/local/bin/reeve-logs
+echo "  Installed /usr/local/bin/reeve-logs"
+
+cp "$DEPLOY_DIR/scripts/reeve-queue.sh" /usr/local/bin/reeve-queue
+chmod +x /usr/local/bin/reeve-queue
+echo "  Installed /usr/local/bin/reeve-queue"
+
 # Install logrotate config
 echo ""
 echo "Installing logrotate config..."
@@ -221,4 +236,7 @@ echo "  journalctl -u reeve-daemon -f       # Follow daemon logs"
 echo "  /usr/local/bin/reeve-health-check   # Run health check"
 echo "  /usr/local/bin/reeve-backup         # Run manual backup"
 echo "  /usr/local/bin/reeve-heartbeat      # Trigger heartbeat pulse"
+echo "  reeve-status                        # System health overview"
+echo "  reeve-logs                          # Unified log viewer"
+echo "  reeve-queue                         # Pulse queue inspector"
 echo "  crontab -l                          # View scheduled tasks"

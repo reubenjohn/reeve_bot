@@ -45,6 +45,12 @@ systemctl daemon-reload
 echo "Removing helper scripts..."
 rm -f /usr/local/bin/reeve-health-check
 rm -f /usr/local/bin/reeve-backup
+rm -f /usr/local/bin/reeve-heartbeat
+
+# Remove debug helper scripts
+rm -f /usr/local/bin/reeve-status
+rm -f /usr/local/bin/reeve-logs
+rm -f /usr/local/bin/reeve-queue
 
 # Remove logrotate config
 echo "Removing logrotate config..."
