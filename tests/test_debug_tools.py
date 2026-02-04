@@ -191,9 +191,11 @@ class TestExecutorDryRun:
     @pytest.mark.asyncio
     async def test_normal_execution_still_works(self, executor):
         """Test that normal (non-dry-run) execution still spawns subprocess."""
+        from tests.fixtures.hapi_streams import success_stream
+
         mock_process = AsyncMock()
         mock_process.communicate.return_value = (
-            b'{"session_id": "test-123"}',
+            success_stream(session_id="test-123").encode(),
             b"",
         )
         mock_process.returncode = 0

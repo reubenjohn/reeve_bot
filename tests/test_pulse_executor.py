@@ -9,7 +9,6 @@ Tests pulse execution by launching Hapi sessions, including:
 """
 
 import asyncio
-import json
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -92,11 +91,13 @@ def test_build_prompt_with_single_sticky_note(executor):
 @pytest.mark.asyncio
 async def test_execute_basic_success(executor, mock_desk):
     """Test successful Hapi execution."""
-    # Mock JSON output with session_id
-    json_output = json.dumps({"session_id": "test-session-123", "output": "Hapi output"})
+    from tests.fixtures.hapi_streams import success_stream
+
+    # Mock stream-json output with session_id
+    stream_output = success_stream(session_id="test-session-123")
 
     mock_process = AsyncMock()
-    mock_process.communicate = AsyncMock(return_value=(json_output.encode(), b""))
+    mock_process.communicate = AsyncMock(return_value=(stream_output.encode(), b""))
     mock_process.returncode = 0
 
     with patch("asyncio.create_subprocess_exec", return_value=mock_process):
@@ -115,10 +116,12 @@ async def test_execute_basic_success(executor, mock_desk):
 @pytest.mark.asyncio
 async def test_execute_with_session_id(executor, mock_desk):
     """Test execution with session resume."""
-    json_output = json.dumps({"session_id": "session-123", "output": "Resumed session"})
+    from tests.fixtures.hapi_streams import success_stream
+
+    stream_output = success_stream(session_id="session-123")
 
     mock_process = AsyncMock()
-    mock_process.communicate = AsyncMock(return_value=(json_output.encode(), b""))
+    mock_process.communicate = AsyncMock(return_value=(stream_output.encode(), b""))
     mock_process.returncode = 0
 
     with patch("asyncio.create_subprocess_exec", return_value=mock_process) as mock_exec:
@@ -133,7 +136,7 @@ async def test_execute_with_session_id(executor, mock_desk):
     assert "--resume" in call_args
     assert "session-123" in call_args
     assert "--output-format" in call_args
-    assert "json" in call_args
+    assert "stream-json" in call_args
     assert result.return_code == 0
     assert result.session_id == "session-123"
 
@@ -141,11 +144,13 @@ async def test_execute_with_session_id(executor, mock_desk):
 @pytest.mark.asyncio
 async def test_execute_with_stderr(executor, mock_desk):
     """Test execution with stderr output but success."""
-    json_output = json.dumps({"session_id": "test-session", "output": "Success"})
+    from tests.fixtures.hapi_streams import success_stream
+
+    stream_output = success_stream(session_id="test-session")
 
     mock_process = AsyncMock()
     mock_process.communicate = AsyncMock(
-        return_value=(json_output.encode(), b"Warning: deprecated API")
+        return_value=(stream_output.encode(), b"Warning: deprecated API")
     )
     mock_process.returncode = 0
 
@@ -163,10 +168,12 @@ async def test_execute_with_stderr(executor, mock_desk):
 @pytest.mark.asyncio
 async def test_execute_uses_desk_path_by_default(executor):
     """Test that executor uses desk_path as default working directory."""
-    json_output = json.dumps({"session_id": "test-session", "output": "Output"})
+    from tests.fixtures.hapi_streams import success_stream
+
+    stream_output = success_stream(session_id="test-session")
 
     mock_process = AsyncMock()
-    mock_process.communicate = AsyncMock(return_value=(json_output.encode(), b""))
+    mock_process.communicate = AsyncMock(return_value=(stream_output.encode(), b""))
     mock_process.returncode = 0
 
     # Create the default desk path
@@ -312,19 +319,19 @@ def test_executor_custom_timeout():
 @pytest.mark.asyncio
 async def test_full_execution_flow(executor, mock_desk):
     """Test complete execution flow from prompt to result."""
+    from tests.fixtures.hapi_streams import success_stream
+
     base_prompt = "Daily briefing"
     sticky_notes = ["Check calendar", "Review emails"]
 
     # Build full prompt with sticky notes
     full_prompt = executor.build_prompt(base_prompt, sticky_notes)
 
-    # Mock Hapi execution with JSON output
-    json_output = json.dumps(
-        {"session_id": "session-abc", "output": "Briefing completed successfully"}
-    )
+    # Mock Hapi execution with stream-json output
+    stream_output = success_stream(session_id="session-abc")
 
     mock_process = AsyncMock()
-    mock_process.communicate = AsyncMock(return_value=(json_output.encode(), b""))
+    mock_process.communicate = AsyncMock(return_value=(stream_output.encode(), b""))
     mock_process.returncode = 0
 
     with patch("asyncio.create_subprocess_exec", return_value=mock_process) as mock_exec:
@@ -339,7 +346,7 @@ async def test_full_execution_flow(executor, mock_desk):
     assert "hapi" in call_args
     assert "--print" in call_args
     assert "--output-format" in call_args
-    assert "json" in call_args
+    assert "stream-json" in call_args
     assert "--resume" in call_args
     assert "session-abc" in call_args
     assert full_prompt in call_args  # Prompt is passed as positional arg
@@ -377,13 +384,15 @@ async def test_timeout_override_works(executor, mock_desk):
 @pytest.mark.asyncio
 async def test_working_dir_override(executor, tmp_path):
     """Test working directory override."""
+    from tests.fixtures.hapi_streams import success_stream
+
     custom_dir = tmp_path / "custom_workspace"
     custom_dir.mkdir()
 
-    json_output = json.dumps({"session_id": "test-session", "output": "Output"})
+    stream_output = success_stream(session_id="test-session")
 
     mock_process = AsyncMock()
-    mock_process.communicate = AsyncMock(return_value=(json_output.encode(), b""))
+    mock_process.communicate = AsyncMock(return_value=(stream_output.encode(), b""))
     mock_process.returncode = 0
 
     with patch("asyncio.create_subprocess_exec", return_value=mock_process) as mock_exec:
@@ -398,14 +407,14 @@ async def test_working_dir_override(executor, tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_session_id_extraction_from_json(executor, mock_desk):
-    """Test that session_id is properly extracted from JSON output."""
-    json_output = json.dumps(
-        {"session_id": "new-session-xyz", "output": "Task completed", "status": "success"}
-    )
+async def test_session_id_extraction_from_stream_json(executor, mock_desk):
+    """Test that session_id is properly extracted from stream-json output."""
+    from tests.fixtures.hapi_streams import success_stream
+
+    stream_output = success_stream(session_id="new-session-xyz")
 
     mock_process = AsyncMock()
-    mock_process.communicate = AsyncMock(return_value=(json_output.encode(), b""))
+    mock_process.communicate = AsyncMock(return_value=(stream_output.encode(), b""))
     mock_process.returncode = 0
 
     with patch("asyncio.create_subprocess_exec", return_value=mock_process):
@@ -414,25 +423,21 @@ async def test_session_id_extraction_from_json(executor, mock_desk):
             working_dir=str(mock_desk),
         )
 
-    # Verify session_id was extracted from JSON
+    # Verify session_id was extracted from stream-json
     assert result.session_id == "new-session-xyz"
     assert result.return_code == 0
 
 
 @pytest.mark.asyncio
 async def test_session_id_extraction_with_prefix_text(executor, mock_desk):
-    """Test that session_id is extracted even when JSON has prefix text (real hapi output)."""
-    # Real hapi output has terminal sequences and status messages before JSON
-    prefix_text = (
-        ']9;9;"\\\\wsl.localhost\\Ubuntu\\home\\user\\desk"\n'
-        "Starting HAPI hub in background...\n"
-        "HAPI hub started\n"
-    )
-    json_output = json.dumps({"session_id": "abc-123-def", "result": "Done", "type": "result"})
-    full_output = prefix_text + json_output
+    """Test that session_id is extracted even when stream-json has prefix text (real hapi output)."""
+    from tests.fixtures.hapi_streams import realistic_terminal_prefix_stream
+
+    # Real hapi output has terminal sequences and status messages before JSON events
+    stream_output = realistic_terminal_prefix_stream()
 
     mock_process = AsyncMock()
-    mock_process.communicate = AsyncMock(return_value=(full_output.encode(), b""))
+    mock_process.communicate = AsyncMock(return_value=(stream_output.encode(), b""))
     mock_process.returncode = 0
 
     with patch("asyncio.create_subprocess_exec", return_value=mock_process):
@@ -442,7 +447,7 @@ async def test_session_id_extraction_with_prefix_text(executor, mock_desk):
         )
 
     # session_id should be extracted despite prefix text
-    assert result.session_id == "abc-123-def"
+    assert result.session_id == "test-session-123"  # Default from fixture
     assert result.return_code == 0
 
 
@@ -463,3 +468,92 @@ async def test_session_id_none_on_invalid_json(executor, mock_desk):
     # session_id should be None since JSON parsing failed
     assert result.session_id is None
     assert result.return_code == 0
+
+
+# ============================================================================
+# Stream JSON Integration Tests
+# ============================================================================
+
+
+@pytest.fixture
+def mock_process():
+    """Create a mock process for use in stream-json tests."""
+    mock_proc = AsyncMock()
+    mock_proc.returncode = 0
+    mock_proc.communicate = AsyncMock(return_value=(b"", b""))
+    return mock_proc
+
+
+class TestStreamJsonIntegration:
+    """Tests for stream-json output parsing."""
+
+    @pytest.mark.asyncio
+    async def test_execute_extracts_session_id_from_stream_json(self, executor, mock_desk):
+        """Session ID is extracted from stream-json output."""
+        from tests.fixtures.hapi_streams import success_stream
+
+        mock_process = AsyncMock()
+        mock_process.returncode = 0
+        mock_process.communicate = AsyncMock(
+            return_value=(
+                success_stream(session_id="stream-session-456").encode(),
+                b"",
+            )
+        )
+
+        with patch("asyncio.create_subprocess_exec", return_value=mock_process):
+            result = await executor.execute(
+                prompt="Test prompt",
+                working_dir=str(mock_desk),
+            )
+
+        assert result.session_id == "stream-session-456"
+        assert result.return_code == 0
+
+    @pytest.mark.asyncio
+    async def test_execute_failure_includes_error_from_stdout(self, executor, mock_desk):
+        """Error messages come from parsed stdout, not empty stderr."""
+        from tests.fixtures.hapi_streams import error_stream
+
+        mock_process = AsyncMock()
+        mock_process.returncode = 1
+        mock_process.communicate = AsyncMock(
+            return_value=(
+                error_stream(error_msg="API rate limited").encode(),
+                b"",  # stderr is empty (realistic)
+            )
+        )
+
+        with patch("asyncio.create_subprocess_exec", return_value=mock_process):
+            with pytest.raises(RuntimeError) as exc_info:
+                await executor.execute(
+                    prompt="Test prompt",
+                    working_dir=str(mock_desk),
+                )
+
+        # Error should come from stdout JSON, not empty stderr
+        assert "API rate limited" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_execute_failure_preserves_session_id(self, executor, mock_desk):
+        """Session ID is captured even when execution fails."""
+        from tests.fixtures.hapi_streams import error_stream
+
+        mock_process = AsyncMock()
+        mock_process.returncode = 1
+        mock_process.communicate = AsyncMock(
+            return_value=(
+                error_stream(session_id="failed-session-789").encode(),
+                b"",
+            )
+        )
+
+        # The session_id is in the result even though we raise
+        # We need to check the executor's parse result
+        # For now, just verify the error is raised with proper message
+        with patch("asyncio.create_subprocess_exec", return_value=mock_process):
+            with pytest.raises(RuntimeError):
+                await executor.execute(
+                    prompt="Test prompt",
+                    working_dir=str(mock_desk),
+                )

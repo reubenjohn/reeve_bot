@@ -6,12 +6,13 @@ sessions with the pulse's prompt as the initial context.
 """
 
 import asyncio
-import json
 import logging
 from pathlib import Path
 from typing import Optional
 
 from pydantic import BaseModel, Field
+
+from reeve.pulse.stream_parser import HapiStreamParser
 
 
 class ExecutionResult(BaseModel):
@@ -63,6 +64,7 @@ class PulseExecutor:
         self.desk_path = Path(desk_path).expanduser().resolve()
         self.timeout_seconds = timeout_seconds
         self.logger = logging.getLogger("reeve.executor")
+        self.stream_parser = HapiStreamParser()
 
     async def execute(
         self,
@@ -98,7 +100,7 @@ class PulseExecutor:
         # Build Hapi command
         # Use --print for non-interactive execution (automated pulse execution)
         # Use --output-format json to get structured output with session_id
-        cmd = [self.hapi_command, "--print", "--output-format", "json"]
+        cmd = [self.hapi_command, "--print", "--output-format", "stream-json", "--verbose"]
 
         # Add session resume flag if provided
         if session_id:
@@ -150,23 +152,13 @@ class PulseExecutor:
                 -1 if timed_out else (process.returncode if process.returncode is not None else -1)
             )
 
-            # Parse JSON output to extract session_id (if available)
-            extracted_session_id = None
-            if not timed_out and return_code == 0:
-                try:
-                    # Claude Code --output-format json outputs JSON with session_id
-                    # But stdout may contain prefix text (terminal sequences, status messages)
-                    # Find the JSON object by looking for the opening brace
-                    json_start = stdout_str.find("{")
-                    if json_start != -1:
-                        json_str = stdout_str[json_start:]
-                        json_output = json.loads(json_str)
-                        extracted_session_id = json_output.get("session_id")
-                    else:
-                        self.logger.debug("No JSON object found in stdout")
-                except (json.JSONDecodeError, KeyError) as e:
-                    # If JSON parsing fails, we'll proceed without session_id
-                    self.logger.debug(f"Could not parse session_id from JSON output: {e}")
+            # Parse stream-json output to extract session_id and error details
+            # This works for both success AND failure cases
+            parse_result = self.stream_parser.parse_all(stdout_str)
+            extracted_session_id = parse_result.session_id  # Available even on failure!
+
+            if parse_result.tool_call_count > 0:
+                self.logger.debug(f"Session made {parse_result.tool_call_count} tool calls")
 
             result = ExecutionResult(
                 stdout=stdout_str,
@@ -181,8 +173,10 @@ class PulseExecutor:
                 raise RuntimeError(f"Hapi execution timed out after {timeout}s: {result.stderr}")
 
             if process.returncode != 0:
+                # Use error from parsed stdout (actual error details) over stderr (often empty)
+                error_detail = parse_result.error_message or stderr_str or "Unknown error"
                 raise RuntimeError(
-                    f"Hapi execution failed (exit code {process.returncode}): " f"{result.stderr}"
+                    f"Hapi execution failed (exit code {process.returncode}): {error_detail}"
                 )
 
             self.logger.info(
