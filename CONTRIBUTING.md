@@ -37,8 +37,8 @@ Before contributing, familiarize yourself with:
 
 1. **[README.md](README.md)** - Project philosophy and vision
 2. **[CLAUDE.md](CLAUDE.md)** - Implementation status, architecture, and development guidelines
-3. **[docs/00_PROJECT_STRUCTURE.md](docs/00_PROJECT_STRUCTURE.md)** - Directory layout and component overview
-4. **[docs/IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md)** - Full implementation plan
+3. **[docs/architecture/project-structure.md](docs/architecture/project-structure.md)** - Directory layout and component overview
+4. **[docs/roadmap/index.md](docs/roadmap/index.md)** - Full implementation plan
 
 ## Development Setup
 
@@ -289,11 +289,11 @@ Include the following:
 
 ## Additional Resources
 
-- **Architecture Overview**: [docs/00_PROJECT_STRUCTURE.md](docs/00_PROJECT_STRUCTURE.md)
+- **Architecture Overview**: [docs/architecture/project-structure.md](docs/architecture/project-structure.md)
 - **Design Principles**: [CLAUDE.md#design-principles](CLAUDE.md#design-principles)
-- **Implementation Phases**: [docs/IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md)
-- **Database Schema**: [docs/01_PULSE_QUEUE_DESIGN.md](docs/01_PULSE_QUEUE_DESIGN.md)
-- **MCP Integration**: [docs/02_MCP_INTEGRATION.md](docs/02_MCP_INTEGRATION.md)
+- **Implementation Phases**: [docs/roadmap/index.md](docs/roadmap/index.md)
+- **Database Schema**: [docs/architecture/pulse-queue.md](docs/architecture/pulse-queue.md)
+- **MCP Integration**: [docs/architecture/mcp-integration.md](docs/architecture/mcp-integration.md)
 
 ## Questions?
 

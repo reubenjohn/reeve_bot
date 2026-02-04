@@ -189,8 +189,8 @@ uv run python -m reeve.mcp.notification_server
 Once MCP servers are working:
 
 1. **Schedule your first pulse**: Ask Claude to schedule a test pulse
-2. **Set up the daemon**: See [03_DAEMON_AND_API.md](03_DAEMON_AND_API.md)
-3. **Deploy to production**: See [04_DEPLOYMENT.md](04_DEPLOYMENT.md)
+2. **Set up the daemon**: See [architecture/daemon-api.md](architecture/daemon-api.md)
+3. **Deploy to production**: See [architecture/deployment.md](architecture/deployment.md)
 
 ## Available MCP Tools
 
