@@ -12,7 +12,8 @@
       "Bash(PULSE_API_TOKEN= REEVE_DESK_PATH= PULSE_DB_URL= uv run python:*)",
       "Bash(reeve-queue)",
       "Bash(reeve-status:*)",
-      "Bash(reeve-logs:*)"
+      "Bash(reeve-logs:*)",
+      "Bash(reeve-queue:*)"
     ]
   }
 }
