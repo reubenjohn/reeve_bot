@@ -29,7 +29,7 @@ A **Pulse** is a scheduled wake-up event for Reeve. When a pulse fires, it launc
 | 7 | Telegram Integration | Completed |
 | 8 | Production Deployment | Completed |
 
-**Test Status**: 191/191 tests passing
+**Test Status**: 274/274 tests passing
 
 See [Implementation Roadmap](docs/roadmap/index.md) for detailed phase documentation.
 
@@ -170,7 +170,20 @@ uv run mypy src/
 # Systemd service management (production)
 sudo systemctl status reeve-daemon reeve-telegram
 sudo journalctl -u reeve-daemon -f
+
+# After code changes (restart to pick up new code)
+sudo systemctl restart reeve-daemon reeve-telegram
 ```
+
+### After Code Changes Checklist
+
+When modifying daemon code (executor, MCP servers, API, etc.):
+
+1. **Run tests**: `uv run pytest tests/ -v`
+2. **Restart services**: `sudo systemctl restart reeve-daemon reeve-telegram`
+3. **Verify startup**: `sudo journalctl -u reeve-daemon -n 20`
+
+The daemon runs via `uv run` from the repo, so source changes are picked up automatically—but the process must be restarted to reload Python modules.
 
 ## Debug & Diagnostics
 
@@ -258,11 +271,13 @@ pulse = Pulse(
 5. **Documented**: Code should be self-explanatory with good docstrings.
 6. **Fail gracefully**: Check preconditions, return None/False on errors.
 7. **Idempotent**: Operations should be safe to retry.
-8. **Validate assumptions first**: Before implementing changes to CLI/executor integration, test actual behavior manually:
+8. **Validate external interfaces first**: Before implementing parsers or integrations for external tools (CLI, APIs), capture real output in multiple scenarios:
    ```bash
-   # Example: Check Claude Code output format before assuming streaming helps
-   cd ~/reeve_desk && claude --print --output-format json "Test prompt"
+   # Example: Validate claude CLI output format before building parser
+   cd ~/reeve_desk && claude --print --output-format stream-json --verbose "Test" 2>&1
+   # Test success, failure, tool calls, permission errors
    ```
+   Key findings to verify: field names, data types, error locations, event ordering.
 
 ## Code Style
 
