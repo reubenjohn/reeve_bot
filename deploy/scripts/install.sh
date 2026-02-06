@@ -134,6 +134,18 @@ cp "$DEPLOY_DIR/scripts/reeve-heartbeat.sh" /usr/local/bin/reeve-heartbeat
 chmod +x /usr/local/bin/reeve-heartbeat
 echo "  Installed /usr/local/bin/reeve-heartbeat"
 
+cp "$DEPLOY_DIR/scripts/reeve-credential-keepalive.sh" /usr/local/bin/reeve-credential-keepalive
+chmod +x /usr/local/bin/reeve-credential-keepalive
+# Set PROVIDERS_DIR to installed location
+sed -i 's|PROVIDERS_DIR="${PROVIDERS_DIR:-.*}"|PROVIDERS_DIR="${PROVIDERS_DIR:-/usr/local/lib/reeve/credential-providers}"|' /usr/local/bin/reeve-credential-keepalive
+echo "  Installed /usr/local/bin/reeve-credential-keepalive"
+
+# Install credential providers
+mkdir -p /usr/local/lib/reeve/credential-providers
+cp "$DEPLOY_DIR/credential-providers/"*.sh /usr/local/lib/reeve/credential-providers/
+chmod +x /usr/local/lib/reeve/credential-providers/*.sh
+echo "  Installed credential providers to /usr/local/lib/reeve/credential-providers/"
+
 # Install debug helper scripts
 echo ""
 echo "Installing debug helper scripts..."
@@ -241,6 +253,7 @@ echo "  journalctl -u reeve-daemon -f       # Follow daemon logs"
 echo "  /usr/local/bin/reeve-health-check   # Run health check"
 echo "  /usr/local/bin/reeve-backup         # Run manual backup"
 echo "  /usr/local/bin/reeve-heartbeat      # Trigger heartbeat pulse"
+echo "  reeve-credential-keepalive          # Check/refresh credentials"
 echo "  reeve-status                        # System health overview"
 echo "  reeve-logs                          # Unified log viewer"
 echo "  reeve-queue                         # Pulse queue inspector"

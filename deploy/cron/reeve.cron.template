@@ -10,3 +10,6 @@
 
 # Database backup daily at 3 AM
 0 3 * * * /usr/local/bin/reeve-backup >> {{REEVE_HOME}}/logs/backup.log 2>&1
+
+# Credential keep-alive every 4 hours
+0 */4 * * * /usr/local/bin/reeve-credential-keepalive >> {{REEVE_HOME}}/logs/credential-keepalive.log 2>&1

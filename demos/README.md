@@ -164,7 +164,7 @@ Demonstrates:
 - Template variable substitution (`{{USER}}`, `{{REEVE_BOT_PATH}}`, etc.)
 - Systemd service file generation
 - Logrotate and cron configuration
-- Helper script installation (health-check, backup)
+- Helper script installation (health-check, backup, credential-keepalive)
 - Service enable and start sequence
 - Post-installation verification
 

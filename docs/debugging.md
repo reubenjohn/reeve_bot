@@ -76,6 +76,7 @@ reeve-logs -n 100 telegram  # Last 100 telegram lines
 | `daemon` | Reeve daemon logs via journalctl (default) |
 | `telegram` | Telegram listener logs via journalctl |
 | `heartbeat` | Heartbeat log file (`~/.reeve/logs/heartbeat.log`) |
+| `credential-keepalive` | Credential keepalive log (`~/.reeve/logs/credential-keepalive.log`) |
 | `all` | Interleave daemon + telegram + heartbeat |
 
 **Options:**
@@ -291,6 +292,14 @@ curl -H "Authorization: Bearer $PULSE_API_TOKEN" \
 3. Verify heartbeat script: `/usr/local/bin/reeve-heartbeat`
 4. Check API is accessible from cron environment
 
+#### Credential refresh failing
+
+1. Check cron is running: `crontab -l | grep credential`
+2. Review keepalive log: `cat ~/.reeve/logs/credential-keepalive.log`
+3. Run manually: `/usr/local/bin/reeve-credential-keepalive`
+4. Check credentials file exists: `ls -la ~/.claude/.credentials.json`
+5. Verify python3 is available: `which python3`
+
 #### API not responding
 
 1. Check daemon is running: `systemctl status reeve-daemon`
@@ -306,6 +315,7 @@ curl -H "Authorization: Bearer $PULSE_API_TOKEN" \
 | Telegram logs | systemd journal | `journalctl -u reeve-telegram` |
 | Heartbeat log | `~/.reeve/logs/heartbeat.log` | `cat` or `reeve-logs heartbeat` |
 | Health check log | `~/.reeve/logs/health_check.log` | `cat` |
+| Credential keepalive log | `~/.reeve/logs/credential-keepalive.log` | `cat` |
 
 ### Database Inspection
 

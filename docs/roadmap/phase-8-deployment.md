@@ -25,14 +25,17 @@ deploy/
 │   └── reeve-telegram.service.template # Telegram listener service
 ├── config/
 │   └── logrotate.conf.template         # Log rotation config
+├── credential-providers/
+│   └── claude-code.sh                  # Claude Code OAuth token provider
 ├── cron/
-│   └── reeve.cron.template             # Scheduled tasks (heartbeat, health, backup)
+│   └── reeve.cron.template             # Scheduled tasks (heartbeat, health, backup, credentials)
 └── scripts/
     ├── install.sh                      # Main installation script
     ├── uninstall.sh                    # Cleanup script
     ├── reeve-heartbeat.sh              # Hourly heartbeat pulse
     ├── reeve-health-check.sh           # Health check helper
-    └── reeve-backup.sh                 # Database backup helper
+    ├── reeve-backup.sh                 # Database backup helper
+    └── reeve-credential-keepalive.sh   # Credential refresh orchestrator
 ```
 
 ### Template Variables
@@ -154,6 +157,7 @@ crontab -l | grep reeve
 # 0 * * * * /usr/local/bin/reeve-heartbeat ...    (hourly heartbeat)
 # */5 * * * * /usr/local/bin/reeve-health-check ... (health check)
 # 0 3 * * * /usr/local/bin/reeve-backup ...       (daily backup)
+# 0 */4 * * * /usr/local/bin/reeve-credential-keepalive ... (credential keep-alive)
 ```
 
 ### Step 6: Graceful shutdown test

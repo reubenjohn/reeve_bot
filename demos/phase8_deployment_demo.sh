@@ -111,8 +111,10 @@ if [[ "$MOCK_MODE" == true ]]; then
     echo -e "${GREEN}Step 3: Copying helper scripts${NC}"
     cp "$DEPLOY_DIR/scripts/reeve-health-check.sh" "$MOCK_ROOT/usr/local/bin/reeve-health-check"
     cp "$DEPLOY_DIR/scripts/reeve-backup.sh" "$MOCK_ROOT/usr/local/bin/reeve-backup"
+    cp "$DEPLOY_DIR/scripts/reeve-credential-keepalive.sh" "$MOCK_ROOT/usr/local/bin/reeve-credential-keepalive"
     echo "  Copied reeve-health-check"
     echo "  Copied reeve-backup"
+    echo "  Copied reeve-credential-keepalive"
     echo ""
 
     echo -e "${GREEN}Step 4: Final mock filesystem structure${NC}"

@@ -358,7 +358,32 @@ crontab -e
 /usr/local/bin/reeve-heartbeat
 ```
 
-### 5. Metrics (Optional)
+### 5. Credential Keep-Alive
+
+The **credential keep-alive** prevents OAuth token expiry for services Reeve depends on. It uses a pluggable provider architecture - each credential type has its own provider script.
+
+**Keep-alive script** (`/usr/local/bin/reeve-credential-keepalive`):
+
+The script discovers provider scripts from `/usr/local/lib/reeve/credential-providers/`, checks each credential's health, and refreshes tokens that are close to expiring.
+
+Current providers:
+- **claude-code**: Refreshes Claude Code OAuth tokens from `~/.claude/.credentials.json`. Triggers refresh when the token expires within 6 hours.
+
+**Add to cron** (every 4 hours):
+
+```bash
+crontab -e
+
+# Add:
+0 */4 * * * /usr/local/bin/reeve-credential-keepalive >> ~/.reeve/logs/credential-keepalive.log 2>&1
+```
+
+**Manual trigger**:
+```bash
+/usr/local/bin/reeve-credential-keepalive
+```
+
+### 6. Metrics (Optional)
 
 For production monitoring, consider:
 
@@ -720,6 +745,7 @@ for pulse in pulses:
 - ✅ Daily database backups
 - ✅ Log rotation configured
 - ✅ Health monitoring in place
+- ✅ Credential keep-alive configured
 - ✅ API token secured
 - ✅ Firewall configured
 - ✅ Upgrade/rollback procedure documented

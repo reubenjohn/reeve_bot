@@ -7,19 +7,22 @@ Quick-reference guide for deploying Reeve services.
 ```
 deploy/
 ├── README.md                           # This file
+├── credential-providers/
+│   └── claude-code.sh                  # Claude Code OAuth token provider
 ├── systemd/
 │   ├── reeve-daemon.service.template   # Pulse daemon service
 │   └── reeve-telegram.service.template # Telegram listener service
 ├── config/
 │   └── logrotate.conf.template         # Log rotation config
 ├── cron/
-│   └── reeve.cron.template             # Scheduled tasks (heartbeat, health check, backup)
+│   └── reeve.cron.template             # Scheduled tasks (heartbeat, health check, backup, credentials)
 └── scripts/
     ├── install.sh                      # Main installation script
     ├── uninstall.sh                    # Cleanup script
     ├── reeve-heartbeat.sh              # Hourly heartbeat pulse
     ├── reeve-health-check.sh           # Health check helper
     ├── reeve-backup.sh                 # Database backup helper
+    ├── reeve-credential-keepalive.sh   # Credential refresh orchestrator
     ├── reeve-status.sh                 # System health overview
     ├── reeve-logs.sh                   # Unified log viewer
     └── reeve-queue.sh                  # Pulse queue inspector
@@ -84,6 +87,8 @@ After installation:
 | Status script | `/usr/local/bin/reeve-status` |
 | Logs script | `/usr/local/bin/reeve-logs` |
 | Queue script | `/usr/local/bin/reeve-queue` |
+| Credential keepalive | `/usr/local/bin/reeve-credential-keepalive` |
+| Credential providers | `/usr/local/lib/reeve/credential-providers/` |
 
 ## Common Commands
 
@@ -105,6 +110,9 @@ sudo journalctl -u reeve-telegram -f
 
 # Manual backup
 /usr/local/bin/reeve-backup
+
+# Check/refresh credentials
+/usr/local/bin/reeve-credential-keepalive
 
 # View cron jobs
 crontab -l

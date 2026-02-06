@@ -46,6 +46,11 @@ echo "Removing helper scripts..."
 rm -f /usr/local/bin/reeve-health-check
 rm -f /usr/local/bin/reeve-backup
 rm -f /usr/local/bin/reeve-heartbeat
+rm -f /usr/local/bin/reeve-credential-keepalive
+
+# Remove credential providers
+rm -rf /usr/local/lib/reeve/credential-providers
+rmdir /usr/local/lib/reeve 2>/dev/null || true
 
 # Remove debug helper scripts
 rm -f /usr/local/bin/reeve-status
