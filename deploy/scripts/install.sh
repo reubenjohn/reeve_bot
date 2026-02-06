@@ -50,6 +50,9 @@ if [[ -z "$REEVE_DESK_PATH" ]]; then
     REEVE_DESK_PATH="/home/$REEVE_USER/reeve_desk"
 fi
 
+# Read REEVE_EXTRA_RW_PATHS from .env (expand ~ to home directory)
+REEVE_EXTRA_RW_PATHS=$(grep -E "^REEVE_EXTRA_RW_PATHS=" "$REEVE_BOT_PATH/.env" | cut -d'=' -f2 | sed "s|~|/home/$REEVE_USER|g")
+
 # Display configuration
 echo "Configuration:"
 echo "  User:           $REEVE_USER"
@@ -57,6 +60,7 @@ echo "  Repo path:      $REEVE_BOT_PATH"
 echo "  Data directory: $REEVE_HOME"
 echo "  Desk path:      $REEVE_DESK_PATH"
 echo "  uv path:        $UV_PATH"
+echo "  Extra RW paths: ${REEVE_EXTRA_RW_PATHS:-(none)}"
 echo ""
 
 # Validate prerequisites
@@ -92,6 +96,7 @@ substitute_template() {
         -e "s|{{REEVE_HOME}}|${REEVE_HOME}|g" \
         -e "s|{{REEVE_DESK_PATH}}|${REEVE_DESK_PATH}|g" \
         -e "s|{{UV_PATH}}|${UV_PATH}|g" \
+        -e "s|{{EXTRA_RW_PATHS}}|${REEVE_EXTRA_RW_PATHS}|g" \
         "$template" > "$output"
 }
 

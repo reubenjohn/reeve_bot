@@ -60,6 +60,7 @@ Templates use `{{VAR}}` syntax, replaced during installation:
 | `{{REEVE_HOME}}` | Data directory | `/home/reuben/.reeve` |
 | `{{REEVE_DESK_PATH}}` | User's Desk repo | `/home/reuben/reeve_desk` |
 | `{{UV_PATH}}` | uv binary path | `/home/reuben/.local/bin/uv` |
+| `{{EXTRA_RW_PATHS}}` | Extra writable dirs | `/home/reuben/.google_workspace_mcp` |
 
 ## Prerequisites
 
