@@ -156,6 +156,12 @@ class PulseDaemon:
                         )
                         continue
 
+                    # Log successful pickup (before execution starts)
+                    prompt_preview = (
+                        pulse.prompt[:50] + "..." if len(pulse.prompt) > 50 else pulse.prompt
+                    )
+                    self.logger.info(f"Picked up pulse {pulse.id}: {prompt_preview}")
+
                     # Create non-blocking task
                     task = asyncio.create_task(
                         self._execute_pulse(pulse),
