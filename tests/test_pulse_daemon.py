@@ -35,6 +35,7 @@ def mock_config():
     config.reeve_home = "/tmp/test_home"
     config.pulse_api_port = 8765
     config.pulse_api_token = "test_token_123"
+    config.pulse_max_concurrent = 5
     return config
 
 
@@ -194,7 +195,7 @@ async def test_execute_pulse_tracks_duration(daemon, mock_pulse):
 
 @pytest.mark.asyncio
 async def test_scheduler_loop_gets_due_pulses(daemon, mock_pulse):
-    """Test scheduler calls get_due_pulses(limit=10)."""
+    """Test scheduler calls get_due_pulses with limit based on available slots."""
     daemon.running = True
     daemon.queue.get_due_pulses.return_value = []
 
@@ -210,9 +211,9 @@ async def test_scheduler_loop_gets_due_pulses(daemon, mock_pulse):
     except asyncio.CancelledError:
         pass
 
-    # Should have called get_due_pulses with limit=10
+    # Should have called get_due_pulses with limit=min(10, max_concurrent)=5
     assert daemon.queue.get_due_pulses.called
-    daemon.queue.get_due_pulses.assert_called_with(limit=10)
+    daemon.queue.get_due_pulses.assert_called_with(limit=5)
 
 
 @pytest.mark.asyncio
@@ -405,6 +406,178 @@ async def test_scheduler_loop_stops_on_shutdown(daemon):
 
     # Task should complete naturally
     assert task.done()
+
+
+# ============================================================================
+# Concurrency Limit Tests
+# ============================================================================
+
+
+@pytest.mark.asyncio
+async def test_scheduler_respects_max_concurrent_limit(daemon):
+    """Test that scheduler doesn't exceed max_concurrent pulses."""
+    daemon.running = True
+    daemon.max_concurrent = 2  # Limit to 2 concurrent
+
+    # Create 5 pulses
+    pulses = []
+    for i in range(1, 6):
+        pulse = Pulse(
+            scheduled_at=datetime.now(timezone.utc),
+            prompt=f"Pulse {i}",
+            priority=PulsePriority.NORMAL,
+            status=PulseStatus.PENDING,
+        )
+        pulse.id = i
+        pulses.append(pulse)
+
+    # Return all 5 pulses (scheduler should limit what it fetches)
+    daemon.queue.get_due_pulses.return_value = pulses[:2]  # Return only up to limit
+
+    # Track actual fetch limit used
+    fetch_limits_used = []
+    original_get_due_pulses = daemon.queue.get_due_pulses
+
+    async def track_fetch_limit(limit):
+        fetch_limits_used.append(limit)
+        return await original_get_due_pulses(limit=limit)
+
+    daemon.queue.get_due_pulses = AsyncMock(side_effect=track_fetch_limit)
+
+    # Run scheduler for one iteration
+    task = asyncio.create_task(daemon._scheduler_loop())
+    await asyncio.sleep(0.5)
+    daemon.running = False
+    await asyncio.sleep(1.5)
+    task.cancel()
+
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
+
+    # Should have fetched with limit=min(10, max_concurrent)=2
+    assert daemon.queue.get_due_pulses.called
+    assert fetch_limits_used[0] == 2
+
+
+@pytest.mark.asyncio
+async def test_scheduler_waits_when_at_capacity(daemon):
+    """Test that scheduler waits when at max capacity."""
+    daemon.running = True
+    daemon.max_concurrent = 2
+
+    # Pre-populate executing_pulses to simulate full capacity
+    async def slow_task():
+        await asyncio.sleep(10)  # Long-running task
+
+    task1 = asyncio.create_task(slow_task())
+    task2 = asyncio.create_task(slow_task())
+    daemon.executing_pulses = {task1, task2}
+
+    # Reset the mock to track calls
+    daemon.queue.get_due_pulses.reset_mock()
+    daemon.queue.get_due_pulses.return_value = []
+
+    # Run scheduler for a brief time
+    scheduler_task = asyncio.create_task(daemon._scheduler_loop())
+    await asyncio.sleep(1.5)  # Wait for at least one iteration
+    daemon.running = False
+
+    # Clean up slow tasks
+    task1.cancel()
+    task2.cancel()
+    try:
+        await task1
+    except asyncio.CancelledError:
+        pass
+    try:
+        await task2
+    except asyncio.CancelledError:
+        pass
+
+    scheduler_task.cancel()
+    try:
+        await scheduler_task
+    except asyncio.CancelledError:
+        pass
+
+    # Should NOT have called get_due_pulses since we were at capacity
+    daemon.queue.get_due_pulses.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_scheduler_resumes_after_capacity_freed(daemon):
+    """Test that scheduler resumes execution after a slot frees up."""
+    daemon.running = True
+    daemon.max_concurrent = 2
+
+    # Create a quick-completing task to simulate a slot freeing up
+    quick_task_completed = asyncio.Event()
+
+    async def quick_task():
+        await asyncio.sleep(0.3)  # Complete quickly
+        quick_task_completed.set()
+
+    # Start at capacity with one quick task
+    quick = asyncio.create_task(quick_task())
+
+    async def slow_task():
+        await asyncio.sleep(10)
+
+    slow = asyncio.create_task(slow_task())
+    daemon.executing_pulses = {quick, slow}
+
+    # Add done callbacks like the real scheduler does
+    quick.add_done_callback(daemon.executing_pulses.discard)
+    slow.add_done_callback(daemon.executing_pulses.discard)
+
+    # Create a pulse to be fetched after capacity frees
+    new_pulse = Pulse(
+        scheduled_at=datetime.now(timezone.utc),
+        prompt="New pulse after capacity freed",
+        priority=PulsePriority.NORMAL,
+        status=PulseStatus.PENDING,
+    )
+    new_pulse.id = 99
+
+    # Initially return empty (at capacity), then return pulse after quick task completes
+    call_count = 0
+
+    async def conditional_get_due_pulses(limit):
+        nonlocal call_count
+        call_count += 1
+        if quick_task_completed.is_set():
+            return [new_pulse]
+        return []
+
+    daemon.queue.get_due_pulses = AsyncMock(side_effect=conditional_get_due_pulses)
+
+    # Run scheduler
+    scheduler_task = asyncio.create_task(daemon._scheduler_loop())
+
+    # Wait for quick task to complete and scheduler to pick up new pulse
+    await asyncio.sleep(2.0)
+
+    daemon.running = False
+
+    # Clean up
+    slow.cancel()
+    try:
+        await slow
+    except asyncio.CancelledError:
+        pass
+
+    scheduler_task.cancel()
+    try:
+        await scheduler_task
+    except asyncio.CancelledError:
+        pass
+
+    # Should have eventually fetched and processed the new pulse
+    assert daemon.queue.get_due_pulses.called
+    # Should have called mark_processing for the new pulse after capacity freed
+    daemon.queue.mark_processing.assert_called_with(99)
 
 
 # ============================================================================

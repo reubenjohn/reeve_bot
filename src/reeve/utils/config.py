@@ -72,6 +72,7 @@ class ReeveConfig:
         # API configuration
         self.pulse_api_port: int = int(os.getenv("PULSE_API_PORT", "8765"))
         self.pulse_api_token: Optional[str] = os.getenv("PULSE_API_TOKEN")
+        self.pulse_max_concurrent: int = int(os.getenv("PULSE_MAX_CONCURRENT", "1"))
 
         # Telegram configuration (Phase 7)
         self.telegram_bot_token: Optional[str] = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -104,6 +105,7 @@ class ReeveConfig:
             f"  reeve_home={self.reeve_home},\n"
             f"  pulse_db_url={self.pulse_db_url},\n"
             f"  pulse_api_port={self.pulse_api_port},\n"
+            f"  pulse_max_concurrent={self.pulse_max_concurrent},\n"
             f"  hapi_command={self.hapi_command}\n"
             f")>"
         )

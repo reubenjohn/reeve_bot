@@ -28,6 +28,7 @@ def mock_config():
     config.reeve_desk_path = "/tmp/mock_desk"
     config.pulse_api_port = 8765
     config.pulse_api_token = "test_token_123"
+    config.pulse_max_concurrent = 5
     return config
 
 

@@ -60,6 +60,9 @@ PULSE_API_HOST=127.0.0.1
 PULSE_API_PORT=8765
 PULSE_API_TOKEN=your_secure_random_token_here
 
+# Executor
+PULSE_MAX_CONCURRENT=1                  # Max concurrent pulse execution (default: 1)
+
 # Telegram
 TELEGRAM_BOT_TOKEN=your_bot_token_here
 TELEGRAM_CHAT_ID=your_chat_id_here

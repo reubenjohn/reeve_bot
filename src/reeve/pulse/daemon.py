@@ -56,6 +56,7 @@ class PulseDaemon:
         self.api_task: Optional[asyncio.Task] = None
         self.executing_pulses: set[asyncio.Task] = set()
         self.shutdown_event = asyncio.Event()
+        self.max_concurrent = config.pulse_max_concurrent
 
     async def _execute_pulse(self, pulse: Pulse) -> None:
         """
@@ -129,8 +130,20 @@ class PulseDaemon:
 
         while self.running:
             try:
-                # Get due pulses (up to 10 at a time, ordered by priority)
-                pulses = await self.queue.get_due_pulses(limit=10)
+                # Check available slots
+                current_executing = len(self.executing_pulses)
+                available_slots = self.max_concurrent - current_executing
+
+                if available_slots <= 0:
+                    self.logger.debug(f"At max capacity ({current_executing}/{self.max_concurrent}), waiting...")
+                    await asyncio.sleep(1)
+                    continue
+
+                # Fetch only what we can handle
+                fetch_limit = min(10, available_slots)
+
+                # Get due pulses (up to fetch_limit at a time, ordered by priority)
+                pulses = await self.queue.get_due_pulses(limit=fetch_limit)
 
                 # Spawn execution task for each pulse
                 for pulse in pulses:
@@ -316,6 +329,8 @@ class PulseDaemon:
 
         # Initialize database
         await self.queue.initialize()
+
+        self.logger.info(f"Max concurrent pulses: {self.max_concurrent}")
 
         # Register signal handlers for graceful shutdown
         self._register_signal_handlers()

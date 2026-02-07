@@ -76,6 +76,7 @@ PULSE_DB_URL=sqlite+aiosqlite:///~/.reeve/pulse_queue.db
 PULSE_API_PORT=8765
 PULSE_API_TOKEN=your_secret_token
 HAPI_COMMAND=hapi
+PULSE_MAX_CONCURRENT=1                  # Max concurrent pulse execution (default: 1)
 ```
 
 ### Database URLs

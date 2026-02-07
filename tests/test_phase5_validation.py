@@ -70,6 +70,7 @@ async def test_phase5_integration():
     mock_config.reeve_home = "/tmp/test_home"
     mock_config.pulse_api_port = 8765
     mock_config.pulse_api_token = "test_token"
+    mock_config.pulse_max_concurrent = 5
 
     # Create daemon with real queue but mocked executor
     daemon = PulseDaemon(mock_config)
