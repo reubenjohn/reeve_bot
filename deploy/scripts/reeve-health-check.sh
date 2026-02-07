@@ -12,7 +12,7 @@ set -e
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 
 # Check if daemon is running
-if ! systemctl is-active --quiet reeve-daemon; then
+if ! sudo systemctl is-active --quiet reeve-daemon; then
     echo "[$TIMESTAMP] ERROR: reeve-daemon is not running"
     exit 1
 fi

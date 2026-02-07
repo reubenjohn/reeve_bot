@@ -61,6 +61,35 @@ When reporting a vulnerability, please include:
 - **Local Execution**: MCP servers run locally and communicate via stdio. They inherit the permissions of the parent process.
 - **Tool Validation**: All MCP tool inputs are validated via Pydantic schemas before processing.
 
+### Systemd Service Security
+
+The Reeve services (`reeve-daemon`, `reeve-telegram`) run with security hardening:
+
+- **Non-root execution**: Services run as the configured user, not root
+- **Filesystem protection**: `ProtectSystem=strict`, `ProtectHome=read-only`
+- **Privilege escalation prevention**: `NoNewPrivileges=true`
+- **Limited write access**: Only specific paths in `ReadWritePaths` are writable
+
+### Sudoers Configuration
+
+The installer creates `/etc/sudoers.d/reeve` to allow passwordless service management. This is **safe** because:
+
+1. **Services run as your user, not root**: Even with `sudo systemctl restart`, the service executes code as your regular user. There's no privilege escalation.
+
+2. **Explicit command allowlist**: Only specific commands are permitted:
+   - `systemctl status|start|stop|restart reeve-daemon|reeve-telegram`
+   - `systemctl is-active|show reeve-daemon|reeve-telegram`
+   - `journalctl -u reeve-daemon|reeve-telegram`
+
+3. **Installed scripts are root-owned**: Helper scripts in `/usr/local/bin/` cannot be modified by the user, preventing injection attacks.
+
+4. **No arbitrary command execution**: The sudoers rules don't allow wildcards for dangerous operations.
+
+**Threat model**: If an attacker compromises your user account:
+- They can restart the service (but it runs as your user anyway)
+- They can modify code in the repo (but would need to restart service to execute it)
+- They **cannot** escalate to root via the sudoers rules
+
 ## Security Best Practices for Users
 
 1. **Keep Dependencies Updated**: Regularly run `uv sync` to get the latest security patches.

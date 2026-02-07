@@ -4,6 +4,8 @@
 
 This guide covers production deployment of the Pulse Daemon, including systemd service configuration, monitoring, logging, and troubleshooting.
 
+> **Quick Start**: Use the [automated installer](#automated-installation-recommended) for one-command setup with passwordless service management.
+
 ## Prerequisites
 
 - Linux system with systemd (Ubuntu 20.04+, Debian 11+, or similar)
@@ -102,7 +104,53 @@ Stop the daemon with `Ctrl+C` if it's working correctly.
 
 ---
 
-## Systemd Service Setup (out of scope of MVP)
+## Automated Installation (Recommended)
+
+### Using the install.sh Script
+
+The recommended way to deploy Reeve is using the automated installer:
+
+```bash
+# From the repository root
+sudo ./deploy/scripts/install.sh
+```
+
+**What it installs**:
+- ✅ Systemd service files (`reeve-daemon.service`, `reeve-telegram.service`)
+- ✅ Helper scripts (`reeve-status`, `reeve-logs`, `reeve-queue`, etc.)
+- ✅ Sudoers configuration for passwordless service management
+- ✅ Log rotation configuration
+- ✅ Cron jobs (hourly heartbeat, credential keep-alive)
+
+**Passwordless Service Management**:
+
+After installation, all service management commands run **without password prompts**:
+
+```bash
+# These work without entering a password:
+reeve-status                        # System health overview
+reeve-logs                          # View logs
+reeve-logs -n 50                    # Last 50 lines
+sudo systemctl restart reeve-daemon # Restart service
+sudo journalctl -u reeve-daemon -f  # Follow logs
+```
+
+The installer creates `/etc/sudoers.d/reeve` with an explicit allowlist for:
+- `systemctl status|start|stop|restart reeve-daemon|reeve-telegram`
+- `systemctl is-active|show reeve-daemon|reeve-telegram`
+- `journalctl -u reeve-daemon|reeve-telegram`
+
+**Security**: Services run as your user (not root), so passwordless sudo doesn't create privilege escalation. See [SECURITY.md](../../SECURITY.md#sudoers-configuration) for details.
+
+**Uninstallation**:
+```bash
+sudo ./deploy/scripts/uninstall.sh       # Remove services and scripts
+sudo ./deploy/scripts/uninstall.sh --purge  # Also remove data directory
+```
+
+---
+
+## Manual Systemd Service Setup
 
 ### 1. Create Service File
 
@@ -182,12 +230,14 @@ sudo systemctl status reeve-daemon
 # Check process
 ps aux | grep "reeve.pulse.daemon"
 
-# Check logs
+# Check logs (no password prompt if using install.sh)
 sudo journalctl -u reeve-daemon -f
 
 # Test API
 curl http://localhost:8765/api/health
 ```
+
+> **Note**: If you used `install.sh`, `sudo` commands for reeve services won't prompt for a password.
 
 ---
 
@@ -250,6 +300,8 @@ sudo systemctl status reeve-telegram
 ## Monitoring & Logging
 
 ### 1. View Logs
+
+> **Note**: All `sudo journalctl` commands run without password prompt after `install.sh`.
 
 **Daemon logs**:
 ```bash

@@ -168,6 +168,24 @@ substitute_template "$DEPLOY_DIR/config/logrotate.conf.template" \
     "/etc/logrotate.d/reeve"
 echo "  Installed /etc/logrotate.d/reeve"
 
+# Install sudoers configuration for passwordless service management
+echo ""
+echo "Installing sudoers configuration..."
+SUDOERS_TMP=$(mktemp)
+substitute_template "$DEPLOY_DIR/sudoers/reeve.sudoers.template" "$SUDOERS_TMP"
+
+# Validate sudoers syntax before installing (critical - bad syntax can lock out sudo)
+if visudo -c -f "$SUDOERS_TMP" > /dev/null 2>&1; then
+    # Set correct permissions (must be 0440 for sudoers.d files)
+    chmod 0440 "$SUDOERS_TMP"
+    cp "$SUDOERS_TMP" /etc/sudoers.d/reeve
+    echo "  Installed /etc/sudoers.d/reeve (passwordless service management)"
+else
+    echo "  WARNING: Invalid sudoers syntax, skipping installation"
+    echo "  Helper scripts will require sudo password"
+fi
+rm -f "$SUDOERS_TMP"
+
 # Enable and start services
 echo ""
 echo "Enabling services..."

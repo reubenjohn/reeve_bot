@@ -168,6 +168,7 @@ uv run black src/ && uv run isort src/
 uv run mypy src/
 
 # Systemd service management (production)
+# Note: After install.sh, these run without password prompt
 sudo systemctl status reeve-daemon reeve-telegram
 sudo journalctl -u reeve-daemon -f
 
@@ -180,10 +181,12 @@ sudo systemctl restart reeve-daemon reeve-telegram
 When modifying daemon code (executor, MCP servers, API, etc.):
 
 1. **Run tests**: `uv run pytest tests/ -v`
-2. **Restart services**: `sudo systemctl restart reeve-daemon reeve-telegram`
+2. **Restart services**: `sudo systemctl restart reeve-daemon reeve-telegram` (no password prompt)
 3. **Verify startup**: `sudo journalctl -u reeve-daemon -n 20`
 
 The daemon runs via `uv run` from the repo, so source changes are picked up automatically—but the process must be restarted to reload Python modules.
+
+**Note**: After running `install.sh`, all `sudo systemctl` and `sudo journalctl` commands for reeve services work without password prompts thanks to `/etc/sudoers.d/reeve`.
 
 ## Debug & Diagnostics
 

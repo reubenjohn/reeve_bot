@@ -66,12 +66,12 @@ echo "Services:"
 
 for service in reeve-daemon reeve-telegram; do
     # Get service status
-    if systemctl is-active --quiet "$service" 2>/dev/null; then
+    if sudo systemctl is-active --quiet "$service" 2>/dev/null; then
         # Get PID and uptime
-        pid=$(systemctl show "$service" --property=MainPID --value 2>/dev/null)
+        pid=$(sudo systemctl show "$service" --property=MainPID --value 2>/dev/null)
 
         # Get active enter timestamp (when service started)
-        active_timestamp=$(systemctl show "$service" --property=ActiveEnterTimestamp --value 2>/dev/null)
+        active_timestamp=$(sudo systemctl show "$service" --property=ActiveEnterTimestamp --value 2>/dev/null)
         if [ -n "$active_timestamp" ] && [ "$active_timestamp" != "n/a" ]; then
             # Convert timestamp to epoch seconds
             start_epoch=$(date -d "$active_timestamp" +%s 2>/dev/null || echo "0")
@@ -203,7 +203,7 @@ fi
 # --- Error Count Section ---
 echo -n "Errors (last hour): "
 
-error_count=$(journalctl -u reeve-daemon --since "1 hour ago" -p err --no-pager -q 2>/dev/null | wc -l || echo "?")
+error_count=$(sudo journalctl -u reeve-daemon --since "1 hour ago" -p err --no-pager -q 2>/dev/null | wc -l || echo "?")
 echo "$error_count"
 
 if [ "$error_count" != "?" ] && [ "$error_count" -gt 0 ]; then

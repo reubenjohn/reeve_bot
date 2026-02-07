@@ -61,6 +61,10 @@ rm -f /usr/local/bin/reeve-queue
 echo "Removing logrotate config..."
 rm -f /etc/logrotate.d/reeve
 
+# Remove sudoers configuration
+echo "Removing sudoers configuration..."
+rm -f /etc/sudoers.d/reeve
+
 echo ""
 echo "Services and scripts removed."
 

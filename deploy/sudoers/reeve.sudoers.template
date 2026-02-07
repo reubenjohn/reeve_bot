@@ -1,0 +1,29 @@
+# Reeve service management - allow user to manage reeve services without password
+# Installed by: deploy/scripts/install.sh
+#
+# Security notes:
+# - Services run as {{USER}}, not root (no privilege escalation possible)
+# - Only specific systemctl verbs and units are permitted
+# - Installed scripts are root-owned in /usr/local/bin (not modifiable by user)
+# - journalctl access is read-only
+
+# Service management (status, start, stop, restart)
+{{USER}} ALL=(root) NOPASSWD: /usr/bin/systemctl status reeve-daemon
+{{USER}} ALL=(root) NOPASSWD: /usr/bin/systemctl status reeve-telegram
+{{USER}} ALL=(root) NOPASSWD: /usr/bin/systemctl start reeve-daemon
+{{USER}} ALL=(root) NOPASSWD: /usr/bin/systemctl start reeve-telegram
+{{USER}} ALL=(root) NOPASSWD: /usr/bin/systemctl stop reeve-daemon
+{{USER}} ALL=(root) NOPASSWD: /usr/bin/systemctl stop reeve-telegram
+{{USER}} ALL=(root) NOPASSWD: /usr/bin/systemctl restart reeve-daemon
+{{USER}} ALL=(root) NOPASSWD: /usr/bin/systemctl restart reeve-telegram
+
+# Service introspection (for helper scripts)
+{{USER}} ALL=(root) NOPASSWD: /usr/bin/systemctl is-active reeve-daemon
+{{USER}} ALL=(root) NOPASSWD: /usr/bin/systemctl is-active reeve-telegram
+{{USER}} ALL=(root) NOPASSWD: /usr/bin/systemctl show reeve-daemon *
+{{USER}} ALL=(root) NOPASSWD: /usr/bin/systemctl show reeve-telegram *
+
+# Log access (journalctl for specific units only)
+{{USER}} ALL=(root) NOPASSWD: /usr/bin/journalctl -u reeve-daemon *
+{{USER}} ALL=(root) NOPASSWD: /usr/bin/journalctl -u reeve-telegram *
+{{USER}} ALL=(root) NOPASSWD: /usr/bin/journalctl -u reeve-daemon -u reeve-telegram *

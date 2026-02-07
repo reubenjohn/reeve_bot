@@ -77,20 +77,20 @@ case "$SOURCE" in
     daemon)
         if [ "$FOLLOW" = true ]; then
             echo "=== Following reeve-daemon logs (Ctrl+C to exit) ==="
-            journalctl -u reeve-daemon -f --no-pager
+            sudo journalctl -u reeve-daemon -f --no-pager
         else
             echo "=== Last $LINES lines from reeve-daemon ==="
-            journalctl -u reeve-daemon -n "$LINES" --no-pager
+            sudo journalctl -u reeve-daemon -n "$LINES" --no-pager
         fi
         ;;
 
     telegram)
         if [ "$FOLLOW" = true ]; then
             echo "=== Following reeve-telegram logs (Ctrl+C to exit) ==="
-            journalctl -u reeve-telegram -f --no-pager
+            sudo journalctl -u reeve-telegram -f --no-pager
         else
             echo "=== Last $LINES lines from reeve-telegram ==="
-            journalctl -u reeve-telegram -n "$LINES" --no-pager
+            sudo journalctl -u reeve-telegram -n "$LINES" --no-pager
         fi
         ;;
 
@@ -123,7 +123,7 @@ case "$SOURCE" in
             trap cleanup INT TERM
 
             # Start journalctl for both services
-            journalctl -u reeve-daemon -u reeve-telegram -f --no-pager &
+            sudo journalctl -u reeve-daemon -u reeve-telegram -f --no-pager &
             JOURNAL_PID=$!
 
             # Also tail heartbeat log if it exists
@@ -137,11 +137,11 @@ case "$SOURCE" in
         else
             # Show each source with headers
             echo "=== Last $LINES lines from reeve-daemon ==="
-            journalctl -u reeve-daemon -n "$LINES" --no-pager 2>/dev/null || echo "(no logs)"
+            sudo journalctl -u reeve-daemon -n "$LINES" --no-pager 2>/dev/null || echo "(no logs)"
             echo ""
 
             echo "=== Last $LINES lines from reeve-telegram ==="
-            journalctl -u reeve-telegram -n "$LINES" --no-pager 2>/dev/null || echo "(no logs)"
+            sudo journalctl -u reeve-telegram -n "$LINES" --no-pager 2>/dev/null || echo "(no logs)"
             echo ""
 
             echo "=== Last $LINES lines from heartbeat log ==="
