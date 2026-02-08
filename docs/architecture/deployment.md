@@ -193,11 +193,11 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths=/home/reuben/.reeve
+ReadWritePaths=/home/reuben/.reeve /home/reuben/my_reeve /home/reuben/.cache/uv /home/reuben/.hapi /home/reuben/.claude /home/reuben/.claude.json
 
 # Resource limits
-MemoryMax=512M
-CPUQuota=50%
+MemoryMax=2G
+CPUQuota=100%
 
 [Install]
 WantedBy=multi-user.target
@@ -206,7 +206,7 @@ WantedBy=multi-user.target
 **Notes**:
 - Replace `/home/reuben/` with your actual home directory
 - Adjust `User` and `Group` to your username
-- `ReadWritePaths` allows daemon to write to `~/.reeve/` (database, logs)
+- `ReadWritePaths` allows daemon to write to required paths (database, desk, Claude Code config/credentials)
 
 ### 2. Install and Enable Service
 
