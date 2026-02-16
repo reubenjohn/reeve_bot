@@ -55,7 +55,7 @@ See [Roadmap Index](roadmap/index.md) for the full implementation guide.
 
 ### Conceptual Overview
 
-The Desk is Reeve's brain, Pulses are its heartbeat, and everything flows through you.
+The Desk is Reeve's brain, wake-ups are its heartbeat, and everything flows through you.
 
 ```mermaid
 %%{init: {'theme': 'base', 'flowchart': {'rankSpacing': 50}}}%%
@@ -69,23 +69,23 @@ flowchart TB
 
     World -->|"event"| Wake{{"⚡ **Wake Reeve**<br/>*heartbeat · events · alarms*"}}:::core
 
-    Wake -->|"spawns"| Reeve["🤖 **Reeve**<br/>fresh session per pulse"]:::core
+    Wake -->|"starts fresh"| Reeve["🤖 **Reeve**<br/>clean slate each wake-up"]:::core
 
     Reeve <-->|"converses"| You["👤 **You**"]:::user
-    Reeve <-->|"reads &amp; writes"| Desk[("🧠 **The Desk**<br/>Goals · Prefs · Diary · Skills<br/>*editable Markdown, Git versioned*")]:::brain
+    Reeve <-->|"reads &amp; updates"| Desk[("🧠 **The Desk**<br/>Goals · Prefs · Diary · Skills · ...<br/><br/>*plain text files you can edit<br/>Git versioned*")]:::brain
     Reeve -->|"takes action"| World
-    Reeve -.->|"schedule_pulse()"| Wake
+    Reeve -.->|"sets own alarms"| Wake
 
     You -.->|"inspect &amp; edit"| Desk
 ```
 
 **Key ideas at a glance:**
 
-- **Push, not Pull** — Reeve proactively sends alerts, briefings, and questions — and you can reply, approve, or redirect. A two-way channel, not a one-way feed.
-- **The Desk is the Brain** — A Git repo of Markdown files (Goals, Preferences, Diary, Skills). Reeve reads the brain on every wake-up and writes learnings back.
-- **Glass Box** — Unlike black-box agents, you can inspect and edit Reeve's brain anytime. No arguing with a chatbot.
-- **Fresh Sessions** — Each pulse spawns a fresh session. The Desk is the only persistent memory between wake-ups.
-- **Self-Scheduling** — Reeve sets its own future alarms via `schedule_pulse()`, creating a self-sustaining loop.
+- **Push, not Pull** — Reeve reaches out with alerts, briefings, and questions. You can reply, approve, or redirect. It's a conversation, not a notification feed.
+- **The Desk is the Brain** — A folder of plain text files (Goals, Preferences, Diary, Skills) that Reeve reads on every wake-up and updates with what it learned. Version-controlled so you can undo mistakes.
+- **Glass Box** — You can open Reeve's brain, read it, and edit it anytime. No arguing with a chatbot — just fix the file.
+- **Clean Slate** — Every wake-up starts fresh. The Desk is the only thing that carries over, keeping each session focused.
+- **Self-Scheduling** — Reeve sets its own future alarms, creating a self-sustaining loop. "Check flight prices tomorrow at 6am" — done.
 
 ### Technical Architecture
 
