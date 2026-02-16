@@ -135,7 +135,9 @@ class PulseDaemon:
                 available_slots = self.max_concurrent - current_executing
 
                 if available_slots <= 0:
-                    self.logger.debug(f"At max capacity ({current_executing}/{self.max_concurrent}), waiting...")
+                    self.logger.debug(
+                        f"At max capacity ({current_executing}/{self.max_concurrent}), waiting..."
+                    )
                     await asyncio.sleep(1)
                     continue
 
