@@ -73,14 +73,14 @@ flowchart TB
         queue --> executor
     end
 
-    subgraph session["Reeve Session"]
-        reeve["Reeve<br/>(Hapi/Goose/Claude Code/...)"]
-    end
-
     subgraph mcps["MCP Servers (extensible)"]
         direction LR
         pulse_mcp["Pulse Queue MCP"]
         other_mcp["Telegram, Calendar, ..."]
+    end
+
+    subgraph session["Reeve Session"]
+        reeve["Reeve<br/>(Hapi/Goose/Claude Code/...)"]
     end
 
     %% External events feed into daemon
@@ -89,11 +89,11 @@ flowchart TB
     %% Executor spawns Reeve session
     executor -- "spawns" --> reeve
 
-    %% Reeve connects to MCP servers
-    reeve <-- "MCP stdio" --> mcps
-
     %% Self-scheduling loop
     pulse_mcp -- "schedule_pulse()" --> queue
+
+    %% Reeve connects to MCP servers
+    mcps <-- "MCP stdio" --> reeve
 
     %% Styles
     classDef core fill:#4a90a4,stroke:#2e6b7a,color:#fff

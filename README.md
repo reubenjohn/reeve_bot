@@ -8,7 +8,7 @@
 
 > A proactive AI assistant that operates on a "Push" paradigm - anticipating needs and taking action rather than waiting for prompts.
 
-**[Full Documentation](https://reubenjohn.github.io/reeve-bot/)** | [Architecture](https://reubenjohn.github.io/reeve-bot/01_PULSE_QUEUE_DESIGN/) | [MCP Setup](https://reubenjohn.github.io/reeve-bot/MCP_SETUP/) | [Ideas & Future](https://reubenjohn.github.io/reeve-bot/IDEAS/) | [Discussions](https://github.com/reubenjohn/reeve-bot/discussions) | [Contributing](CONTRIBUTING.md)
+**[Full Documentation](https://reubenjohn.github.io/reeve-bot/)** | [Architecture](https://reubenjohn.github.io/reeve-bot/architecture/pulse-queue/) | [MCP Setup](https://reubenjohn.github.io/reeve-bot/MCP_SETUP/) | [Ideas & Future](https://reubenjohn.github.io/reeve-bot/IDEAS/) | [Discussions](https://github.com/reubenjohn/reeve-bot/discussions) | [Contributing](CONTRIBUTING.md)
 
 ---
 
