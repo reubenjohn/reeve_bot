@@ -55,62 +55,36 @@ See [Roadmap Index](roadmap/index.md) for the full implementation guide.
 
 ### Conceptual Overview
 
-A newcomer's guide to Reeve: the Desk is Reeve's transparent brain, Pulses are its heartbeat, and everything flows back to you.
+The Desk is Reeve's brain, Pulses are its heartbeat, and everything flows through you.
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'lineColor': '#666'}}}%%
+%%{init: {'theme': 'base', 'flowchart': {'rankSpacing': 50}}}%%
 flowchart TB
-    User(["👤 <b>You</b>"])
-
-    Desk["📂 <b>The Desk</b><br/><br/>Reeve's Brain<br/>Transparent · Self-organizing<br/><br/><i>Goals/ · Responsibilities/</i><br/><i>Preferences/ · Diary/</i><br/><i>Skills/ · CLAUDE.md</i><br/><br/><i>Editable Markdown · Git versioned</i>"]
-
-    heartbeat(["💓 Heartbeat"])
-    external(["🌍 External Events<br/><i>Telegram, Calendar</i>"])
-    selfAlarm(["🔄 Future Alarms<br/><i>self-scheduled</i>"])
-
-    subgraph cycle["Fresh Session Per Pulse"]
-        read["📖 Read Desk"]
-        act["🧠 Think and Act"]
-        write["✏️ Write Back"]
-        read --> act --> write
-    end
-
-    %% Glass Box: User <-> Desk
-    User <-. "<b>Glass Box</b><br/>read and edit<br/>the brain anytime" .-> Desk
-
-    %% Desk <-> Session
-    Desk -- "loads context" --> read
-    write -- "saves learnings" --> Desk
-
-    %% Triggers --> Session
-    heartbeat --> read
-    external --> read
-    selfAlarm --> read
-
-    %% Reeve pushes to User
-    act -- "📲 proactive push<br/><i>alerts, briefings, questions</i>" --> User
-
-    %% Self-scheduling
-    act -. "schedule_pulse()" .-> selfAlarm
-
-    %% Styles
     classDef user fill:#8b6aad,stroke:#6b4a8d,color:#fff
     classDef brain fill:#c4955a,stroke:#a67940,color:#fff
     classDef core fill:#4a90a4,stroke:#2e6b7a,color:#fff
     classDef ext fill:#6b9b76,stroke:#4a7a54,color:#fff
 
-    class User user
-    class Desk brain
-    class read,act,write core
-    class heartbeat,external,selfAlarm ext
+    World["🌐 **The World**<br/>Email · Texts · Calendar · Web"]:::ext
+
+    World -->|"event"| Wake{{"⚡ **Wake Reeve**<br/>*heartbeat · events · alarms*"}}:::core
+
+    Wake -->|"spawns"| Reeve["🤖 **Reeve**<br/>fresh session per pulse"]:::core
+
+    Reeve <-->|"converses"| You["👤 **You**"]:::user
+    Reeve <-->|"reads &amp; writes"| Desk[("🧠 **The Desk**<br/>Goals · Prefs · Diary · Skills<br/>*editable Markdown, Git versioned*")]:::brain
+    Reeve -->|"takes action"| World
+    Reeve -.->|"schedule_pulse()"| Wake
+
+    You -.->|"inspect &amp; edit"| Desk
 ```
 
 **Key ideas at a glance:**
 
-- **Push, not Pull** — Reeve proactively sends you alerts, briefings, and questions. You don't have to ask.
-- **The Desk is the Brain** — A separate Git repo of Markdown files (Goals, Responsibilities, Preferences, Diary). Reeve reads it at every wake-up and writes learnings back.
-- **Glass Box** — Unlike black-box agents, you can open Reeve's brain, read it, and edit it. No arguing with a chatbot.
-- **Session Isolation** — Each pulse spawns a fresh session. The Desk is the persistent memory between sessions.
+- **Push, not Pull** — Reeve proactively sends alerts, briefings, and questions — and you can reply, approve, or redirect. A two-way channel, not a one-way feed.
+- **The Desk is the Brain** — A Git repo of Markdown files (Goals, Preferences, Diary, Skills). Reeve reads the brain on every wake-up and writes learnings back.
+- **Glass Box** — Unlike black-box agents, you can inspect and edit Reeve's brain anytime. No arguing with a chatbot.
+- **Fresh Sessions** — Each pulse spawns a fresh session. The Desk is the only persistent memory between wake-ups.
 - **Self-Scheduling** — Reeve sets its own future alarms via `schedule_pulse()`, creating a self-sustaining loop.
 
 ### Technical Architecture
