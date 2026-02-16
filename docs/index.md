@@ -51,58 +51,131 @@ See [Roadmap Index](roadmap/index.md) for the full implementation guide.
 
 ---
 
-## Architecture Diagrams
+## How Reeve Works
 
-### System Overview
+### Conceptual Overview
+
+A newcomer's guide to Reeve: the Desk is Reeve's transparent brain, Pulses are its heartbeat, and everything flows back to you.
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'lineColor': '#666'}}}%%
+flowchart TB
+    User(["👤 <b>You</b>"])
+
+    Desk["📂 <b>The Desk</b><br/><br/>Reeve's Brain<br/>Transparent · Self-organizing<br/><br/><i>Goals/ · Responsibilities/</i><br/><i>Preferences/ · Diary/</i><br/><i>Skills/ · CLAUDE.md</i><br/><br/><i>Editable Markdown · Git versioned</i>"]
+
+    heartbeat(["💓 Heartbeat"])
+    external(["🌍 External Events<br/><i>Telegram, Calendar</i>"])
+    selfAlarm(["🔄 Future Alarms<br/><i>self-scheduled</i>"])
+
+    subgraph cycle["Fresh Session Per Pulse"]
+        read["📖 Read Desk"]
+        act["🧠 Think and Act"]
+        write["✏️ Write Back"]
+        read --> act --> write
+    end
+
+    %% Glass Box: User <-> Desk
+    User <-. "<b>Glass Box</b><br/>read and edit<br/>the brain anytime" .-> Desk
+
+    %% Desk <-> Session
+    Desk -- "loads context" --> read
+    write -- "saves learnings" --> Desk
+
+    %% Triggers --> Session
+    heartbeat --> read
+    external --> read
+    selfAlarm --> read
+
+    %% Reeve pushes to User
+    act -- "📲 proactive push<br/><i>alerts, briefings, questions</i>" --> User
+
+    %% Self-scheduling
+    act -. "schedule_pulse()" .-> selfAlarm
+
+    %% Styles
+    classDef user fill:#8b6aad,stroke:#6b4a8d,color:#fff
+    classDef brain fill:#c4955a,stroke:#a67940,color:#fff
+    classDef core fill:#4a90a4,stroke:#2e6b7a,color:#fff
+    classDef ext fill:#6b9b76,stroke:#4a7a54,color:#fff
+
+    class User user
+    class Desk brain
+    class read,act,write core
+    class heartbeat,external,selfAlarm ext
+```
+
+**Key ideas at a glance:**
+
+- **Push, not Pull** — Reeve proactively sends you alerts, briefings, and questions. You don't have to ask.
+- **The Desk is the Brain** — A separate Git repo of Markdown files (Goals, Responsibilities, Preferences, Diary). Reeve reads it at every wake-up and writes learnings back.
+- **Glass Box** — Unlike black-box agents, you can open Reeve's brain, read it, and edit it. No arguing with a chatbot.
+- **Session Isolation** — Each pulse spawns a fresh session. The Desk is the persistent memory between sessions.
+- **Self-Scheduling** — Reeve sets its own future alarms via `schedule_pulse()`, creating a self-sustaining loop.
+
+### Technical Architecture
+
+How the components connect under the hood. For implementation details, see [Architecture docs](architecture/index.md).
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'lineColor': '#888'}}}%%
 flowchart TB
-    subgraph events["External Events (configurable)"]
-        direction LR
-        telegram_listener["Telegram"] ~~~ email_listener["Email (future)"]
-        webhooks["Webhooks (future)"] ~~~ more_events["..."]
-    end
+    %% External event sources
+    telegram["Telegram<br/>Listener"]
+    webhooks["3rd Party<br>Webhooks<br/><i>WIP</i>"]
 
-    subgraph daemon["Pulse Daemon"]
-        api["Pulse API (FastAPI)"]
-        queue[("Pulse Queue (SQLite)")]
-        executor["Executor"]
+    %% Pulse Daemon internals
+    api["Pulse API<br/><i>FastAPI :8765</i>"]
+    queue[("Pulse Queue<br/><i>SQLite</i>")]
+    executor["Executor"]
 
-        api --> queue
-        queue --> executor
-    end
+    %% Agent session
+    agent["Reeve Agent<br/><i>Claude Code / Hapi</i>"]
 
-    subgraph mcps["MCP Servers (extensible)"]
-        direction LR
-        pulse_mcp["Pulse Queue MCP"]
-        other_mcp["Telegram, Calendar, ..."]
-    end
+    %% MCP Servers
+    pulse_mcp["Pulse Queue<br/>MCP"]
+    notify_mcp["Telegram<br/>Notifier MCP"]
 
-    subgraph session["Reeve Session"]
-        reeve["Reeve<br/>(Hapi/Goose/Claude Code/...)"]
-    end
+    %% Desk and User
+    DeskRepo["📂 The Desk<br/><i>separate Git repo</i><br/>Goals/ · Responsibilities/<br/>Preferences/ · Diary/ · Skills/"]
+    User(["👤 User"])
 
-    %% External events feed into daemon
-    events --> api
+    %% === FLOW ===
 
-    %% Executor spawns Reeve session
-    executor -- "spawns" --> reeve
+    %% Events to API
+    telegram -- "HTTP POST" --> api
+    webhooks -- "HTTP POST" --> api
 
-    %% Self-scheduling loop
-    pulse_mcp -- "schedule_pulse()" --> queue
+    %% API to Queue to Executor to Agent
+    api --> queue
+    queue -- "dequeue by<br/>priority and time" --> executor
+    executor -- "spawns fresh<br/>session in Desk/" --> agent
 
-    %% Reeve connects to MCP servers
-    mcps <-- "MCP stdio" --> reeve
+    %% Agent uses MCPs
+    agent --- pulse_mcp
+    agent --- notify_mcp
+
+    %% MCP feedback
+    pulse_mcp -- "schedule_pulse()<br/>list/cancel" --> queue
+    notify_mcp -- "push alerts" --> User
+
+    %% Agent <-> Desk
+    DeskRepo -- "reads context<br/>at startup" --> agent
+    agent -- "writes learnings<br/>at end" --> DeskRepo
+
+    %% User <-> Desk (Glass Box)
+    User <-. "Glass Box:<br/>read and edit" .-> DeskRepo
 
     %% Styles
     classDef core fill:#4a90a4,stroke:#2e6b7a,color:#fff
     classDef external fill:#6b9b76,stroke:#4a7a54,color:#fff
     classDef database fill:#c4955a,stroke:#a67940,color:#fff
+    classDef user fill:#8b6aad,stroke:#6b4a8d,color:#fff
 
-    class api,executor,reeve,pulse_mcp core
-    class telegram_listener,email_listener,webhooks,more_events,other_mcp external
-    class queue database
+    class api,executor,agent,pulse_mcp,notify_mcp core
+    class telegram,webhooks external
+    class queue,DeskRepo database
+    class User user
 ```
 
 ---
