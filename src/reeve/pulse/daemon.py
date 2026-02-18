@@ -121,9 +121,7 @@ class PulseDaemon:
         try:
             from reeve.sentinel import send_alert
 
-            prompt_preview = (
-                pulse.prompt[:80] + "..." if len(pulse.prompt) > 80 else pulse.prompt
-            )
+            prompt_preview = pulse.prompt[:80] + "..." if len(pulse.prompt) > 80 else pulse.prompt
             error_preview = error[:200] if error else "Unknown error"
 
             message = (
