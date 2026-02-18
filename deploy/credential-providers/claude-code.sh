@@ -3,6 +3,9 @@
 # Credential Provider: Claude Code OAuth
 # Checks and refreshes Claude Code OAuth tokens in ~/.claude/.credentials.json
 #
+# Refreshes by calling the OAuth token endpoint directly (no need to spawn
+# the claude CLI). This is reliable regardless of token state.
+#
 # Credential Provider Contract:
 # Each provider script must define these functions:
 #   provider_name()    - Echo the provider name (e.g., "claude-code")
@@ -17,24 +20,14 @@
 
 CREDENTIALS_FILE="$HOME/.claude/.credentials.json"
 
-# Threshold: refresh if token expires within 6 hours (21600 seconds)
-REFRESH_THRESHOLD_SECONDS=21600
+# Threshold: refresh if token expires within 2 hours (7200 seconds).
+# Tokens last 8h; checking hourly at :50 means we always refresh with 1-2h to spare.
+REFRESH_THRESHOLD_SECONDS=7200
 
-# Resolve claude binary (cron has minimal PATH)
-_find_claude() {
-    local candidates=(
-        "$HOME/.local/bin/claude"
-        "/usr/local/bin/claude"
-        "$(which claude 2>/dev/null)"
-    )
-    for c in "${candidates[@]}"; do
-        if [[ -n "$c" && -x "$c" ]]; then
-            echo "$c"
-            return 0
-        fi
-    done
-    return 1
-}
+# Claude Code OAuth constants (extracted from the CLI binary)
+OAUTH_TOKEN_URL="https://platform.claude.com/v1/oauth/token"
+OAUTH_CLIENT_ID="9d1c250a-e61b-44d9-88ed-5944d1962f5e"
+OAUTH_SCOPES="user:profile user:inference user:sessions:claude_code user:mcp_servers"
 
 provider_name() {
     echo "claude-code"
@@ -84,89 +77,86 @@ except (KeyError, json.JSONDecodeError, FileNotFoundError) as e:
 }
 
 provider_refresh() {
-    # Resolve claude binary
-    local claude_bin
-    claude_bin=$(_find_claude) || {
-        echo "claude binary not found in PATH or common locations"
-        return 1
-    }
+    # Call the OAuth token endpoint directly with the refresh token.
+    # This is reliable regardless of whether the token is expired or not.
+    local result
+    result=$(python3 -c "
+import json, sys, os, stat
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError, URLError
 
-    # Capture expiresAt before refresh attempt
-    local before_expires
-    before_expires=$(python3 -c "
-import json
-with open('$CREDENTIALS_FILE') as f:
-    data = json.load(f)
-print(data['claudeAiOauth']['expiresAt'])
-" 2>/dev/null) || before_expires="0"
+CREDENTIALS_FILE = '$CREDENTIALS_FILE'
+TOKEN_URL = '$OAUTH_TOKEN_URL'
+CLIENT_ID = '$OAUTH_CLIENT_ID'
+SCOPES = '$OAUTH_SCOPES'
 
-    # Emulate a real interactive session using a PTY.
-    #
-    # Why: Claude Code detects non-interactive usage (piped stdin, --print flag)
-    # and skips token refresh. The old approach (printf '/exit\n' | claude) failed
-    # because piped stdin = no TTY = non-interactive detection.
-    #
-    # Solution: Use pexpect to spawn claude in a real pseudo-terminal, making it
-    # behave as if a human launched it interactively. The auth/token refresh
-    # happens during startup, then we send double Ctrl-C to cleanly shut down.
-    /usr/bin/python3 -c "
-import pexpect, sys, time
+# Read current credentials
+try:
+    with open(CREDENTIALS_FILE) as f:
+        creds = json.load(f)
+    oauth = creds['claudeAiOauth']
+    refresh_token = oauth['refreshToken']
+except (KeyError, json.JSONDecodeError, FileNotFoundError) as e:
+    print(f'ERROR: Failed to read credentials: {e}', file=sys.stderr)
+    sys.exit(1)
 
-CLAUDE = '$claude_bin'
+if not refresh_token:
+    print('ERROR: No refresh token found', file=sys.stderr)
+    sys.exit(1)
+
+# Call the token endpoint
+payload = json.dumps({
+    'grant_type': 'refresh_token',
+    'refresh_token': refresh_token,
+    'client_id': CLIENT_ID,
+    'scope': SCOPES,
+}).encode()
+
+req = Request(TOKEN_URL, data=payload, method='POST')
+req.add_header('Content-Type', 'application/json')
+req.add_header('User-Agent', 'claude-code/2.1.45')
 
 try:
-    # Spawn claude in a real PTY (no --print, no piped stdin)
-    child = pexpect.spawn(CLAUDE, timeout=60, encoding='utf-8')
-
-    # Wait for Claude to finish startup (auth refresh happens here)
-    time.sleep(5)
-
-    # Double Ctrl-C to cleanly exit
-    child.sendintr()
-    time.sleep(0.3)
-    child.sendintr()
-
-    # Wait for process to exit
-    time.sleep(2)
-    if child.isalive():
-        child.close(force=True)
-        print('Process did not exit cleanly, force killed')
-    else:
-        child.close()
-
-    sys.exit(0)
-except Exception as e:
-    print(f'PTY refresh failed: {e}', file=sys.stderr)
-    try:
-        child.close(force=True)
-    except:
-        pass
+    with urlopen(req, timeout=30) as resp:
+        data = json.loads(resp.read())
+except HTTPError as e:
+    body = e.read().decode('utf-8', errors='replace')[:200]
+    print(f'ERROR: Token endpoint returned {e.code}: {body}', file=sys.stderr)
     sys.exit(1)
-" 2>&1 || {
-        echo "Claude PTY session failed"
+except URLError as e:
+    print(f'ERROR: Network error: {e.reason}', file=sys.stderr)
+    sys.exit(1)
+
+access_token = data.get('access_token')
+new_refresh_token = data.get('refresh_token', refresh_token)
+expires_in = data.get('expires_in')
+
+if not access_token or not expires_in:
+    print(f'ERROR: Unexpected response: {json.dumps(data)[:200]}', file=sys.stderr)
+    sys.exit(1)
+
+import time
+new_expires_at = int(time.time() * 1000) + expires_in * 1000
+
+# Update credentials file (preserve other fields like organizationUuid, mcpOAuth)
+oauth['accessToken'] = access_token
+oauth['refreshToken'] = new_refresh_token
+oauth['expiresAt'] = new_expires_at
+if 'scope' in data:
+    oauth['scopes'] = data['scope'].split(' ')
+
+with open(CREDENTIALS_FILE, 'w') as f:
+    json.dump(creds, f, indent=2)
+os.chmod(CREDENTIALS_FILE, stat.S_IRUSR | stat.S_IWUSR)  # 0600
+
+from datetime import datetime
+expiry_str = datetime.fromtimestamp(new_expires_at / 1000).strftime('%Y-%m-%d %H:%M:%S %Z')
+print(f'Token refreshed (new expiry: {expiry_str}, expires_in: {expires_in}s)')
+" 2>&1) || {
+        echo "Refresh failed: $result"
         return 1
     }
 
-    # Verify token was actually refreshed
-    local after_expires
-    after_expires=$(python3 -c "
-import json
-with open('$CREDENTIALS_FILE') as f:
-    data = json.load(f)
-print(data['claudeAiOauth']['expiresAt'])
-" 2>/dev/null) || {
-        echo "Failed to read credentials after refresh"
-        return 1
-    }
-
-    if [[ "$after_expires" -gt "$before_expires" ]]; then
-        echo "Token refreshed (new expiry: $(date -d @$((after_expires / 1000)) '+%Y-%m-%d %H:%M:%S %Z'))"
-        return 0
-    elif [[ "$after_expires" -eq "$before_expires" ]]; then
-        echo "Token unchanged after refresh attempt (expiry still valid)"
-        return 0
-    else
-        echo "Token expiry went backwards - unexpected state"
-        return 1
-    fi
+    echo "$result"
+    return 0
 }

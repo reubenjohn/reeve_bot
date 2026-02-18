@@ -11,5 +11,6 @@
 # Database backup daily at 3 AM
 0 3 * * * /usr/local/bin/reeve-backup >> {{REEVE_HOME}}/logs/backup.log 2>&1
 
-# Credential keep-alive every 4 hours
-0 */4 * * * /usr/local/bin/reeve-credential-keepalive >> {{REEVE_HOME}}/logs/credential-keepalive.log 2>&1
+# Credential keep-alive: run at :50 every hour (10 min before heartbeat at :00).
+# Only refreshes if token expires within 2h, so typically fires ~once per 6-7h.
+50 * * * * /usr/local/bin/reeve-credential-keepalive >> {{REEVE_HOME}}/logs/credential-keepalive.log 2>&1
