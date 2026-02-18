@@ -113,8 +113,11 @@ async def test_successful_pulse_does_not_trigger_sentinel(daemon, mock_pulse):
     async def success_execute(*args, **kwargs):
         await asyncio.sleep(0.01)
         return ExecutionResult(
-            stdout="OK", stderr="", return_code=0,
-            timed_out=False, session_id="test-session",
+            stdout="OK",
+            stderr="",
+            return_code=0,
+            timed_out=False,
+            session_id="test-session",
         )
 
     daemon.executor.execute = AsyncMock(side_effect=success_execute)
