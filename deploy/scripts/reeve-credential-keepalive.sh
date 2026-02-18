@@ -93,6 +93,12 @@ fi
 
 if [[ $OVERALL_FAILURES -gt 0 ]]; then
     echo "[$TIMESTAMP] ERROR: $OVERALL_FAILURES provider(s) failed"
+    # Sentinel Layer 2: alert user about credential failure
+    if command -v reeve-alert &>/dev/null; then
+        reeve-alert --cooldown-key credential_keepalive --cooldown 1800 \
+            "Credential refresh failed: $OVERALL_FAILURES provider(s). Reeve may lose auth soon.
+Check: tail -20 ~/.reeve/logs/credential-keepalive.log" 2>/dev/null || true
+    fi
     exit 1
 fi
 

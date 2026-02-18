@@ -140,6 +140,12 @@ chmod +x /usr/local/bin/reeve-credential-keepalive
 sed -i 's|PROVIDERS_DIR="${PROVIDERS_DIR:-.*}"|PROVIDERS_DIR="${PROVIDERS_DIR:-/usr/local/lib/reeve/credential-providers}"|' /usr/local/bin/reeve-credential-keepalive
 echo "  Installed /usr/local/bin/reeve-credential-keepalive"
 
+cp "$DEPLOY_DIR/scripts/reeve-alert.sh" /usr/local/bin/reeve-alert
+chmod +x /usr/local/bin/reeve-alert
+# Patch REEVE_BOT_PATH to installed location
+sed -i "s|REEVE_BOT_PATH=\"\${REEVE_BOT_PATH:-.*}\"|REEVE_BOT_PATH=\"\${REEVE_BOT_PATH:-${REEVE_BOT_PATH}}\"|" /usr/local/bin/reeve-alert
+echo "  Installed /usr/local/bin/reeve-alert"
+
 # Install credential providers
 mkdir -p /usr/local/lib/reeve/credential-providers
 cp "$DEPLOY_DIR/credential-providers/"*.sh /usr/local/lib/reeve/credential-providers/
@@ -160,6 +166,12 @@ echo "  Installed /usr/local/bin/reeve-logs"
 cp "$DEPLOY_DIR/scripts/reeve-queue.sh" /usr/local/bin/reeve-queue
 chmod +x /usr/local/bin/reeve-queue
 echo "  Installed /usr/local/bin/reeve-queue"
+
+cp "$DEPLOY_DIR/scripts/reeve-watchdog.sh" /usr/local/bin/reeve-watchdog
+chmod +x /usr/local/bin/reeve-watchdog
+# Patch REEVE_BOT_PATH to installed location
+sed -i "s|REEVE_BOT_PATH=\"\${REEVE_BOT_PATH:-.*}\"|REEVE_BOT_PATH=\"\${REEVE_BOT_PATH:-${REEVE_BOT_PATH}}\"|" /usr/local/bin/reeve-watchdog
+echo "  Installed /usr/local/bin/reeve-watchdog"
 
 # Install logrotate config
 echo ""
@@ -275,4 +287,6 @@ echo "  reeve-credential-keepalive          # Check/refresh credentials"
 echo "  reeve-status                        # System health overview"
 echo "  reeve-logs                          # Unified log viewer"
 echo "  reeve-queue                         # Pulse queue inspector"
+echo "  reeve-alert                         # Send sentinel alert"
+echo "  reeve-watchdog                      # Run watchdog health check"
 echo "  crontab -l                          # View scheduled tasks"

@@ -114,6 +114,34 @@ class PulseDaemon:
                 self.logger.info(f"Pulse {pulse_id} scheduled for retry as pulse {retry_pulse_id}")
             else:
                 self.logger.error(f"Pulse {pulse_id} failed permanently (no retries left)")
+                self._send_sentinel_alert(pulse, str(e))
+
+    def _send_sentinel_alert(self, pulse: Pulse, error: str) -> None:
+        """Send a sentinel alert for a permanently failed pulse. Never raises."""
+        try:
+            from reeve.sentinel import send_alert
+
+            prompt_preview = (
+                pulse.prompt[:80] + "..." if len(pulse.prompt) > 80 else pulse.prompt
+            )
+            error_preview = error[:200] if error else "Unknown error"
+
+            message = (
+                f"Pulse failed permanently\n\n"
+                f'Prompt: "{prompt_preview}"\n'
+                f"Error: {error_preview}\n"
+                f"Retries: {pulse.max_retries}/{pulse.max_retries} exhausted"
+                f" | Pulse #{pulse.id}\n\n"
+                f"Check: reeve-logs"
+            )
+
+            send_alert(
+                message,
+                cooldown_key=f"pulse_failed_{pulse.id}",
+                cooldown_seconds=3600,
+            )
+        except Exception:
+            self.logger.debug("Sentinel alert failed (swallowed)", exc_info=True)
 
     async def _scheduler_loop(self) -> None:
         """
